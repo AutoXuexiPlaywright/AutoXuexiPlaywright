@@ -1,0 +1,81 @@
+/*主窗口*/
+QMainWindow#main{
+    border:none;
+    border-radius:5px;
+    background-color:#c5cae9;
+}
+/*标题*/
+QLabel#title{
+    border:none;
+    border-radius:5px;
+    font-size:35px;
+}
+/*分数*/
+QLabel#score{
+    border:none;
+    border-radius:5px;
+    font-size:20px;
+}
+/*关闭按钮*/
+QPushButton#close{
+    border:none;
+    border-radius:5px;
+    background-color:#ff9074;
+    width:15px;
+    height:15px;
+}
+QPushButton#close::hover{
+    background-color:#ff4618;
+}
+/*最小化按钮*/
+QPushButton#minimize{
+    background:#93aab5;
+    border-radius:5px;
+    border:none;
+    width:15px;
+    height:15px;
+}
+QPushButton#minimize:hover{
+    background-color:#546e7a;
+}
+/*日志输出框*/
+QPlainTextEdit#logpanel{
+    border:none;
+    border-radius:5px;
+    background-color:#b5bce3;
+}
+/*开始按钮*/
+QPushButton#start{
+    border:none;
+    border-radius:5px;
+    background-color:#8791d1;
+    font-size:20px;
+}
+QPushButton#start:hover{
+    background-color:#6775c6;
+}
+/*置顶切换复选框*/
+QCheckBox#ontop{
+    border:none;
+    border-radius:5px;
+    background:none; 
+}
+QCheckBox#ontop::indicator{
+    border:none;
+    border-radius:5px;
+    width:15px;
+    height:15px;
+    subcontrol-position: right center;
+}
+QCheckBox#ontop::indicator:unchecked{
+    background-color:#abb2df;
+}
+QCheckBox#ontop::indicator:unchecked:hover{
+    background-color:#9ca3d9;
+}
+QCheckBox#ontop::indicator:checked{
+    background-color:#8c95d3;
+}
+QCheckBox#ontop::indicator:checked:hover{
+    background-color:#7c86cd;
+}
