@@ -143,7 +143,6 @@ class MainUI(QMainWindow):
             label.move(round((self.centralWidget().width()-label.width())/2),round((self.centralWidget().height()-label.height())/2))
             label.show()
     def pause_thread(self,title:str):
-        
         title="未找到 %s 的答案，你需要手动输入并使用 # 连接多选题的答案" %title
         text,status=QInputDialog.getText(self,title,"答案：",QLineEdit.EchoMode.Normal,"")
         if status==False:
