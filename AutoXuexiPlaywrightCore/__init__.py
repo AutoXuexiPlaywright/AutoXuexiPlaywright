@@ -1,8 +1,7 @@
-import os
 import base64
 from . import AutoXuexiPlaywrightCore
 
-APPID="AutoXuexiPlaywright"
+APPID=AutoXuexiPlaywrightCore.APPID
 APPICON="""iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAADeUlEQVRIie2WbWhWZRjH/5vnCaIPQSNMocYTjD70MjWWYumYQ2tiG1YoSkzLaVRQiLZyFUQfil6s5UgGg4Fk
         hhiuxd7SvTrcRDcjpfq4F9CtfGboBN15nnN+fbjceXp8XiYY2YfdcOBwn+u6fv/7uq/7uk+WK6HbMLJvB3QWPAtOGKFz5+X81+DQxs2S78m7BdCcG2GuRKaHkrXgurBhE66Er7t
         hxZqMPgn+9y+Awz9AXz8MDQXzGcF8uhvG/zCnsvU2d/IUXLtG7AbbqATlFXgSMQnK1kNPL7S24SsLStdB/4nMYFaVQfGzxCQ8Cc6dh+XP2Lf6fbDn67htQRHU1sHoKABoPigH3t
@@ -14,9 +13,3 @@ APPICON="""iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAADeUlEQVRIie2WbWhWZRjH/
         SWSrlhfUvbWl+VJN/f7OTUldX4nNTZJjiOvqlKhg4ekSESxDG4p73ZfklNdI+XcI82dK911Z9oA/s7tyo7FpOER6eyvmpNXIPm+1PBjZsHpUuFKdln09cNDT6S1cSX48KOU/TjT
         k+XeZEb/7fH//9mbBd/q+BuapkzTsaP4XQAAAABJRU5ErkJggg=="""
 APPICONBYTES=base64.b64decode(APPICON)
-
-def start_core():
-    os.chdir(os.path.join(os.path.split(os.path.realpath(__file__))[0],".."))
-    # 将工作目录转移到脚本所在目录的上层目录，保证下面的相对路径都能正确找到文件以及符合修改后的项目结构
-    processor=AutoXuexiPlaywrightCore.XuexiProcessor()
-    processor.start()

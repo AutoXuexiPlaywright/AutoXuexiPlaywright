@@ -16,6 +16,8 @@ from pyzbar import pyzbar
 from urllib.parse import urlparse
 from playwright.sync_api import ProxySettings,sync_playwright,BrowserContext,Page,TimeoutError,ElementHandle
 
+APPID="AutoXuexiPlaywright"
+
 class XuexiProcessor():
     def __init__(self,gui:bool=False,st:logging.Handler=None,**kwargs):
         default_conf={
@@ -60,7 +62,7 @@ class XuexiProcessor():
             level=logging.DEBUG
             os.putenv("DEBUG","pw:api")
         self.logger=logging.getLogger(__name__)
-        fh=logging.FileHandler(filename="AutoXuexiPlaywright.log",mode="w",encoding="utf-8")
+        fh=logging.FileHandler(filename=APPID+".log",mode="w",encoding="utf-8")
         fmt=logging.Formatter(fmt="%(asctime)s-%(levelname)s-%(message)s",datefmt="%Y-%m-%d %H:%M:%S")
         fh.setFormatter(fmt)
         fh.setLevel(level)

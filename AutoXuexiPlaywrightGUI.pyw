@@ -68,8 +68,8 @@ class MainUI(QMainWindow):
         title.setParent(central_widget)
         title.setObjectName("title")
         title.setFixedWidth(self.width()-50)
-        score=QLabel("总分：0\n今日得分：0")
-        score.setAlignment(Qt.AlignmentFlag.AlignRight)
+        score=QLabel("全部得分：0\n今日得分：0")
+        score.setAlignment(Qt.AlignmentFlag.AlignLeft)
         score.setParent(central_widget)
         score.setObjectName("score")
         control=QHBoxLayout()
@@ -104,7 +104,7 @@ class MainUI(QMainWindow):
         self.update_status_signal.connect(log_panel.setToolTip)
         self.pause_thread_signal.connect(self.pause_thread)
         self.qr_control_signal.connect(self.handle_qr)
-        self.update_score_signal.connect(lambda scores:score.setText("总分：%d\n今日得分：%d" %scores))
+        self.update_score_signal.connect(lambda scores:score.setText("全部得分：%d\n今日得分：%d" %scores))
         self.wthread=QThread()
         self.job=SubProcessJob(answer_queue=self.answer_queue,job_finish_signal=self.job_finish_signal,update_log_signal=self.update_log_signal,
                                update_status_signal=self.update_status_signal,pause_thread_signal=self.pause_thread_signal,wait=self.wait,
