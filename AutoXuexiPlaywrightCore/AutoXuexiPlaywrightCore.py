@@ -751,9 +751,4 @@ class XuexiProcessor():
             finally:
                 time.sleep(5)
         page.close()
-if __name__=="__main__":
-    os.chdir(os.path.join(os.path.split(os.path.realpath(__file__))[0],".."))
-    # 将工作目录转移到脚本所在目录的上层目录，保证下面的相对路径都能正确找到文件以及符合修改后的项目结构
-    processor=XuexiProcessor()
-    processor.start()
     
