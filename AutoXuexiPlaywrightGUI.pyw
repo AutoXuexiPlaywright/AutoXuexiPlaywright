@@ -6,7 +6,7 @@ import logging
 import platform
 from PySide6.QtGui import QMouseEvent, QPixmap
 from PySide6.QtCore import QFile, QMutex, QPoint, QPointF, QThread, QWaitCondition, Qt, Signal, QObject, QIODeviceBase
-from PySide6.QtWidgets import QApplication, QCheckBox, QGridLayout, QInputDialog, QLabel, QLineEdit, QMainWindow, QPlainTextEdit, QPushButton, QHBoxLayout, QWidget
+from PySide6.QtWidgets import QApplication, QCheckBox, QVBoxLayout, QInputDialog, QLabel, QLineEdit, QMainWindow, QPlainTextEdit, QPushButton, QHBoxLayout, QWidget
 from AutoXuexiPlaywrightCore import AutoXuexiPlaywrightCore, APPID, APPICONBYTES
 
 if platform.system()=="Windows":
@@ -56,20 +56,20 @@ class MainUI(QMainWindow):
         self.wait=QWaitCondition()
         self.setWindowTitle(APPID)
         self.setWindowIcon(icon)
-        self.resize(800,600)
         self.setWindowOpacity(0.9)
         self.setObjectName("main")
-        central_widget=QWidget()
+        self.resize(800,600)
+        central_widget=QWidget(self)
         central_widget.setObjectName("central")
         self.setCentralWidget(central_widget)
-        layout=QGridLayout()
+        layout=QVBoxLayout()
+        title_layout=QHBoxLayout()
         title=QLabel(APPID)
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title.setParent(central_widget)
         title.setObjectName("title")
-        title.setFixedWidth(self.width()-50)
         score=QLabel("全部得分：0\n今日得分：0")
-        score.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        score.setAlignment(Qt.AlignmentFlag.AlignVCenter)
         score.setParent(central_widget)
         score.setObjectName("score")
         control=QHBoxLayout()
@@ -118,15 +118,18 @@ class MainUI(QMainWindow):
         min_btn.clicked.connect(self.showMinimized)
         ontop_check.stateChanged.connect(self.switch_ontop)
         start_btn.clicked.connect(lambda:(self.wthread.start(),start_btn.setEnabled(False),start_btn.setToolTip("处理中..."),start_btn.setText("处理中...")))
-        layout.addWidget(score,0,0)
-        layout.addWidget(title,0,1)
-        layout.addLayout(control,0,2)
-        layout.addWidget(log_panel,1,0,1,3)
-        layout.addWidget(start_btn,2,0,1,3)
+        title_layout.addWidget(score,1)
+        title_layout.addWidget(title,8)
+        title_layout.addLayout(control,1)
+        layout.addLayout(title_layout)
+        layout.addWidget(log_panel)
+        layout.addWidget(start_btn)
         qss=QFile("MainUI.qss")
         qss.open(QIODeviceBase.OpenModeFlag.ReadOnly)
         self.setStyleSheet(qss.read(qss.size()).data().decode())
         qss.close()
+        title_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         central_widget.setLayout(layout)
     def handle_qr(self,qr:bytes):
         label=self.centralWidget().findChild(QLabel,"qrlabel")

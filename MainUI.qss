@@ -14,7 +14,8 @@ QLabel#title{
 QLabel#score{
     border:none;
     border-radius:5px;
-    font-size:20px;
+    font-size:12px;
+    width:150px;
 }
 /*关闭按钮*/
 QPushButton#close{
