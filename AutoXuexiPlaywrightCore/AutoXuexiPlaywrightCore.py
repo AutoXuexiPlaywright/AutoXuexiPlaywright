@@ -501,7 +501,7 @@ class XuexiProcessor():
                     tips_btn.click()
                     self.logger.debug("已打开提示")
                 popover=self.conv_element(page.wait_for_selector('div[class*="ant-popover"]'))
-                if popover.get_attribute("class")!=None and "ant-popover-hidden" not in str(popover.get_attribute("class")):
+                if popover.get_attribute("class") is not None and "ant-popover-hidden" not in str(popover.get_attribute("class")):
                     line_feed=self.conv_element(popover.query_selector("div.line-feed"))
                     tips=[tip.inner_text().strip() for tip in line_feed.query_selector_all('font[color="red"]')]
                 else:
@@ -516,11 +516,11 @@ class XuexiProcessor():
             self.logger.debug("找到答案：%s" %tips)
             if tips==[]:
                 # 手动输入答案
-                video=page.query_selector("video")
-                if video!=None:
-                    video.scroll_into_view_if_needed()
-                    with page.expect_response(re.compile(r"https:\/\/.+\.(m3u8|mp4)")) as response:
-                        page.click('div.outter',timeout=1000)
+                video=page.query_selector("div.video-player video")
+                if video is not None:
+                    video.hover()
+                    with page.expect_response(re.compile('https://.+\\.(m3u8|mp4)')) as response:
+                        page.click('div.video-player div.outter',timeout=1000)
                     self.logger.debug("开始下载 %s MIME类型视频 %s" %(response.value.all_headers()["content-type"],response.value.url))
                     if response.value.url.endswith(".mp4"):
                         with open("video.mp4","wb") as writer:
@@ -579,25 +579,34 @@ class XuexiProcessor():
                 blank=False
                 self.logger.debug("问题类型为选择题")
             available=False
-            for tip_ in tips:
+            if len(tips)==len(answers) and blank==False:
                 for answer in answers:
-                    answer.scroll_into_view_if_needed()
-                    if blank==False:
-                        class_of_answer=answer.get_attribute("class")
-                        self.logger.debug("获取答案class：%s" %class_of_answer)
-                        if class_of_answer==None:
-                            self.logger.debug("不正常的选择项目？")
-                            continue
-                        if "chosen" not in class_of_answer and tip_ in answer.inner_text().strip():
-                            time.sleep(random.uniform(self.conf["advanced"]["answer_sleep_min"],self.conf["advanced"]["answer_sleep_max"]))
-                            answer.click()
-                            self.logger.debug("选择 %s" %answer.inner_text().strip())
-                            available=True
-                    elif answers.index(answer)==tips.index(tip_):
+                    class_of_answer=answer.get_attribute("class")
+                    if class_of_answer is None:
+                        class_of_answer=""
+                    if "chosen" not in class_of_answer:
                         time.sleep(random.uniform(self.conf["advanced"]["answer_sleep_min"],self.conf["advanced"]["answer_sleep_max"]))
-                        answer.fill(tip_)
-                        self.logger.debug("填入 %s" %tip_)
-                        available=True
+                        answer.click()
+                available=True
+            else:
+                for tip_ in tips:
+                    for answer in answers:
+                        if blank==False:
+                            class_of_answer=answer.get_attribute("class")
+                            self.logger.debug("获取答案class：%s" %class_of_answer)
+                            if class_of_answer is None:
+                                self.logger.debug("不正常的选择项目？")
+                                continue
+                            if "chosen" not in class_of_answer and tip_ in answer.inner_text().strip():
+                                time.sleep(random.uniform(self.conf["advanced"]["answer_sleep_min"],self.conf["advanced"]["answer_sleep_max"]))
+                                answer.click()
+                                self.logger.debug("选择 %s" %answer.inner_text().strip())
+                                available=True
+                        elif answers.index(answer)==tips.index(tip_):
+                            time.sleep(random.uniform(self.conf["advanced"]["answer_sleep_min"],self.conf["advanced"]["answer_sleep_max"]))
+                            answer.fill(tip_)
+                            self.logger.debug("填入 %s" %tip_)
+                            available=True
             if available==False:
                 self.logger.error("无显式答案")
                 r=random.choice(answers)
@@ -614,22 +623,24 @@ class XuexiProcessor():
                     btn_next.click()
                 solution=page.query_selector('div.solution')
                 if solution is not None:
+                    if answer_in_db !=[]:
+                        self.logger.info("数据库似乎记录了错误的答案？我们将删除这条记录")
+                        self.remove_answer(title)
                     self.logger.info("本次答题输入的答案有误，将记录网页的答案")
                     true_answer=[ele.inner_text().strip() for ele in solution.query_selector_all('font[color="red"]')]
                     self.logger.debug("网页获取的原始答案：%s" %true_answer)
                     if true_answer!=[]:
-                        if len(true_answer)!=len(answers):
+                        if len(true_answer)>len(answers):
                             part=int(len(true_answer)/len(answers))
-                            if part!=0:
-                                true_answer=[" ".join(true_answer[i:i+part]) for i in range(0,len(true_answer),part)]
-                            else:
-                                true_answer=[]
+                            true_answer=[" ".join(true_answer[i:i+part]) for i in range(0,len(true_answer),part)]
                         else:
-                            true_answer=[" ".join(true_answer)]
+                            self.logger.warning("查询到的答案数不大于需要回答内容数，我们将不记录这个答案")
+                            true_answer=[]
                         if blank==True:
                             true_answer=[ans.replace(" ","") for ans in true_answer]
                         self.logger.debug("记录到的真实答案：%s" %true_answer)
                         #self.record_answer(title,true_answer)
+                        # TODO: How to get valid answer because tips may not same to answer
                     else:
                         self.logger.warning("从网页上查询真实答案出错")
                 else:
@@ -637,7 +648,7 @@ class XuexiProcessor():
             if manual==True:
                 self.record_answer(title=title,answer=tips)
             try:
-                container=self.conv_element(page.wait_for_selector(selector='div.ant-spin-nested-loading>div.ant-spin-container',timeout=self.conf["advanced"]["wait_result_secs"]*1000))
+                container=self.conv_element(page.wait_for_selector('div.ant-spin-nested-loading>div.ant-spin-container',timeout=self.conf["advanced"]["wait_result_secs"]*1000))
             except TimeoutError:
                 self.logger.debug("无答题结果元素，测试未结束")
             else:
@@ -692,6 +703,10 @@ class XuexiProcessor():
             else:
                 self.logger.debug("数据库中无记录")
         return result
+    def remove_answer(self,title:str):
+        title=base64.b64encode(title.encode()).decode()
+        self.db.execute("DELETE FROM answer where QUESTION=?",(title,))
+        self.db.commit()
     def upgrade_db(self):
         if self.conf["updated"]==False:
             self.logger.info("正在更新数据库存储格式") 
