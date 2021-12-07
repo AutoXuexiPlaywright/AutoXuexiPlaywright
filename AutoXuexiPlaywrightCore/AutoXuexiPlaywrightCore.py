@@ -14,7 +14,7 @@ import platform
 from PIL import Image
 from pyzbar import pyzbar
 from urllib.parse import urlparse
-from playwright.sync_api import ProxySettings,sync_playwright,BrowserContext,Page,TimeoutError,ElementHandle
+from playwright.sync_api import ProxySettings,sync_playwright,BrowserContext,Page,TimeoutError
 
 APPID="AutoXuexiPlaywright"
 
