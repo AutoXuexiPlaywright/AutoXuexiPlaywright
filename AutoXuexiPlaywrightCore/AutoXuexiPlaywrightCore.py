@@ -752,11 +752,6 @@ class XuexiProcessor():
             self.logger.info("GUI 模式无法输出二维码到终端，请扫描程序文件夹或者弹出的二维码图片")
             if self.qr_control_signal is not None:
                 self.qr_control_signal.emit(img)
-    def conv_element(self,i:ElementHandle|None):
-        if i is None:
-            raise RuntimeError("未找到目标元素")
-        else:
-            return i
     def test(self,context:BrowserContext):
         # 用于开发时测试脚本功能的函数，在 self.start(test=True) 时执行，正常使用时无需此函数
         if self.is_login==False:
