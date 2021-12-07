@@ -167,32 +167,31 @@ class XuexiProcessor():
         page=context.new_page()
         page.bring_to_front()
         page.goto("https://pc.xuexi.cn/points/login.html")
-        if page.query_selector("div.main-box") is None:
+        if page.locator("div.main-box").count()==0:
             self.logger.info("未能使用 cookie 免登录，将使用传统方案")
             fnum=0
             while True:
-                iframe=self.conv_element(self.conv_element(page.wait_for_selector("#qglogin")).query_selector("iframe")).content_frame()
-                if iframe is None:
-                    raise RuntimeError("未找到登录 iframe")
-                iframe.frame_element().scroll_into_view_if_needed()
-                self.logger.debug("寻找到iframe %s" %iframe.title())
-                img=self.conv_element(iframe.wait_for_selector(selector="#app")).wait_for_selector("img")
-                if img is None:
+                iframe=page.frame_locator("div#qglogin>iframe")
+                locator=iframe.locator("div#app img")
+                try:
+                    locator.wait_for()
+                except TimeoutError:
                     self.logger.error("加载图片失败")
                     raise RuntimeError("加载二维码图片失败，请检查网络连接并等一会儿再试。")
-                img=base64.b64decode(str(img.get_attribute("src")).split(",")[1])
+                img=base64.b64decode(str(locator.get_attribute("src")).split(",")[1])
                 with open(file="qr.png",mode="wb") as writer:
                     writer.write(img)
                 self.logger.info("登录二维码已保存至程序文件夹，请扫描下方或者文件夹内的二维码完成登录")
                 self.img2shell(img)
+                locator=page.locator('div.point-manage')
                 try:
-                    page.wait_for_selector(".point-manage",timeout=300000)
+                    locator.wait_for(timeout=300000)
                 except TimeoutError:
-                    fnum=fnum+1
-                    page.reload()
                     if fnum>self.conf["advanced"]["login_retry"]:
                         self.logger.error("超时次数超过 %d 次，终止尝试" %self.conf["advanced"]["login_retry"])
                         break
+                    fnum=fnum+1
+                    page.reload()
                 else:
                     break
         else:
@@ -213,8 +212,9 @@ class XuexiProcessor():
         total=-1
         while True:
             page.goto("https://pc.xuexi.cn/points/my-points.html",wait_until="networkidle")
-            page.wait_for_selector('span[class*="my-points-red"]')
-            points=[point.inner_text().strip() for point in page.query_selector_all("span.my-points-points")]
+            page.locator('span[class*="my-points-red"]').wait_for()
+            locator=page.locator("span.my-points-points")
+            points=[point.strip() for point in locator.all_inner_texts()]
             self.logger.debug("获取总分信息：%s" %points)
             try:
                 total=int(points[0])
@@ -224,23 +224,24 @@ class XuexiProcessor():
             self.logger.info("已获得分数：%d，今日获得分数：%d" %(total,today))
             if self.gui==True and (self.update_score_signal is not None):
                 self.update_score_signal.emit((total,today))
-            cards=page.wait_for_selector(".my-points-content")
-            if cards is None:
+            points_content=page.locator("div.my-points-content")
+            try:
+                points_content.wait_for()
+            except TimeoutError:
                 self.logger.error("未获取到正确的卡片")
                 raise RuntimeError("获取分数卡片失败")
             else:                
-                cards=cards.query_selector_all(".my-points-card")
-            self.logger.debug("得分卡片：%s" %[self.conv_element(card.query_selector(".my-points-card-title")).inner_text().strip() for card in cards])
-            if len(cards)<=0:
-                self.logger.error("未获取到正确的卡片")
-                raise RuntimeError("获取分数卡片失败")
+                cards=points_content.locator("div.my-points-card")
+                titles=cards.locator("p.my-points-card-title")
+                texts=cards.locator("div.my-points-card-text")
+                buttons=cards.locator("div.big")
+            self.logger.debug("得分卡片：%s" %[title.strip() for title in titles.all_inner_texts()])
             finish=True
-            for card in cards:
-                card.scroll_into_view_if_needed()
-                point_text=self.conv_element(card.query_selector(".my-points-card-text")).inner_text().strip()
+            for i in range(cards.count()):
+                point_text=texts.all_inner_texts()[i].strip()
                 have=int(point_text.split("/")[0].replace("分",""))
                 target=int(point_text.split("/")[1].replace("分",""))
-                card_title=self.conv_element(card.query_selector(".my-points-card-title")).inner_text().strip()
+                card_title=titles.all_inner_texts()[i].strip()
                 if "视听学习" in card_title:
                     handle_type="video"
                 elif "答题" in card_title:
@@ -258,13 +259,13 @@ class XuexiProcessor():
                     if handle_type!="test":
                         try:
                             with context.expect_page(timeout=self.conf["advanced"]["wait_newpage_secs"]*1000) as page_info:
-                                self.conv_element(card.query_selector(".big")).click()
+                                buttons.nth(i).click()
                             all_available=self.handle(page=page_info.value,handle_type=handle_type)
                         except TimeoutError:
                             all_available=self.handle(page=page,handle_type=handle_type)
                     else:
                         page.add_init_script("() => delete window.navigator.serviceWorker")
-                        self.conv_element(card.query_selector(".big")).click()
+                        buttons.nth(i).click()
                         all_available=self.handle(page=page,handle_type=handle_type)
                         if all_available==False:
                             finished.add(card_title)
@@ -298,30 +299,32 @@ class XuexiProcessor():
                 page_3.bring_to_front()
                 page_3.wait_for_load_state("networkidle")
                 while True:
-                    divs=page_3.query_selector_all('div.textWrapper')
-                    if len(divs)==0:
+                    divs=page_3.locator('div.textWrapper')
+                    if divs.count==0:
                         self.logger.error("未找到有效的视频")
                         raise RuntimeError("未找到有效视频")
-                    self.logger.debug("找到 %d 个视频" %len(divs))
+                    self.logger.debug("找到 %d 个视频" %divs.count())
                     empty=True
                     page_num=1
-                    for div in divs:
-                        target_url=div.get_attribute("data-link-target")
+                    for i in range(divs.count()):
+                        target_url=divs.nth(i).get_attribute("data-link-target")
                         target_url="" if target_url is None else target_url
-                        target_title=div.inner_text().strip().replace("\n"," ")
+                        target_title=divs.nth(i).inner_text().strip().replace("\n"," ")
                         self.logger.info("正在检查 %s 的阅读记录" %target_title)
                         if self.is_read(target_url)==True:
                             self.logger.info("%s 在 %d 天内已阅读" %(target_title,self.conf["keep_in_database"]))
                             continue
                         with page_3.context.expect_page() as page_info:
-                            div.click()
+                            divs.nth(i).click()
                         page_4=page_info.value
                         try:
-                            title=page_4.wait_for_selector(".videoSet-article-title",timeout=10000)
+                            title=page_4.locator("div.videoSet-article-title")
+                            title.wait_for(timeout=10000)
                         except TimeoutError:
-                            title=page_4.wait_for_selector(".video-article-title",timeout=10000)
-                        self.logger.info("正在处理：%s" %self.conv_element(title).inner_text().replace("\n"," "))
-                        video=self.conv_element(page_4.wait_for_selector("video"))
+                            title=page_4.locator("div.video-article-title")
+                            title.wait_for(timeout=10000)
+                        self.logger.info("正在处理：%s" %title.inner_text().replace("\n"," "))
+                        video=page_4.locator("video")
                         if page_4.url.startswith("https://www.xuexi.cn/lgpage/detail/index.html?id=")==False:
                             self.logger.debug("非正常视频页面")
                             continue
@@ -343,22 +346,21 @@ class XuexiProcessor():
                                         page_4.click('div.outter',timeout=2000)
                                     except TimeoutError:
                                         self.logger.debug("切换视频播放状态失败")
-                            ps=page_4.query_selector_all(".video-article-summary>p")+page_4.query_selector_all('div.videoSet-article-summary>p')
-                            ps=[p for p in ps if p.inner_text()!=""]
-                            for p in ps:
-                                if p.is_visible()==True:
-                                    time.sleep(random.uniform(0.1,5.0))
-                                    p.scroll_into_view_if_needed()
-                            if len(ps)>0:
+                            ps=page_4.locator("div.video-article-summary>p,div.videoSet-article-summary>p")
+                            if ps.count()>0:
+                                for i in range(ps.count()):
+                                    if ps.nth(i).is_visible()==True:
+                                        time.sleep(random.uniform(0.1,5.0))
+                                        ps.nth(i).scroll_into_view_if_needed()
                                 time.sleep(random.uniform(0,3))
-                                p_r=random.choice(ps)
+                                p_r=ps.nth(random.randint(0,ps.count()-1))
                                 if p_r.is_visible()==True:
                                     p_r.scroll_into_view_if_needed()
                         page_4.close()
                         break
                     if empty==True:
                         self.logger.warning("没有足够的视频，将尝试在第 %d 页寻找新的视频" %page_num)
-                        self.conv_element(page_3.query_selector('//div/div[contains(text(),">>")]')).click()
+                        page_3.locator('//div/div[contains(text(),">>")]').click()
                         page_num=page_num+1
                     else:
                         break
@@ -366,20 +368,20 @@ class XuexiProcessor():
                 self.logger.debug("处理类型：文章")
                 # 文章
                 with page.context.expect_page() as page_info:
-                    self.conv_element(page.wait_for_selector('section[data-data-id="zhaiyao-title"] span.moreUrl')).click()
+                    page.locator('section[data-data-id="zhaiyao-title"] span.moreUrl').click()
                 self.logger.debug("已点击“更多头条”链接")
                 page_2=page_info.value
                 while True:
-                    page_2.wait_for_selector("div.text>span")
-                    spans=page_2.query_selector_all('div.text-wrap>span.text')
+                    page_2.locator("div.text>span").wait_for()
+                    spans=page_2.locator('div.text-wrap>span.text')
                     empty=True
                     page_num=1
-                    for span in spans:
+                    for i in range(spans.count()):
                         with page_2.context.expect_page() as page_info:
-                            span.click()
+                            spans.nth(i).click()
                         self.logger.debug("已点击对应链接")
                         page_3=page_info.value
-                        target_title=self.conv_element(page_3.wait_for_selector("div.render-detail-title")).inner_text().strip().replace("\n"," ")
+                        target_title=page_3.locator("div.render-detail-title").inner_text().strip().replace("\n"," ")
                         self.logger.info("正在处理：%s" %target_title)
                         if page_3.url.startswith("https://www.xuexi.cn/lgpage/detail/index.html?id=")==False:
                             self.logger.debug("非正常文章页面")
@@ -396,21 +398,21 @@ class XuexiProcessor():
                                 empty=False
                                 break
                             time.sleep(random.uniform(0.0,5.0))
-                            ps=page_3.query_selector_all('div[class*="render-detail-content"]>p')
-                            for p in ps:
-                                if p.is_visible()==True:
-                                    time.sleep(random.uniform(0.1,5.0))
-                                    p.scroll_into_view_if_needed()
-                            if len(ps)>0:
+                            ps=page_3.locator('div[class*="render-detail-content"]>p')
+                            if ps.count()>0:
+                                for i in range(ps.count()):
+                                    if ps.nth(i).is_visible()==True:
+                                        time.sleep(random.uniform(0.1,5.0))
+                                        ps.nth(i).scroll_into_view_if_needed()
                                 time.sleep(random.uniform(0.5,5.0))
-                                p_r=random.choice(ps)
+                                p_r=ps.nth(random.randint(0,ps.count()-1))
                                 if p_r.is_visible()==True:
                                     p_r.scroll_into_view_if_needed()
                         page_3.close()
                         break
                     if empty==True:
                         self.logger.warning("没有足够的文章，将尝试在第 %d 页寻找新的文章" %page_num)
-                        self.conv_element(page_2.query_selector('//div/div[contains(text(),">>")]')).click()
+                        page_2.locator('//div/div[contains(text(),">>")]').click()
                         page_num=page_num+1
                     else:
                         break
@@ -426,22 +428,22 @@ class XuexiProcessor():
                 self.logger.debug("正在处理每周答题")
                 i=1
                 while True:
-                    btns=self.conv_element(page.wait_for_selector('div[class="ant-spin-container"]')).query_selector_all('button[class*="ant-btn-primary"]')
-                    for btn in btns:
-                        if self.conv_element(btn.query_selector("span")).inner_text().strip()=="重新答题":
+                    btns=page.locator('div[class="ant-spin-container"] button[class*="ant-btn-primary"]')
+                    for i in range(btns.count()):
+                        if btns.nth(i).locator("span").inner_text().strip()=="重新答题":
                             self.logger.debug("答题已完成，正在跳至下一个")
                             available=False
                         else:
                             available=True
-                            btn.click()
-                            self.logger.info("正在处理：%s" %self.conv_element(page.wait_for_selector("div.title")).inner_text().strip().replace("\n"," "))
+                            btns.nth(i).click()
+                            self.logger.info("正在处理：%s" %page.locator("div.title").inner_text().strip().replace("\n"," "))
                             self.finish_test(page=page)
                             break
                     if available==True:
                         self.logger.info("已完成测试")
                         break
                     else:
-                        next_btn=self.conv_element(page.query_selector('li.ant-pagination-next'))
+                        next_btn=page.locator('li.ant-pagination-next')
                         i+=1
                         self.logger.warning("本页测试均完成，将在第 %d 页寻找新的未完成测试" %i)
                         next_btn.click()
@@ -452,22 +454,22 @@ class XuexiProcessor():
                 self.logger.debug("正在处理专项答题")
                 i=1
                 while True:
-                    items=self.conv_element(page.wait_for_selector('div.items')).query_selector_all('div.item')
-                    for item in items:
-                        if item.query_selector("a.solution") is not None:
+                    items=page.locator('div.items>div.item')
+                    for i in range(items.count()):
+                        if items.nth(i).locator("a.solution").count()!=0:
                             self.logger.debug("答题已完成，正在跳过")
                             available=False
                         else:
                             available=True
-                            self.conv_element(item.query_selector('button[type="button"]')).click()
-                            self.logger.info("正在处理：%s" %self.conv_element(page.wait_for_selector("div.title")).inner_text().strip().replace("\n"," "))
+                            items.nth(i).locator('button[type="button"]').click()
+                            self.logger.info("正在处理：%s" %page.locator("div.title").inner_text().strip().replace("\n"," "))
                             self.finish_test(page=page)
                             break
                     if available==True:
                         self.logger.info("已完成测试")
                         break
                     else:
-                        next_btn=self.conv_element(page.query_selector('li.ant-pagination-next'))
+                        next_btn=page.locator('li.ant-pagination-next')
                         i+=1
                         self.logger.warning("本页测试均完成，将在第 %d 页寻找新的未完成测试" %i)
                         next_btn.click()
@@ -482,31 +484,31 @@ class XuexiProcessor():
         return available
     def finish_test(self,page:Page):
         while True:
-            if page.query_selector('div[class*="ant-modal-wrap"]') is not None:
+            if page.locator('div[class*="ant-modal-wrap"]').count()!=0:
                 self.logger.error("答题次数超过网页版限制")
                 break
             manual=False
             self.logger.debug("正在寻找问题元素")
-            question=self.conv_element(self.conv_element(page.wait_for_selector('div.detail-body')).query_selector("div.question"))
+            question=page.locator('div.detail-body>div.question')
             question.scroll_into_view_if_needed()
-            title=self.conv_element(question.query_selector("div.q-body")).inner_text().strip().replace("\n"," ")
+            title=question.locator("div.q-body").inner_text().strip().replace("\n"," ")
             self.logger.debug("已找到标题：%s" %title)
             answer_in_db=self.get_answer(title=title)
             if answer_in_db!=[]:
                 tips=answer_in_db
             else:
-                tips_btn=self.conv_element(question.wait_for_selector('span.tips'))
+                tips_btn=question.locator('span.tips')
                 class_value=tips_btn.get_attribute("class")
                 if "ant-popover-open" not in "" if class_value is None else class_value:
                     tips_btn.click()
                     self.logger.debug("已打开提示")
-                popover=self.conv_element(page.wait_for_selector('div[class*="ant-popover"]'))
+                popover=page.locator('div[class*="ant-popover"]')
                 if popover.get_attribute("class") is not None and "ant-popover-hidden" not in str(popover.get_attribute("class")):
-                    line_feed=self.conv_element(popover.query_selector("div.line-feed"))
-                    tips=[tip.inner_text().strip() for tip in line_feed.query_selector_all('font[color="red"]')]
+                    line_feed=popover.locator("div.line-feed")
+                    tips=[tip.strip() for tip in line_feed.locator('font[color="red"]').all_inner_texts()]
                 else:
                     tips=[]
-                tips_btn=self.conv_element(question.wait_for_selector('span[class*="tips"]'))
+                tips_btn=question.locator('span[class*="tips"]')
                 class_value=tips_btn.get_attribute("class")
                 if "ant-popover-open" in "" if class_value is None else class_value:
                     tips_btn.click()
@@ -516,8 +518,8 @@ class XuexiProcessor():
             self.logger.debug("找到答案：%s" %tips)
             if tips==[]:
                 # 手动输入答案
-                video=page.query_selector("div.video-player video")
-                if video is not None:
+                video=page.locator("div.video-player video")
+                if video.count!=0:
                     video.hover()
                     with page.expect_response(re.compile('https://.+\\.(m3u8|mp4)')) as response:
                         page.click('div.video-player div.outter',timeout=1000)
@@ -569,69 +571,69 @@ class XuexiProcessor():
                         self.logger.warning("互斥锁为空，子线程可能无法正常恢复")
                     # TODO: pause QThread and wait for input
                 manual=True
-            answers_e=question.query_selector("div.q-answers")
-            if answers_e is None:
-                answers=question.query_selector_all("input.blank")
+            answers_e=question.locator("div.q-answers")
+            if answers_e.count()!=0:
+                answers=question.locator("input.blank")
                 blank=True
                 self.logger.debug("问题类型为填空题")
             else:
-                answers=answers_e.query_selector_all('div[class*="q-answer"]')
+                answers=answers_e.locator('div[class*="q-answer"]')
                 blank=False
                 self.logger.debug("问题类型为选择题")
             available=False
-            if len(tips)==len(answers) and blank==False:
-                for answer in answers:
-                    class_of_answer=answer.get_attribute("class")
+            if len(tips)==answers.count() and blank==False:
+                for i in range(answers.count()):
+                    class_of_answer=answers.nth(i).get_attribute("class")
                     if class_of_answer is None:
                         class_of_answer=""
                     if "chosen" not in class_of_answer:
                         time.sleep(random.uniform(self.conf["advanced"]["answer_sleep_min"],self.conf["advanced"]["answer_sleep_max"]))
-                        answer.click()
+                        answers.nth(i).click()
                 available=True
             else:
                 for tip_ in tips:
-                    for answer in answers:
+                    for i in range(answers.count()):
                         if blank==False:
-                            class_of_answer=answer.get_attribute("class")
+                            class_of_answer=answers.nth(i).get_attribute("class")
                             self.logger.debug("获取答案class：%s" %class_of_answer)
                             if class_of_answer is None:
                                 self.logger.debug("不正常的选择项目？")
                                 continue
-                            if "chosen" not in class_of_answer and tip_ in answer.inner_text().strip():
+                            if "chosen" not in class_of_answer and tip_ in answers.nth(i).inner_text().strip():
                                 time.sleep(random.uniform(self.conf["advanced"]["answer_sleep_min"],self.conf["advanced"]["answer_sleep_max"]))
-                                answer.click()
-                                self.logger.debug("选择 %s" %answer.inner_text().strip())
+                                answers.nth(i).click()
+                                self.logger.debug("选择 %s" %answers.nth(i).inner_text().strip())
                                 available=True
-                        elif answers.index(answer)==tips.index(tip_):
+                        elif i==tips.index(tip_):
                             time.sleep(random.uniform(self.conf["advanced"]["answer_sleep_min"],self.conf["advanced"]["answer_sleep_max"]))
-                            answer.fill(tip_)
+                            answers.nth(i).fill(tip_)
                             self.logger.debug("填入 %s" %tip_)
                             available=True
             if available==False:
                 self.logger.error("无显式答案")
-                r=random.choice(answers)
+                r=answers.nth(random.randint(0,answers.count()))
                 if "chosen" not in str(r.get_attribute("class")):
                     r.click()
                     self.logger.info("随机选择：%s" %r.inner_text().strip())
             while True:
-                btn_next=self.conv_element(page.query_selector('div.action-row>button[class*="next-btn"]'))
+                btn_next=page.locator('div.action-row>button[class*="next-btn"]')
                 if btn_next.is_enabled()==False:
                     self.logger.debug("已点击“提交”按钮")
-                    self.conv_element(page.query_selector('div.action-row>button[class*="submit-btn"]')).click()
+                    page.locator('div.action-row>button[class*="submit-btn"]').click()
                 else:
                     self.logger.debug("已点击“下一个”按钮")
                     btn_next.click()
-                solution=page.query_selector('div.solution')
-                if solution is not None:
+                solution=page.locator('div.solution')
+                if solution.count()!=0:
                     if answer_in_db !=[]:
                         self.logger.info("数据库似乎记录了错误的答案？我们将删除这条记录")
                         self.remove_answer(title)
                     self.logger.info("本次答题输入的答案有误，将记录网页的答案")
-                    true_answer=[ele.inner_text().strip() for ele in solution.query_selector_all('font[color="red"]')]
+                    true_answer=[ele.strip() for ele in solution.locator('font[color="red"]').all_inner_texts()]
                     self.logger.debug("网页获取的原始答案：%s" %true_answer)
                     if true_answer!=[]:
-                        if len(true_answer)>len(answers):
-                            part=int(len(true_answer)/len(answers))
+                        if len(true_answer)>answers.count():
+                            part=int(len(true_answer)/answers.count())
                             true_answer=[" ".join(true_answer[i:i+part]) for i in range(0,len(true_answer),part)]
                         else:
                             self.logger.warning("查询到的答案数不大于需要回答内容数，我们将不记录这个答案")
@@ -648,11 +650,12 @@ class XuexiProcessor():
             if manual==True:
                 self.record_answer(title=title,answer=tips)
             try:
-                container=self.conv_element(page.wait_for_selector('div.ant-spin-nested-loading>div.ant-spin-container',timeout=self.conf["advanced"]["wait_result_secs"]*1000))
+                container=page.locator('div.ant-spin-nested-loading>div.ant-spin-container')
+                container.wait_for(timeout=self.conf["advanced"]["wait_result_secs"]*1000)
             except TimeoutError:
                 self.logger.debug("无答题结果元素，测试未结束")
             else:
-                if container.query_selector('div.practice-result') is not None:
+                if container.locator('div.practice-result').count()!=0:
                     self.logger.info("已完成测试")
                     break
                 else:
