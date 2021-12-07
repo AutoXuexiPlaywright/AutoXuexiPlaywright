@@ -762,11 +762,8 @@ class XuexiProcessor():
         if self.is_login==False:
             raise RuntimeError("当前未登录")
         page=context.new_page()
-        for _ in range(10):
-            page.goto("https://pc.xuexi.cn/points/exam-practice.html")
-            try:
-                self.finish_test(page)
-            finally:
-                time.sleep(5)
+
+        # 在这里放置测试内容
+        
         page.close()
     
