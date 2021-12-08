@@ -30,8 +30,8 @@ class XuexiProcessor():
             "advanced":{
                 "read_time":60,
                 "login_retry":5,
-                "answer_sleep_min":0.5,
-                "answer_sleep_max":0.7,
+                "answer_sleep_min":3.0,
+                "answer_sleep_max":1.5,
                 "wait_result_secs":2,
                 "wait_page_secs":60,
                 "wait_newpage_secs":5
@@ -359,9 +359,9 @@ class XuexiProcessor():
                         page_4.close()
                         break
                     if empty==True:
+                        page_num=page_num+1
                         self.logger.warning("没有足够的视频，将尝试在第 %d 页寻找新的视频" %page_num)
                         page_3.locator('//div/div[contains(text(),">>")]').click()
-                        page_num=page_num+1
                     else:
                         break
             elif handle_type=="news":
@@ -411,9 +411,9 @@ class XuexiProcessor():
                         page_3.close()
                         break
                     if empty==True:
+                        page_num=page_num+1
                         self.logger.warning("没有足够的文章，将尝试在第 %d 页寻找新的文章" %page_num)
                         page_2.locator('//div/div[contains(text(),">>")]').click()
-                        page_num=page_num+1
                     else:
                         break
             self.record_history(record_url=record_url)
@@ -426,52 +426,63 @@ class XuexiProcessor():
 
             elif page_title=="每周答题" or page.url=="https://pc.xuexi.cn/points/exam-weekly-list.html":
                 self.logger.debug("正在处理每周答题")
-                i=1
+                p=1
                 while True:
-                    btns=page.locator('div[class="ant-spin-container"] button[class*="ant-btn-primary"]')
-                    for i in range(btns.count()):
-                        if btns.nth(i).locator("span").inner_text().strip()=="重新答题":
-                            self.logger.debug("答题已完成，正在跳至下一个")
-                            available=False
+                    wavailable=False
+                    container=page.locator("div.ant-spin-container")
+                    container.wait_for()
+                    weeks=container.locator("div.week")
+                    self.logger.debug("本页共 %d 个测试" %weeks.count())
+                    for i in range(weeks.count()):
+                        test_title=weeks.nth(i).locator("div.week-title").inner_text().strip().replace("\n","")
+                        test_stat=weeks.nth(i).locator("div.stats>span.stat>div").get_attribute("class")
+                        test_stat="" if test_stat is None else test_stat
+                        btn=weeks.nth(i).locator("button")
+                        if "done" in test_stat:
+                            self.logger.debug("答题 %s 已完成，正在跳至下一个" %test_title)
                         else:
-                            available=True
-                            btns.nth(i).click()
-                            self.logger.info("正在处理：%s" %page.locator("div.title").inner_text().strip().replace("\n"," "))
+                            btn.click()
+                            self.logger.info("正在处理：%s" %test_title)
                             self.finish_test(page=page)
+                            wavailable=True
                             break
-                    if available==True:
+                    if wavailable==True:
                         self.logger.info("已完成测试")
                         break
                     else:
                         next_btn=page.locator('li.ant-pagination-next')
-                        i+=1
-                        self.logger.warning("本页测试均完成，将在第 %d 页寻找新的未完成测试" %i)
+                        p+=1
+                        self.logger.warning("本页测试均完成，将在第 %d 页寻找新的未完成测试" %p)
                         next_btn.click()
                         if next_btn.get_attribute("aria-disabled")=="true":
                             self.logger.warning("无可用测试")
                             break
             elif page_title=="专项答题列表" or page.url=="https://pc.xuexi.cn/points/exam-paper-list.html":
                 self.logger.debug("正在处理专项答题")
-                i=1
+                p=1
                 while True:
-                    items=page.locator('div.items>div.item')
+                    container=page.locator("div.ant-spin-container")
+                    container.wait_for()
+                    items=container.locator('div.items>div.item')
+                    savailable=False
+                    self.logger.debug("本页找到 %d 个测试" %items.count())
                     for i in range(items.count()):
-                        if items.nth(i).locator("a.solution").count()!=0:
+                        if items.nth(i).locator("a.solution").count()!=0 or items.nth(i).locator("span.points").count()!=0:
                             self.logger.debug("答题已完成，正在跳过")
-                            available=False
                         else:
-                            available=True
+                            test_title=items.nth(i).locator('div[class*="item-title"]').inner_text().replace("...\n","").strip()
                             items.nth(i).locator('button[type="button"]').click()
-                            self.logger.info("正在处理：%s" %page.locator("div.title").inner_text().strip().replace("\n"," "))
+                            self.logger.info("正在处理：%s" %test_title)
                             self.finish_test(page=page)
+                            savailable=True
                             break
-                    if available==True:
+                    if savailable==True:
                         self.logger.info("已完成测试")
                         break
                     else:
                         next_btn=page.locator('li.ant-pagination-next')
-                        i+=1
-                        self.logger.warning("本页测试均完成，将在第 %d 页寻找新的未完成测试" %i)
+                        p+=1
+                        self.logger.warning("本页测试均完成，将在第 %d 页寻找新的未完成测试" %p)
                         next_btn.click()
                         if next_btn.get_attribute("aria-disabled")=="true":
                             self.logger.warning("无可用测试")
@@ -502,8 +513,10 @@ class XuexiProcessor():
                 if "ant-popover-open" not in "" if class_value is None else class_value:
                     tips_btn.click()
                     self.logger.debug("已打开提示")
-                popover=page.locator('div[class*="ant-popover"]')
-                if popover.get_attribute("class") is not None and "ant-popover-hidden" not in str(popover.get_attribute("class")):
+                popover=page.locator('div[class*="ant-popover-placement-bottom"]')
+                class_of_popover=popover.get_attribute("class")
+                class_of_popover="" if class_of_popover is None else class_of_popover
+                if "ant-popover-hidden" not in class_of_popover:
                     line_feed=popover.locator("div.line-feed")
                     tips=[tip.strip() for tip in line_feed.locator('font[color="red"]').all_inner_texts()]
                 else:
@@ -572,7 +585,7 @@ class XuexiProcessor():
                     # TODO: pause QThread and wait for input
                 manual=True
             answers_e=question.locator("div.q-answers")
-            if answers_e.count()!=0:
+            if answers_e.count()==0:
                 answers=question.locator("input.blank")
                 blank=True
                 self.logger.debug("问题类型为填空题")
@@ -584,11 +597,8 @@ class XuexiProcessor():
             if len(tips)==answers.count() and blank==False:
                 for i in range(answers.count()):
                     class_of_answer=answers.nth(i).get_attribute("class")
-                    if class_of_answer is None:
-                        class_of_answer=""
-                    if "chosen" not in class_of_answer:
-                        time.sleep(random.uniform(self.conf["advanced"]["answer_sleep_min"],self.conf["advanced"]["answer_sleep_max"]))
-                        answers.nth(i).click()
+                    if "chosen" not in "" if class_of_answer is None else class_of_answer:
+                        answers.nth(i).click(delay=random.uniform(self.conf["advanced"]["answer_sleep_min"],self.conf["advanced"]["answer_sleep_max"])*1000)
                 available=True
             else:
                 for tip_ in tips:
@@ -600,8 +610,7 @@ class XuexiProcessor():
                                 self.logger.debug("不正常的选择项目？")
                                 continue
                             if "chosen" not in class_of_answer and tip_ in answers.nth(i).inner_text().strip():
-                                time.sleep(random.uniform(self.conf["advanced"]["answer_sleep_min"],self.conf["advanced"]["answer_sleep_max"]))
-                                answers.nth(i).click()
+                                answers.nth(i).click(delay=random.uniform(self.conf["advanced"]["answer_sleep_min"],self.conf["advanced"]["answer_sleep_max"])*1000)
                                 self.logger.debug("选择 %s" %answers.nth(i).inner_text().strip())
                                 available=True
                         elif i==tips.index(tip_):
@@ -612,17 +621,18 @@ class XuexiProcessor():
             if available==False:
                 self.logger.error("无显式答案")
                 r=answers.nth(random.randint(0,answers.count()))
-                if "chosen" not in str(r.get_attribute("class")):
+                if "chosen" not in str(r.get_attribute("class")) and blank==False:
                     r.click()
                     self.logger.info("随机选择：%s" %r.inner_text().strip())
             while True:
-                btn_next=page.locator('div.action-row>button[class*="next-btn"]')
+                action_row=page.locator("div.action-row")
+                btn_next=action_row.locator('button[class*="next-btn"]')
                 if btn_next.is_enabled()==False:
                     self.logger.debug("已点击“提交”按钮")
-                    page.locator('div.action-row>button[class*="submit-btn"]').click()
+                    action_row.locator('button[class*="submit-btn"]').click(delay=random.uniform(self.conf["advanced"]["answer_sleep_min"],self.conf["advanced"]["answer_sleep_max"])*1000)
                 else:
                     self.logger.debug("已点击“下一个”按钮")
-                    btn_next.click()
+                    btn_next.click(delay=random.uniform(self.conf["advanced"]["answer_sleep_min"],self.conf["advanced"]["answer_sleep_max"])*1000)
                 solution=page.locator('div.solution')
                 if solution.count()!=0:
                     if answer_in_db !=[]:
