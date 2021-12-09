@@ -153,7 +153,7 @@ class XuexiProcessor():
                 conf[key]=new_conf[key]
                 need_update=True
         if need_update==True and write==True:
-            self.logger.debug("更新后的配置：%s" %old_conf)
+            self.logger.debug("更新后的配置:%s" %old_conf)
             self.logger.info("旧版配置已备份为 config.json.bak")
             shutil.copy("config.json","config.json.bak")
             self.logger.debug("正在更新配置文件")
@@ -163,7 +163,7 @@ class XuexiProcessor():
     def login(self,context:BrowserContext):
         self.logger.info("正在开始登录")
         if self.gui==True and self.update_status_signal is not None:
-            self.update_status_signal.emit("当前状态：正在登录")
+            self.update_status_signal.emit("当前状态:正在登录")
         page=context.new_page()
         page.bring_to_front()
         page.goto("https://pc.xuexi.cn/points/login.html")
@@ -171,13 +171,13 @@ class XuexiProcessor():
             self.logger.info("未能使用 cookie 免登录，将使用传统方案")
             fnum=0
             while True:
-                iframe=page.frame_locator("div#qglogin>iframe")
-                locator=iframe.locator("div#app img")
+                qglogin=page.locator("div#qglogin")
                 try:
-                    locator.wait_for()
+                    qglogin.scroll_into_view_if_needed()
                 except TimeoutError:
                     self.logger.error("加载图片失败")
                     raise RuntimeError("加载二维码图片失败，请检查网络连接并等一会儿再试。")
+                locator=qglogin.frame_locator("iframe").locator("div#app img")
                 img=base64.b64decode(str(locator.get_attribute("src")).split(",")[1])
                 with open(file="qr.png",mode="wb") as writer:
                     writer.write(img)
@@ -186,12 +186,13 @@ class XuexiProcessor():
                 locator=page.locator('div.point-manage')
                 try:
                     locator.wait_for(timeout=300000)
-                except TimeoutError:
+                except TimeoutError as e:
                     if fnum>self.conf["advanced"]["login_retry"]:
                         self.logger.error("超时次数超过 %d 次，终止尝试" %self.conf["advanced"]["login_retry"])
-                        break
-                    fnum=fnum+1
-                    page.reload()
+                        raise e
+                    else:
+                        fnum=fnum+1
+                        page.reload()
                 else:
                     break
         else:
@@ -215,13 +216,13 @@ class XuexiProcessor():
             page.locator('span[class*="my-points-red"]').wait_for()
             locator=page.locator("span.my-points-points")
             points=[point.strip() for point in locator.all_inner_texts()]
-            self.logger.debug("获取总分信息：%s" %points)
+            self.logger.debug("获取总分信息:%s" %points)
             try:
                 total=int(points[0])
                 today=int(points[1])
             except ValueError:
                 self.logger.warning("获取分数信息失败")
-            self.logger.info("已获得分数：%d，今日获得分数：%d" %(total,today))
+            self.logger.info("已获得分数:%d，今日获得分数:%d" %(total,today))
             if self.gui==True and (self.update_score_signal is not None):
                 self.update_score_signal.emit((total,today))
             points_content=page.locator("div.my-points-content")
@@ -235,7 +236,7 @@ class XuexiProcessor():
                 titles=cards.locator("p.my-points-card-title")
                 texts=cards.locator("div.my-points-card-text")
                 buttons=cards.locator("div.big")
-            self.logger.debug("得分卡片：%s" %[title.strip() for title in titles.all_inner_texts()])
+            self.logger.debug("得分卡片:%s" %[title.strip() for title in titles.all_inner_texts()])
             finish=True
             for i in range(cards.count()):
                 point_text=texts.all_inner_texts()[i].strip()
@@ -255,7 +256,7 @@ class XuexiProcessor():
                     finish=False
                     self.logger.info("正在处理 %s" %card_title)
                     if self.gui==True and self.update_status_signal is not None:
-                        self.update_status_signal.emit("当前状态：正在处理 %s" %card_title)
+                        self.update_status_signal.emit("当前状态:正在处理 %s" %card_title)
                     if handle_type!="test":
                         try:
                             with context.expect_page(timeout=self.conf["advanced"]["wait_newpage_secs"]*1000) as page_info:
@@ -279,13 +280,13 @@ class XuexiProcessor():
         hrs,mins=divmod(mins,60)
         self.logger.info("结束所有任务，共计用时 {:0>2d}:{:0>2d}:{:0>2d}".format(int(hrs),int(mins),int(secs)))
     def handle(self,page:Page,handle_type:str):
-        self.logger.debug("页面URL：%s" %page.url)
+        self.logger.debug("页面URL:%s" %page.url)
         record_url=""
         available=True
         if handle_type!="test":
             self.logger.debug("非答题模式")
             if handle_type=="video":
-                self.logger.debug("处理类型：视频")
+                self.logger.debug("处理类型:视频")
                 # 视频
                 with page.context.expect_page() as page_info:
                     page.click('div[data-data-id="tv-station-header"] span.moreText')
@@ -323,7 +324,7 @@ class XuexiProcessor():
                         except TimeoutError:
                             title=page_4.locator("div.video-article-title")
                             title.wait_for(timeout=10000)
-                        self.logger.info("正在处理：%s" %title.inner_text().replace("\n"," "))
+                        self.logger.info("正在处理:%s" %title.inner_text().replace("\n"," "))
                         video=page_4.locator("video")
                         if page_4.url.startswith("https://www.xuexi.cn/lgpage/detail/index.html?id=")==False:
                             self.logger.debug("非正常视频页面")
@@ -365,7 +366,7 @@ class XuexiProcessor():
                     else:
                         break
             elif handle_type=="news":
-                self.logger.debug("处理类型：文章")
+                self.logger.debug("处理类型:文章")
                 # 文章
                 with page.context.expect_page() as page_info:
                     page.locator('section[data-data-id="zhaiyao-title"] span.moreUrl').click()
@@ -382,7 +383,7 @@ class XuexiProcessor():
                         self.logger.debug("已点击对应链接")
                         page_3=page_info.value
                         target_title=page_3.locator("div.render-detail-title").inner_text().strip().replace("\n"," ")
-                        self.logger.info("正在处理：%s" %target_title)
+                        self.logger.info("正在处理:%s" %target_title)
                         if page_3.url.startswith("https://www.xuexi.cn/lgpage/detail/index.html?id=")==False:
                             self.logger.debug("非正常文章页面")
                             continue
@@ -442,7 +443,7 @@ class XuexiProcessor():
                             self.logger.debug("答题 %s 已完成，正在跳至下一个" %test_title)
                         else:
                             btn.click()
-                            self.logger.info("正在处理：%s" %test_title)
+                            self.logger.info("正在处理:%s" %test_title)
                             self.finish_test(page=page)
                             wavailable=True
                             break
@@ -472,7 +473,7 @@ class XuexiProcessor():
                         else:
                             test_title=items.nth(i).locator('div[class*="item-title"]').inner_text().replace("...\n","").strip()
                             items.nth(i).locator('button[type="button"]').click()
-                            self.logger.info("正在处理：%s" %test_title)
+                            self.logger.info("正在处理:%s" %test_title)
                             self.finish_test(page=page)
                             savailable=True
                             break
@@ -488,7 +489,7 @@ class XuexiProcessor():
                             self.logger.warning("无可用测试")
                             break
             else:
-                self.logger.error("未知的答题内容：%s" %page_title)
+                self.logger.error("未知的答题内容:%s" %page_title)
         if len(page.context.pages)>=1:
             for page_ in page.context.pages[1:]:
                 page_.close()
@@ -503,7 +504,7 @@ class XuexiProcessor():
             question=page.locator('div.detail-body>div.question')
             question.scroll_into_view_if_needed()
             title=question.locator("div.q-body").inner_text().strip().replace("\n"," ")
-            self.logger.debug("已找到标题：%s" %title)
+            self.logger.debug("已找到标题:%s" %title)
             answer_in_db=self.get_answer(title=title)
             if answer_in_db!=[]:
                 tips=answer_in_db
@@ -528,7 +529,7 @@ class XuexiProcessor():
                     self.logger.debug("已关闭提示")
                 tips=[tip for tip in tips if tip.strip()!='']
                 self.logger.debug("已删除提示中的空白字符串")
-            self.logger.debug("找到答案：%s" %tips)
+            self.logger.debug("找到答案:%s" %tips)
             if tips==[]:
                 # 手动输入答案
                 video=page.locator("div.video-player video")
@@ -560,7 +561,7 @@ class XuexiProcessor():
                         self.logger.warning("未知的视频模式")
                 self.logger.warning("无法找到答案")
                 if self.gui==False:
-                    tips=input("多个答案请用 # 连接，请输入 %s 的答案：" %title).strip().split("#")
+                    tips=input("多个答案请用 # 连接，请输入 %s 的答案:" %title).strip().split("#")
                 else:
                     if self.mutex is not None:
                         self.mutex.lock()
@@ -605,7 +606,7 @@ class XuexiProcessor():
                     for i in range(answers.count()):
                         if blank==False:
                             class_of_answer=answers.nth(i).get_attribute("class")
-                            self.logger.debug("获取答案class：%s" %class_of_answer)
+                            self.logger.debug("获取答案class:%s" %class_of_answer)
                             if class_of_answer is None:
                                 self.logger.debug("不正常的选择项目？")
                                 continue
@@ -623,7 +624,7 @@ class XuexiProcessor():
                 r=answers.nth(random.randint(0,answers.count()))
                 if "chosen" not in str(r.get_attribute("class")) and blank==False:
                     r.click()
-                    self.logger.info("随机选择：%s" %r.inner_text().strip())
+                    self.logger.info("随机选择:%s" %r.inner_text().strip())
             while True:
                 action_row=page.locator("div.action-row")
                 btn_next=action_row.locator('button[class*="next-btn"]')
@@ -640,7 +641,7 @@ class XuexiProcessor():
                         self.remove_answer(title)
                     self.logger.info("本次答题输入的答案有误，将记录网页的答案")
                     true_answer=[ele.strip() for ele in solution.locator('font[color="red"]').all_inner_texts()]
-                    self.logger.debug("网页获取的原始答案：%s" %true_answer)
+                    self.logger.debug("网页获取的原始答案:%s" %true_answer)
                     if true_answer!=[]:
                         if len(true_answer)>answers.count():
                             part=int(len(true_answer)/answers.count())
@@ -650,7 +651,7 @@ class XuexiProcessor():
                             true_answer=[]
                         if blank==True:
                             true_answer=[ans.replace(" ","") for ans in true_answer]
-                        self.logger.debug("记录到的真实答案：%s" %true_answer)
+                        self.logger.debug("记录到的真实答案:%s" %true_answer)
                         #self.record_answer(title,true_answer)
                         # TODO: How to get valid answer because tips may not same to answer
                     else:
@@ -699,7 +700,7 @@ class XuexiProcessor():
             if record_time is None:
                 record_time=(-1,)
             record_time=float(record_time[0])
-            self.logger.debug("数据库查询结果：%s" %record_time)
+            self.logger.debug("数据库查询结果:%s" %record_time)
             if record_time!=-1 and time.time()-record_time<self.conf["keep_in_database"]*24*3600:
                 result=True
         return result
@@ -712,7 +713,7 @@ class XuexiProcessor():
             res=self.db.execute("SELECT ANSWER FROM answer WHERE QUESTION=?",(title,)).fetchone()
             if res is not None:
                 result=base64.b64decode(str(res[0])).decode().split("#")
-                self.logger.debug("数据库查询结果：%s" %result)
+                self.logger.debug("数据库查询结果:%s" %result)
             else:
                 self.logger.debug("数据库中无记录")
         return result
