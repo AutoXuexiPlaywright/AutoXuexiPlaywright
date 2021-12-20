@@ -5,7 +5,7 @@ import imghdr
 import logging
 import platform
 from PySide6.QtGui import QMouseEvent, QPixmap
-from PySide6.QtCore import QFile, QMutex, QPoint, QPointF, QThread, QWaitCondition, Qt, Signal, QObject, QIODeviceBase
+from PySide6.QtCore import QFile, QMutex, QPoint, QPointF, QSettings, QThread, QWaitCondition, Qt, Signal, QObject, QIODeviceBase
 from PySide6.QtWidgets import QApplication, QCheckBox, QVBoxLayout, QInputDialog, QLabel, QLineEdit, QMainWindow, QPlainTextEdit, QPushButton, QHBoxLayout, QWidget
 from AutoXuexiPlaywrightCore import AutoXuexiPlaywrightCore, APPID, APPICONBYTES
 
@@ -54,11 +54,13 @@ class MainUI(QMainWindow):
         self.answer_queue=queue.Queue(1)
         self.mutex=QMutex()
         self.wait=QWaitCondition()
+        self.settings=QSettings(APPID+".ini",QSettings.Format.IniFormat,self)
         self.setWindowTitle(APPID)
         self.setWindowIcon(icon)
         self.setWindowOpacity(0.9)
         self.setObjectName("main")
         self.resize(800,600)
+        self.move(int(self.settings.value(APPID+"/x",0)),int(self.settings.value(APPID+"/y",0)))
         central_widget=QWidget(self)
         central_widget.setObjectName("central")
         self.setCentralWidget(central_widget)
@@ -104,7 +106,7 @@ class MainUI(QMainWindow):
         self.update_status_signal.connect(log_panel.setToolTip)
         self.pause_thread_signal.connect(self.pause_thread)
         self.qr_control_signal.connect(self.handle_qr)
-        self.update_score_signal.connect(lambda scores:score.setText("全部得分：%d\n今日得分：%d" %scores))
+        self.update_score_signal.connect(lambda scores:score.setText("全部得分:%d\n今日得分:%d" %scores))
         self.wthread=QThread()
         self.job=SubProcessJob(answer_queue=self.answer_queue,job_finish_signal=self.job_finish_signal,update_log_signal=self.update_log_signal,
                                update_status_signal=self.update_status_signal,pause_thread_signal=self.pause_thread_signal,wait=self.wait,
@@ -112,7 +114,7 @@ class MainUI(QMainWindow):
                                update_score_signal=self.update_score_signal)
         self.job.moveToThread(self.wthread)
         self.wthread.started.connect(self.job.start)
-        self.wthread.finished.connect(lambda: (log_panel.setToolTip("当前状态：就绪"),start_btn.setEnabled(True),start_btn.setToolTip("开始"),start_btn.setText("开始")))
+        self.wthread.finished.connect(lambda: (log_panel.setToolTip("当前状态:就绪"),start_btn.setEnabled(True),start_btn.setToolTip("开始"),start_btn.setText("开始")))
         self.job_finish_signal.connect(self.wthread.quit)
         close_btn.clicked.connect(self.close)
         min_btn.clicked.connect(self.showMinimized)
@@ -146,8 +148,7 @@ class MainUI(QMainWindow):
             label.move(round((self.centralWidget().width()-label.width())/2),round((self.centralWidget().height()-label.height())/2))
             label.show()
     def pause_thread(self,title:str):
-        title="未找到 %s 的答案，你需要手动输入并使用 # 连接多选题的答案" %title
-        text,status=QInputDialog.getText(self,title,"答案：",QLineEdit.EchoMode.Normal,"")
+        text,status=QInputDialog.getText(self,"手动输入答案，使用 # 连接多选题的答案:",title,QLineEdit.EchoMode.Normal,"")
         if status==False:
             answer=[""]
         else:
@@ -161,6 +162,10 @@ class MainUI(QMainWindow):
         else:
             self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
         self.show()
+    def close(self) -> bool:
+        self.settings.setValue(APPID+"/x",self.x())
+        self.settings.setValue(APPID+"/y",self.y())
+        return super().close()
     def mousePressEvent(self, a0: QMouseEvent) -> None:
         self._start_pos=a0.globalPosition()
         self.setCursor(Qt.CursorShape.SizeAllCursor)

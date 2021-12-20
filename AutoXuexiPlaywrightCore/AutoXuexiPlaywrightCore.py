@@ -211,8 +211,8 @@ class XuexiProcessor():
         finished=set()
         today=-1
         total=-1
+        page.goto("https://pc.xuexi.cn/points/my-points.html")
         while True:
-            page.goto("https://pc.xuexi.cn/points/my-points.html",wait_until="networkidle")
             page.locator('span[class*="my-points-red"]').wait_for()
             locator=page.locator("span.my-points-points")
             points=[point.strip() for point in locator.all_inner_texts()]
@@ -274,6 +274,8 @@ class XuexiProcessor():
                     break
             if finish==True:
                 break
+            else:
+                page.reload()
         for page_ in page.context.pages:
             page_.close()
         mins,secs=divmod(time.time()-start_time,60)
@@ -532,33 +534,37 @@ class XuexiProcessor():
             self.logger.debug("找到答案:%s" %tips)
             if tips==[]:
                 # 手动输入答案
-                video=page.locator("div.video-player video")
+                video=page.locator("div#videoplayer")
                 if video.count!=0:
                     video.hover()
-                    with page.expect_response(re.compile('https://.+\\.(m3u8|mp4)')) as response:
-                        page.click('div.video-player div.outter',timeout=1000)
-                    self.logger.debug("开始下载 %s MIME类型视频 %s" %(response.value.all_headers()["content-type"],response.value.url))
-                    if response.value.url.endswith(".mp4"):
-                        with open("video.mp4","wb") as writer:
-                            writer.write(response.value.body())
-                    elif response.value.url.endswith(".m3u8"):
-                        text=response.value.text()
-                        if self.conf["debug"]==True:
-                            with open("playlist.m3u8",mode="w",encoding="utf-8") as writer:
-                                writer.write(text)
-                            self.logger.debug("已保存播放列表文件")
-                        url=urlparse(response.value.url)
-                        prefix="%s://%s/" %(url.scheme,url.netloc+"/".join(url.path.split("/")[:-1]))
-                        with open("video.mp4","wb") as writer:
-                            i=io.BytesIO()
-                            for line in text.split("\n"):
-                                if line.startswith("#")==False:
-                                    self.logger.debug("正在下载视频 %s" %line)
-                                    i.write(requests.get(url=prefix+line,headers=response.value.all_headers()).content)
-                                    shutil.copyfileobj(i,writer) 
-                                    self.logger.info("已将视频下载至脚本文件夹下的 video.mp4 文件")
+                    try:
+                        with page.expect_response(re.compile('https://.+\\.(m3u8|mp4)')) as response:
+                            page.click('div#videoplayer div.outter',timeout=1000)
+                    except TimeoutError as e:
+                        self.logger.error("下载视频失败，原因:%s" %e)
                     else:
-                        self.logger.warning("未知的视频模式")
+                        self.logger.debug("开始下载 %s MIME类型视频 %s" %(response.value.all_headers()["content-type"],response.value.url))
+                        if response.value.url.endswith(".mp4"):
+                            with open("video.mp4","wb") as writer:
+                                writer.write(response.value.body())
+                        elif response.value.url.endswith(".m3u8"):
+                            text=response.value.text()
+                            if self.conf["debug"]==True:
+                                with open("playlist.m3u8",mode="w",encoding="utf-8") as writer:
+                                    writer.write(text)
+                                self.logger.debug("已保存播放列表文件")
+                            url=urlparse(response.value.url)
+                            prefix="%s://%s/" %(url.scheme,url.netloc+"/".join(url.path.split("/")[:-1]))
+                            with open("video.mp4","wb") as writer:
+                                i=io.BytesIO()
+                                for line in text.split("\n"):
+                                    if line.startswith("#")==False:
+                                        self.logger.debug("正在下载视频 %s" %line)
+                                        i.write(requests.get(url=prefix+line,headers=response.value.all_headers()).content)
+                                        shutil.copyfileobj(i,writer) 
+                                        self.logger.info("已将视频下载至脚本文件夹下的 video.mp4 文件")
+                else:
+                    self.logger.warning("未知的视频模式")
                 self.logger.warning("无法找到答案")
                 if self.gui==False:
                     tips=input("多个答案请用 # 连接，请输入 %s 的答案:" %title).strip().split("#")
