@@ -45,6 +45,33 @@ QPlainTextEdit#logpanel{
     border-radius:5px;
     background-color:#b5bce3;
 }
+QScrollBar#logpanelscroll::vertical,QScrollBar#logpanelscroll::handle:vertical{
+    background:#8791d1;
+    border:none;
+    border-radius:5px;
+    width:10px;
+}
+QScrollBar#logpanelscroll::handle:vertical:hover{
+    background:#6775c6;
+}
+QScrollBar#logpanelscroll::add-page:vertical,QScrollBar#logpanelscroll::sub-page:vertical{
+    background:#b5bce3;
+    border:none;
+    border-radius:1px;
+    width:10px;
+}
+QScrollBar#logpanelscroll::down-arrow:vertical,QScrollBar#logpanelscroll::up-arrow:vertical{
+    background:#9ca3d9;
+    border:none;
+    border-radius:5px;
+    width:10px;
+    height:10px;
+}
+QScrollBar#logpanelscroll::sub-line:vertical,QScrollBar#logpanelscroll::add-line:vertical{
+    background:transparent;
+    border:none;
+    border-radius:5px;
+}
 /*开始按钮*/
 QPushButton#start{
     border:none;
