@@ -54,13 +54,15 @@ class MainUI(QMainWindow):
         self.answer_queue=queue.Queue(1)
         self.mutex=QMutex()
         self.wait=QWaitCondition()
-        self.settings=QSettings(APPID+".ini",QSettings.Format.IniFormat,self)
+        self.settings=QSettings(APPID+"GUI.ini",QSettings.Format.IniFormat,self)
         self.setWindowTitle(APPID)
         self.setWindowIcon(icon)
         self.setWindowOpacity(0.9)
         self.setObjectName("main")
         self.resize(800,600)
         self.move(int(self.settings.value(APPID+"/x",0)),int(self.settings.value(APPID+"/y",0)))
+        if bool(self.settings.value(APPID+"/ontop",0))==True:
+            self.setWindowFlags(Qt.WindowType.FramelessWindowHint|Qt.WindowType.WindowStaysOnTopHint)
         central_widget=QWidget(self)
         central_widget.setObjectName("central")
         self.setCentralWidget(central_widget)
@@ -70,7 +72,7 @@ class MainUI(QMainWindow):
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title.setParent(central_widget)
         title.setObjectName("title")
-        score=QLabel("全部得分：0\n今日得分：0")
+        score=QLabel("全部得分:0\n今日得分:0")
         score.setAlignment(Qt.AlignmentFlag.AlignVCenter)
         score.setParent(central_widget)
         score.setObjectName("score")
@@ -88,6 +90,7 @@ class MainUI(QMainWindow):
         ontop_check.setToolTip("切换置顶")
         ontop_check.setObjectName("ontop")
         ontop_check.setTristate(False)
+        ontop_check.setChecked(bool(self.settings.value(APPID+"/ontop",0)))
         control.addWidget(ontop_check)
         control.addWidget(min_btn)
         control.addWidget(close_btn)
@@ -159,8 +162,10 @@ class MainUI(QMainWindow):
     def switch_ontop(self,state:Qt.CheckState):
         if state==Qt.CheckState.Checked:
             self.setWindowFlags(Qt.WindowType.FramelessWindowHint|Qt.WindowType.WindowStaysOnTopHint)
+            self.settings.setValue(APPID+"/ontop",1)
         else:
             self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
+            self.settings.setValue(APPID+"/ontop",0)
         self.show()
     def close(self) -> bool:
         self.settings.setValue(APPID+"/x",self.x())
