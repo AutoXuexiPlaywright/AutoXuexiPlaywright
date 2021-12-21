@@ -211,8 +211,8 @@ class XuexiProcessor():
         finished=set()
         today=-1
         total=-1
-        page.goto("https://pc.xuexi.cn/points/my-points.html")
         while True:
+            page.goto("https://pc.xuexi.cn/points/my-points.html")
             page.locator('span[class*="my-points-red"]').wait_for()
             locator=page.locator("span.my-points-points")
             points=[point.strip() for point in locator.all_inner_texts()]
@@ -264,6 +264,10 @@ class XuexiProcessor():
                             all_available=self.handle(page=page_info.value,handle_type=handle_type)
                         except TimeoutError:
                             all_available=self.handle(page=page,handle_type=handle_type)
+                        else:
+                            if len(context.pages)>1:
+                                for page_ in context.pages[1:]:
+                                    page_.close()
                     else:
                         page.add_init_script("() => delete window.navigator.serviceWorker")
                         buttons.nth(i).click()
@@ -274,9 +278,7 @@ class XuexiProcessor():
                     break
             if finish==True:
                 break
-            else:
-                page.reload()
-        for page_ in page.context.pages:
+        for page_ in context.pages:
             page_.close()
         mins,secs=divmod(time.time()-start_time,60)
         hrs,mins=divmod(mins,60)

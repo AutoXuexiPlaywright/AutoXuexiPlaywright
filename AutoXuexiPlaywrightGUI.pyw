@@ -61,7 +61,7 @@ class MainUI(QMainWindow):
         self.setObjectName("main")
         self.resize(800,600)
         self.move(int(self.settings.value(APPID+"/x",0)),int(self.settings.value(APPID+"/y",0)))
-        if bool(self.settings.value(APPID+"/ontop",0))==True:
+        if bool(int(self.settings.value(APPID+"/ontop",0)))==True:
             self.setWindowFlags(Qt.WindowType.FramelessWindowHint|Qt.WindowType.WindowStaysOnTopHint)
         central_widget=QWidget(self)
         central_widget.setObjectName("central")
