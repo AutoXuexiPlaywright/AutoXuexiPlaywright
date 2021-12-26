@@ -466,9 +466,9 @@ class XuexiProcessor():
                 self.logger.debug("正在处理专项答题")
                 p=1
                 while True:
-                    container=page.locator("div.ant-spin-container")
-                    container.wait_for()
-                    items=container.locator('div.items>div.item')
+                    item=page.locator('div.items')
+                    item.wait_for()
+                    items=item.locator('div.item')
                     savailable=False
                     self.logger.debug("本页找到 %d 个测试" %items.count())
                     for i in range(items.count()):
