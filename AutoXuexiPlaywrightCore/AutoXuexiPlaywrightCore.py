@@ -23,7 +23,7 @@ class XuexiProcessor():
         default_conf={
             "updated":True,
             "debug":False,
-            "proxy":"",
+            "proxy":None,
             "browser":"chromium",
             "channel":"msedge",
             "keep_in_database":3,
@@ -37,6 +37,20 @@ class XuexiProcessor():
                 "wait_newpage_secs":5
             }
         }
+        ''' proxy sample:
+        [
+            {
+                "server":"socks5://127.0.0.1:20808,
+                "username":"user",
+                "password:"pwd"
+            },
+            ......
+        ]
+        
+        OR
+        
+        None
+        '''
         if platform.system()!="Windows":
             default_conf["browser"]="firefox"
             default_conf["channel"]=None
@@ -83,18 +97,13 @@ class XuexiProcessor():
     def start(self,test:bool=False):
         self.db=sqlite3.connect("data.db")
         self.upgrade_db()
-        if self.conf["proxy"]=="":
-            proxy=None
-        else:
-            result=urlparse(self.conf["proxy"])
-            proxy=ProxySettings(**{"server":"%s://%s:%d" %(result.scheme,result.hostname,result.port),"username":result.username,"password":result.password})
         with sync_playwright() as p:
             if self.conf["browser"]=="chromium":
-                browser=p.chromium.launch(channel=self.conf["channel"],headless=not self.conf["debug"],proxy=proxy)
+                browser=p.chromium.launch(channel=self.conf["channel"],headless=not self.conf["debug"],proxy=self.conf["proxy"])
             elif self.conf["browser"]=="firefox":
-                browser=p.firefox.launch(headless=not self.conf["debug"],proxy=proxy)
+                browser=p.firefox.launch(headless=not self.conf["debug"],proxy=self.conf["proxy"])
             elif self.conf["browser"]=="webkit":
-                browser=p.webkit.launch(headless=not self.conf["debug"],proxy=proxy)
+                browser=p.webkit.launch(headless=not self.conf["debug"],proxy=self.conf["proxy"])
             else:
                 self.logger.error("浏览器类型有误")
                 raise ValueError("设置的浏览器类型有误")
