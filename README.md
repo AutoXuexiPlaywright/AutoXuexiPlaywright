@@ -8,6 +8,26 @@ A script to finish XuexiQiangguo's everyday task automatically.
 
 Install requirements in `requirements.txt`, run `AutoXuexiPlaywrightHeadless.py` or `AutoXuexiPlaywrightGUI.pyw`, the first one doesn't have GUI while the second one has. If you don't have Desktop Environment in Linux, you have to use headless version. If you are using headless version, `PySide6` is not a requirement and you can remove it.
 
+## About Proxy
+
+``` text
+proxy sample:
+[
+    {
+        "server":"socks5://127.0.0.1:20808,
+        "username":"user",
+        "password:"pwd"
+    },
+    ......
+]
+
+OR
+
+None
+```
+
+We will add a GUI config editor soon.
+
 ## Notes
 
 1. This tool is under heavy development and may not as stable as other tools. Some fratures may also don't work as expected. Everyone's pull request to improve this tool is welcome.

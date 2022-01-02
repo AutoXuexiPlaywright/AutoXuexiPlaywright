@@ -9,12 +9,13 @@ import base64
 import shutil
 import logging
 import sqlite3
+import asyncio
 import requests
 import platform
 from PIL import Image
 from pyzbar import pyzbar
 from urllib.parse import urlparse
-from playwright.sync_api import ProxySettings,sync_playwright,BrowserContext,Page,TimeoutError
+from playwright.sync_api import sync_playwright,BrowserContext,Page,TimeoutError
 
 APPID="AutoXuexiPlaywright"
 
@@ -37,20 +38,6 @@ class XuexiProcessor():
                 "wait_newpage_secs":5
             }
         }
-        ''' proxy sample:
-        [
-            {
-                "server":"socks5://127.0.0.1:20808,
-                "username":"user",
-                "password:"pwd"
-            },
-            ......
-        ]
-        
-        OR
-        
-        None
-        '''
         if platform.system()!="Windows":
             default_conf["browser"]="firefox"
             default_conf["channel"]=None
@@ -545,37 +532,6 @@ class XuexiProcessor():
             self.logger.debug("找到答案:%s" %tips)
             if tips==[]:
                 # 手动输入答案
-                video=page.locator("div#videoplayer")
-                if video.count!=0:
-                    video.hover()
-                    try:
-                        with page.expect_response(re.compile('https://.+\\.(m3u8|mp4)')) as response:
-                            page.click('div#videoplayer div.outter',timeout=1000)
-                    except TimeoutError as e:
-                        self.logger.error("下载视频失败，原因:%s" %e)
-                    else:
-                        self.logger.debug("开始下载 %s MIME类型视频 %s" %(response.value.all_headers()["content-type"],response.value.url))
-                        if response.value.url.endswith(".mp4"):
-                            with open("video.mp4","wb") as writer:
-                                writer.write(response.value.body())
-                        elif response.value.url.endswith(".m3u8"):
-                            text=response.value.text()
-                            if self.conf["debug"]==True:
-                                with open("playlist.m3u8",mode="w",encoding="utf-8") as writer:
-                                    writer.write(text)
-                                self.logger.debug("已保存播放列表文件")
-                            url=urlparse(response.value.url)
-                            prefix="%s://%s/" %(url.scheme,url.netloc+"/".join(url.path.split("/")[:-1]))
-                            with open("video.mp4","wb") as writer:
-                                i=io.BytesIO()
-                                for line in text.split("\n"):
-                                    if line.startswith("#")==False:
-                                        self.logger.debug("正在下载视频 %s" %line)
-                                        i.write(requests.get(url=prefix+line,headers=response.value.all_headers()).content)
-                                        shutil.copyfileobj(i,writer) 
-                                        self.logger.info("已将视频下载至脚本文件夹下的 video.mp4 文件")
-                else:
-                    self.logger.warning("未知的视频模式")
                 self.logger.warning("无法找到答案")
                 if self.gui==False:
                     tips=input("多个答案请用 # 连接，请输入 %s 的答案:" %title).strip().split("#")
@@ -600,8 +556,8 @@ class XuexiProcessor():
                         self.mutex.unlock()
                     else:
                         self.logger.warning("互斥锁为空，子线程可能无法正常恢复")
-                    # TODO: pause QThread and wait for input
                 manual=True
+                asyncio.run(self.get_video(page),debug=self.conf["debug"])
             answers_e=question.locator("div.q-answers")
             if answers_e.count()==0:
                 answers=question.locator("input.blank")
@@ -780,6 +736,38 @@ class XuexiProcessor():
             self.logger.info("GUI 模式无法输出二维码到终端，请扫描程序文件夹或者弹出的二维码图片")
             if self.qr_control_signal is not None:
                 self.qr_control_signal.emit(img)
+    async def get_video(self,page:Page):
+        video=page.locator("div#videoplayer")
+        if video.count()==1:
+            video.hover()
+            try:
+                with page.expect_response(re.compile(r'https://.+.(m3u8|mp4)')) as response:
+                    page.click('div#videoplayer div.outter',timeout=1000)
+            except TimeoutError as e:
+                self.logger.error("下载视频失败，原因:%s" %e)
+            else:
+                self.logger.debug("开始下载 %s MIME类型视频 %s" %(response.value.all_headers()["content-type"],response.value.url))
+                if response.value.url.endswith(".mp4"):
+                    with open("video.mp4","wb") as writer:
+                        writer.write(response.value.body())
+                elif response.value.url.endswith(".m3u8"):
+                    text=response.value.text()
+                    if self.conf["debug"]==True:
+                        with open("playlist.m3u8",mode="w",encoding="utf-8") as writer:
+                            writer.write(text)
+                        self.logger.debug("已保存播放列表文件")
+                    url=urlparse(response.value.url)
+                    prefix="%s://%s/" %(url.scheme,url.netloc+"/".join(url.path.split("/")[:-1]))
+                    with open("video.mp4","wb") as writer:
+                        i=io.BytesIO()
+                        for line in text.split("\n"):
+                            if line.startswith("#")==False:
+                                self.logger.debug("正在下载视频 %s" %line)
+                                i.write(requests.get(url=prefix+line,headers=response.value.all_headers()).content)
+                                shutil.copyfileobj(i,writer) 
+                self.logger.info("已将视频下载至脚本文件夹下的 video.mp4 文件")
+        else:
+            self.logger.warning("未知的视频模式")
     def test(self,context:BrowserContext):
         # 用于开发时测试脚本功能的函数，在 self.start(test=True) 时执行，正常使用时无需此函数
         if self.is_login==False:
@@ -789,4 +777,3 @@ class XuexiProcessor():
         # 在这里放置测试内容
         
         page.close()
-    
