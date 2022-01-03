@@ -135,14 +135,14 @@ QComboBox#browser::down-arrow,QComboBox#channel::down-arrow{
     border:none;
     border-radius:2px;
 }
-QAbstractItemView#browser_list,QListView#channel_list{
+QAbstractItemView{
     outline:none;
     background-color:#c5cae9;
     border:none;
     border-radius:5px;
     selection-background-color:#b5bce3;
 }
-QAbstractItemView#browser_list::item:selected,QListView#channel_list::item:selected{
+QAbstractItemView::item:selected{
     color:black;
     background-color:#b5bce3;
 }

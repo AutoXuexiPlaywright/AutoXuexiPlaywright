@@ -211,7 +211,6 @@ class SettingWindow(QDialog):
         browser_selector=QComboBox(self)
         browser_selector.setToolTip("设置浏览器类型")
         browser_selector.setObjectName("browser")
-        browser_selector.view().setObjectName("browser_list")
         items=["chromium","firefox","webkit"]
         for item in items:
             browser_selector.addItem(item.title(),item)
@@ -220,7 +219,6 @@ class SettingWindow(QDialog):
         channel_selector=QComboBox(self)
         channel_selector.setToolTip("设置浏览器子类型，此选项在部分浏览器不可用")
         channel_selector.setObjectName("channel")
-        channel_selector.view().setObjectName("channel_list")
         item_names={
             "msedge":"Microsoft Edge","msedge-beta":"Microsoft Edge Beta","msedge-dev":"Microsoft Edge Dev",
             "chrome":"Google Chrome","chrome-beta":"Google Chrome Beta","chrome-dev":"Google Chrome Dev",
