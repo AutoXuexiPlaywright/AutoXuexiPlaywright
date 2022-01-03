@@ -1,5 +1,5 @@
-/*主窗口*/
-QMainWindow#main{
+/*主窗口、设置窗口*/
+QMainWindow#main,QDialog#config_main{
     border:none;
     border-radius:5px;
     background-color:#c5cae9;
@@ -72,18 +72,18 @@ QScrollBar#logpanelscroll::sub-line:vertical,QScrollBar#logpanelscroll::add-line
     border:none;
     border-radius:3px;
 }
-/*开始按钮*/
-QPushButton#start{
+/*开始按钮、设置按钮、保存按钮、取消按钮*/
+QPushButton#start,QPushButton#config,QPushButton#save,QPushButton#cancel{
     border:none;
     border-radius:5px;
     background-color:#8791d1;
     font-size:20px;
 }
-QPushButton#start:hover{
+QPushButton#start:hover,QPushButton#config:hover,QPushButton#save:hover,QPushButton#cancel:hover{
     background-color:#6775c6;
 }
-/*置顶切换复选框*/
-QCheckBox#ontop{
+/*复选框*/
+QCheckBox#ontop,QCheckBox#debug{
     border:none;
     border-radius:5px;
     background:none; 
@@ -95,15 +95,96 @@ QCheckBox#ontop::indicator{
     height:15px;
     subcontrol-position: right center;
 }
-QCheckBox#ontop::indicator:unchecked{
+QCheckBox#ontop::indicator:unchecked,QCheckBox#debug::indicator:unchecked{
     background-color:#abb2df;
 }
-QCheckBox#ontop::indicator:unchecked:hover{
+QCheckBox#ontop::indicator:unchecked:hover,QCheckBox#debug::indicator:unchecked:hover{
     background-color:#9ca3d9;
 }
-QCheckBox#ontop::indicator:checked{
+QCheckBox#ontop::indicator:checked,QCheckBox#debug::indicator:checked{
     background-color:#8c95d3;
 }
-QCheckBox#ontop::indicator:checked:hover{
+QCheckBox#ontop::indicator:checked:hover,QCheckBox#debug::indicator:checked:hover{
     background-color:#7c86cd;
+}
+/*设置标题*/
+QLabel#config_title{
+    border:none;
+    border-radius:5px;
+    font-size:15px;
+}
+/*下拉框*/
+QComboBox#browser,QComboBox#channel{
+    border-radius:5px;
+    background-color:#8791d1;
+}
+QComboBox#browser:hover,QComboBox#channel:hover{
+    border:1px solid black;
+}
+QComboBox#browser::drop-down,QComboBox#channel::drop-down{
+    width:5px;
+    height:5px;
+    border:1px solid black;
+    border-radius:2.5px;
+    subcontrol-position: right center;
+}
+QComboBox#browser::down-arrow,QComboBox#channel::down-arrow{
+    background-color:#c5cae9;
+    width:4px;
+    height:4px;
+    border:none;
+    border-radius:2px;
+}
+QAbstractItemView#browser_list,QListView#channel_list{
+    outline:none;
+    background-color:#c5cae9;
+    border:none;
+    border-radius:5px;
+    selection-background-color:#b5bce3;
+}
+QAbstractItemView#browser_list::item:selected,QListView#channel_list::item:selected{
+    color:black;
+    background-color:#b5bce3;
+}
+/*调试模式复选框*/
+QCheckBox#debug::indicator{
+    border:none;
+    border-radius:5px;
+    width:15px;
+    height:15px;
+}
+/*输入框*/
+QLineEdit{
+    border:none;
+    border-radius:5px;
+    background-color:#8791d1;
+}
+QLineEdit:hover{
+    border: 1px solid black;
+}
+/*代理列表框*/
+QTableWidget#proxy{
+    border:none;
+    border-radius:5px;
+    background-color:#8791d1;
+}
+QHeaderView#proxy_header{
+    border:none;
+    border-top-left-radius:5px;
+    border-top-right-radius:5px;
+    border-bottom: 1px solid black;
+    background-color:#8791d1;
+}
+QTableWidget#proxy::item:selected{
+    background-color:#b5bce3;
+}
+QHeaderView#proxy_header::section{
+    border:none;
+    border-right:1px solid black;
+    background-color:transparent;
+}
+QLineEdit#edit{
+    border:none;
+    border-radius:5px;
+    background-color:transparent;
 }

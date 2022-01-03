@@ -21,26 +21,7 @@ APPID="AutoXuexiPlaywright"
 
 class XuexiProcessor():
     def __init__(self,gui:bool=False,st:logging.Handler=None,**kwargs):
-        default_conf={
-            "updated":True,
-            "debug":False,
-            "proxy":None,
-            "browser":"chromium",
-            "channel":"msedge",
-            "keep_in_database":3,
-            "advanced":{
-                "read_time":60,
-                "login_retry":5,
-                "answer_sleep_min":3.0,
-                "answer_sleep_max":1.5,
-                "wait_result_secs":2,
-                "wait_page_secs":60,
-                "wait_newpage_secs":5
-            }
-        }
-        if platform.system()!="Windows":
-            default_conf["browser"]="firefox"
-            default_conf["channel"]=None
+        default_conf=generate_conf()
         self.is_login=False
         self.gui=gui
         self.job_finish_signal=kwargs["job_finish_signal"] if "job_finish_signal" in kwargs.keys() else None
@@ -777,3 +758,25 @@ class XuexiProcessor():
         # 在这里放置测试内容
         
         page.close()
+def generate_conf():
+    default_conf={
+        "updated":True,
+        "debug":False,
+        "proxy":None,
+        "browser":"chromium",
+        "channel":"msedge",
+        "keep_in_database":3,
+        "advanced":{
+            "read_time":60,
+            "login_retry":5,
+            "answer_sleep_min":3.0,
+            "answer_sleep_max":1.5,
+            "wait_result_secs":2,
+            "wait_page_secs":60,
+            "wait_newpage_secs":5
+        }
+    }
+    if platform.system()!="Windows":
+        default_conf["browser"]="firefox"
+        default_conf["channel"]=None
+    return default_conf

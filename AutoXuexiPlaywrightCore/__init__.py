@@ -12,4 +12,5 @@ APPICON="""iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAADeUlEQVRIie2WbWhWZRjH/
         e++RbWvJAyiCfB8DBsrzSB1TVW8fsPzACu3xfvTPlPwdEOU3zpsjWSkrVpA0QlaG6BL/fAxEU4eMji7D+Q1DQyVnVMgrp62PKqBT39cyAqZfXX7IWch2FgEHqPQ3OLzY+N46fxc
         SWSrlhfUvbWl+VJN/f7OTUldX4nNTZJjiOvqlKhg4ekSESxDG4p73ZfklNdI+XcI82dK911Z9oA/s7tyo7FpOER6eyvmpNXIPm+1PBjZsHpUuFKdln09cNDT6S1cSX48KOU/TjT
         k+XeZEb/7fH//9mbBd/q+BuapkzTsaP4XQAAAABJRU5ErkJggg=="""
-APPICONBYTES=base64.b64decode(APPICON)
+def get_bytes(base64str:str):
+    return base64.b64decode(base64str)
