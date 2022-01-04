@@ -16,6 +16,7 @@ from pyzbar import pyzbar
 from urllib.parse import urlparse
 from playwright.sync_api import sync_playwright, BrowserContext, Page, TimeoutError
 # async in development
+import asyncio
 from playwright.async_api import async_playwright, BrowserContext as AsyncBrowserContext, Page as AsyncPage, TimeoutError as AsyncTimeoutError
 
 APPID="AutoXuexiPlaywright"
@@ -64,78 +65,84 @@ class XuexiProcessor():
         self.upgrade_db()
         self.logger.info("处理类完成初始化")
     async def start_async(self,test:bool=False):
-        async with async_playwright() as p:
-            if self.conf["browser"]=="chromium":
-                browser=await p.chromium.launch(channel=self.conf["channel"],headless=not self.conf["debug"],proxy=self.conf["proxy"])
-            elif self.conf["browser"]=="firefox":
-                browser=await p.firefox.launch(headless=not self.conf["debug"],proxy=self.conf["proxy"])
-            elif self.conf["browser"]=="webkit":
-                browser=await p.webkit.launch(headless=not self.conf["debug"],proxy=self.conf["proxy"])
-            else:
-                self.logger.error("浏览器类型有误")
-                raise ValueError("设置的浏览器类型有误")
-            if os.path.exists("cookies.json"):
-                self.logger.info("已找到 cookie 信息，我们将加载这个信息到上下文实例以进行免登录操作")
-                context=await browser.new_context(storage_state="cookies.json")
-            else:
-                self.logger.warning("未找到 cookie 信息，将启动干净的上下文实例")
-                context=await browser.new_context()
-            context.set_default_timeout(self.conf["advanced"]["wait_page_secs"]*1000)
-            try:
-                await self.login_async(context)
-                if test:
-                    await self.test_async(context)
+        if self.conf["async"]==True:
+            async with async_playwright() as p:
+                if self.conf["browser"]=="chromium":
+                    browser=await p.chromium.launch(channel=self.conf["channel"],headless=not self.conf["debug"],proxy=self.conf["proxy"])
+                elif self.conf["browser"]=="firefox":
+                    browser=await p.firefox.launch(headless=not self.conf["debug"],proxy=self.conf["proxy"])
+                elif self.conf["browser"]=="webkit":
+                    browser=await p.webkit.launch(headless=not self.conf["debug"],proxy=self.conf["proxy"])
                 else:
-                    await self.process_async(context)
-            except Exception as e:
-                self.logger.error("处理过程出现错误\n%s" %e)
-                if self.gui==True and self.job_finish_signal is not None:
-                    try:
-                        self.job_finish_signal.emit()
-                    except Exception as e:
-                        self.logger.error("提交中止信号出错，GUI 线程可能无法正常中止")
-            finally:
-                await context.storage_state(path="cookies.json")
-                self.logger.debug("已保存 cookie 用于尝试下次免登录")
-                await browser.close()
+                    self.logger.error("浏览器类型有误")
+                    raise ValueError("设置的浏览器类型有误")
+                if os.path.exists("cookies.json"):
+                    self.logger.info("已找到 cookie 信息，我们将加载这个信息到上下文实例以进行免登录操作")
+                    context=await browser.new_context(storage_state="cookies.json")
+                else:
+                    self.logger.warning("未找到 cookie 信息，将启动干净的上下文实例")
+                    context=await browser.new_context()
+                context.set_default_timeout(self.conf["advanced"]["wait_page_secs"]*1000)
+                try:
+                    await self.login_async(context)
+                    if test:
+                        await self.test_async(context)
+                    else:
+                        await self.process_async(context)
+                except Exception as e:
+                    self.logger.error("处理过程出现错误\n%s" %e)
+                    if self.gui==True and self.job_finish_signal is not None:
+                        try:
+                            self.job_finish_signal.emit()
+                        except Exception as e:
+                            self.logger.error("提交中止信号出错，GUI 线程可能无法正常中止")
+                finally:
+                    await context.storage_state(path="cookies.json")
+                    self.logger.debug("已保存 cookie 用于尝试下次免登录")
+                    await browser.close()
+        else:
+            self.start(test=test)
         with open("config.json","w",encoding="utf-8") as writer:
             json.dump(obj=self.conf,fp=writer,sort_keys=True,indent=4,ensure_ascii=False)
             self.logger.debug("已更新配置文件")
     def start(self,test:bool=False):
-        with sync_playwright() as p:
-            if self.conf["browser"]=="chromium":
-                browser=p.chromium.launch(channel=self.conf["channel"],headless=not self.conf["debug"],proxy=self.conf["proxy"])
-            elif self.conf["browser"]=="firefox":
-                browser=p.firefox.launch(headless=not self.conf["debug"],proxy=self.conf["proxy"])
-            elif self.conf["browser"]=="webkit":
-                browser=p.webkit.launch(headless=not self.conf["debug"],proxy=self.conf["proxy"])
-            else:
-                self.logger.error("浏览器类型有误")
-                raise ValueError("设置的浏览器类型有误")
-            if os.path.exists("cookies.json"):
-                self.logger.info("已找到 cookie 信息，我们将加载这个信息到上下文实例以进行免登录操作")
-                context=browser.new_context(storage_state="cookies.json")
-            else:
-                self.logger.warning("未找到 cookie 信息，将启动干净的上下文实例")
-                context=browser.new_context()
-            context.set_default_timeout(self.conf["advanced"]["wait_page_secs"]*1000)
-            try:
-                self.login(context=context)
-                if test==False:
-                    self.process(context=context)
+        if self.conf["async"]==False:
+            with sync_playwright() as p:
+                if self.conf["browser"]=="chromium":
+                    browser=p.chromium.launch(channel=self.conf["channel"],headless=not self.conf["debug"],proxy=self.conf["proxy"])
+                elif self.conf["browser"]=="firefox":
+                    browser=p.firefox.launch(headless=not self.conf["debug"],proxy=self.conf["proxy"])
+                elif self.conf["browser"]=="webkit":
+                    browser=p.webkit.launch(headless=not self.conf["debug"],proxy=self.conf["proxy"])
                 else:
-                    self.test(context=context)
-            except Exception as e:
-                self.logger.error("处理过程出现错误\n%s" %e)
-                if self.gui==True and self.job_finish_signal is not None:
-                    try:
-                        self.job_finish_signal.emit()
-                    except Exception as e:
-                        self.logger.error("提交中止信号出错，GUI 线程可能无法正常中止")
-            finally:
-                context.storage_state(path="cookies.json")
-                self.logger.debug("已保存 cookie 用于尝试下次免登录")
-                browser.close()
+                    self.logger.error("浏览器类型有误")
+                    raise ValueError("设置的浏览器类型有误")
+                if os.path.exists("cookies.json"):
+                    self.logger.info("已找到 cookie 信息，我们将加载这个信息到上下文实例以进行免登录操作")
+                    context=browser.new_context(storage_state="cookies.json")
+                else:
+                    self.logger.warning("未找到 cookie 信息，将启动干净的上下文实例")
+                    context=browser.new_context()
+                context.set_default_timeout(self.conf["advanced"]["wait_page_secs"]*1000)
+                try:
+                    self.login(context=context)
+                    if test==False:
+                        self.process(context=context)
+                    else:
+                        self.test(context=context)
+                except Exception as e:
+                    self.logger.error("处理过程出现错误\n%s" %e)
+                    if self.gui==True and self.job_finish_signal is not None:
+                        try:
+                            self.job_finish_signal.emit()
+                        except Exception as e:
+                            self.logger.error("提交中止信号出错，GUI 线程可能无法正常中止")
+                finally:
+                    context.storage_state(path="cookies.json")
+                    self.logger.debug("已保存 cookie 用于尝试下次免登录")
+                    browser.close()
+        else:
+            asyncio.run(self.start_async(test=test))
         with open("config.json","w",encoding="utf-8") as writer:
             json.dump(obj=self.conf,fp=writer,sort_keys=True,indent=4,ensure_ascii=False)
             self.logger.debug("已更新配置文件")
@@ -1331,6 +1338,7 @@ class XuexiProcessor():
         page.close()
 def generate_conf():
     default_conf={
+        "async":False,
         "updated":True,
         "debug":False,
         "proxy":None,
