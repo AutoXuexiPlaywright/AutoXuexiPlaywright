@@ -3,6 +3,7 @@ import os
 import re
 import json
 import time
+from attr import astuple
 import qrcode
 import random
 import base64
@@ -900,28 +901,23 @@ class XuexiProcessor():
                 if self.gui==False:
                     tips=input("多个答案请用 # 连接，请输入 %s 的答案:" %title).strip().split("#")
                 else:
-                    if self.mutex is not None:
+                    if self.mutex is not None and self.wait is not None:
                         self.mutex.lock()
+                        self.wait.wait(self.mutex)
                     else:
-                        self.logger.warning("互斥锁为空，子线程可能无法正常暂停")
+                        self.logger.warning("互斥锁或者等待情况为空，子线程可能无法正常暂停")
                     if self.pause_thread_signal is not None:
                         self.pause_thread_signal.emit(title)
                     else:
                         self.logger.warning("暂停信号为空，子线程可能无法正常暂停")
-                    if self.wait is not None:
-                        self.wait.wait(self.mutex)
-                    else:
-                        self.logger.warning("等待情况为空，子线程可能无法正常暂停")
                     if self.answer_queue is not None:
                         tips=self.answer_queue.get()
                     else:
                         tips=[""]
                     if self.mutex is not None:
                         self.mutex.unlock()
-                    else:
-                        self.logger.warning("互斥锁为空，子线程可能无法正常恢复")
                 manual=True
-                await self.get_video_async(page)
+                c=asyncio.to_thread(self.get_video_async,page)
             answers_e=question.locator("div.q-answers")
             if answers_e.count()==0:
                 answers=question.locator("input.blank")
@@ -1050,26 +1046,21 @@ class XuexiProcessor():
                 if self.gui==False:
                     tips=input("多个答案请用 # 连接，请输入 %s 的答案:" %title).strip().split("#")
                 else:
-                    if self.mutex is not None:
+                    if self.mutex is not None and self.wait is not None:
                         self.mutex.lock()
+                        self.wait.wait(self.mutex)
                     else:
-                        self.logger.warning("互斥锁为空，子线程可能无法正常暂停")
+                        self.logger.warning("互斥锁或者等待情况为空，子线程可能无法正常暂停")
                     if self.pause_thread_signal is not None:
                         self.pause_thread_signal.emit(title)
                     else:
                         self.logger.warning("暂停信号为空，子线程可能无法正常暂停")
-                    if self.wait is not None:
-                        self.wait.wait(self.mutex)
-                    else:
-                        self.logger.warning("等待情况为空，子线程可能无法正常暂停")
                     if self.answer_queue is not None:
                         tips=self.answer_queue.get()
                     else:
                         tips=[""]
                     if self.mutex is not None:
                         self.mutex.unlock()
-                    else:
-                        self.logger.warning("互斥锁为空，子线程可能无法正常恢复")
                 manual=True
                 self.get_video(page)
             answers_e=question.locator("div.q-answers")
@@ -1261,8 +1252,9 @@ class XuexiProcessor():
                 self.logger.error("下载视频失败，原因:%s" %e)
             else:
                 value=await response.value
-                self.logger.debug("开始下载 %s MIME类型视频 %s" %((await value.all_headers())["content-type"],value.url))
-                if (await response.value).url.endswith(".mp4"):
+                headers=await value.all_headers()
+                self.logger.debug("开始下载 %s MIME类型视频 %s" %(headers["content-type"],value.url))
+                if value.url.endswith(".mp4"):
                     with open("video.mp4","wb") as writer:
                         writer.write(await value.body())
                 elif value.url.endswith(".m3u8"):
@@ -1273,16 +1265,19 @@ class XuexiProcessor():
                         self.logger.debug("已保存播放列表文件")
                     url=urlparse(value.url)
                     prefix="%s://%s/" %(url.scheme,url.netloc+"/".join(url.path.split("/")[:-1]))
+                    async def get_content(url:str) -> bytes:
+                        async with ClientSession() as session:
+                            session.headers.update(headers)
+                            async with session.get(url) as response:
+                                return await response.read()
+                    tasks=[]
+                    loop=asyncio.get_event_loop()
+                    for line in text.split("\n"):
+                        if line.startswith("#")==False:
+                            tasks.append(asyncio.ensure_future(get_content(prefix+line)))
+                    results=loop.run_until_complete(asyncio.gather(*tasks))
                     with open("video.mp4","wb") as writer:
-                        i=io.BytesIO()
-                        for line in text.split("\n"):
-                            if line.startswith("#")==False:
-                                self.logger.debug("正在下载视频 %s" %line)
-                                async with ClientSession() as session:
-                                    session.headers.update(await value.all_headers())
-                                    async with session.get(prefix+line) as response:
-                                        i.write(await response.read())
-                                        shutil.copyfileobj(i,writer) 
+                        writer.write(bytes().join(results))
                 else:
                     self.logger.warning("未知的视频模式")
                 self.logger.info("已将视频下载至脚本文件夹下的 video.mp4 文件")
