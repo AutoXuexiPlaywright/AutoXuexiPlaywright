@@ -9,7 +9,6 @@ import base64
 import shutil
 import logging
 import sqlite3
-import asyncio
 import requests
 import platform
 from PIL import Image
@@ -538,7 +537,7 @@ class XuexiProcessor():
                     else:
                         self.logger.warning("互斥锁为空，子线程可能无法正常恢复")
                 manual=True
-                asyncio.run(self.get_video(page),debug=self.conf["debug"])
+                self.get_video(page)
             answers_e=question.locator("div.q-answers")
             if answers_e.count()==0:
                 answers=question.locator("input.blank")
@@ -717,7 +716,7 @@ class XuexiProcessor():
             self.logger.info("GUI 模式无法输出二维码到终端，请扫描程序文件夹或者弹出的二维码图片")
             if self.qr_control_signal is not None:
                 self.qr_control_signal.emit(img)
-    async def get_video(self,page:Page):
+    def get_video(self,page:Page):
         video=page.locator("div#videoplayer")
         if video.count()==1:
             video.hover()
