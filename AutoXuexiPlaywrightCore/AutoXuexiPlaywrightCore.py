@@ -745,9 +745,11 @@ class XuexiProcessor():
                                 self.logger.debug("正在下载视频 %s" %line)
                                 i.write(requests.get(url=prefix+line,headers=response.value.all_headers()).content)
                                 shutil.copyfileobj(i,writer) 
+                else:
+                    self.logger.warning("未知的视频模式")
                 self.logger.info("已将视频下载至脚本文件夹下的 video.mp4 文件")
         else:
-            self.logger.warning("未知的视频模式")
+            self.logger.error("找到 %d 个视频元素" %video.count())
     def test(self,context:BrowserContext):
         # 用于开发时测试脚本功能的函数，在 self.start(test=True) 时执行，正常使用时无需此函数
         if self.is_login==False:
