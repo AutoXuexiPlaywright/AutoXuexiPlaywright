@@ -144,7 +144,7 @@ class MainUI(QMainWindow):
         central_widget.setLayout(layout)
     def handle_qr(self,qr:bytes):
         for label in self.centralWidget().findChildren(QLabel,"qrlabel"):
-            if label is not None and isinstance(label,QLabel):
+            if isinstance(label,QLabel):
                 label.close()
         if qr!="".encode() and imghdr.what(file="",h=qr) is not None:
             label=QLabel(self.centralWidget())
