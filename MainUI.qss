@@ -83,7 +83,7 @@ QPushButton#start:hover,QPushButton#config:hover,QPushButton#save:hover,QPushBut
     background-color:#6775c6;
 }
 /*复选框*/
-QCheckBox#ontop,QCheckBox#debug{
+QCheckBox#ontop,QCheckBox#debug,QCheckBox#async{
     border:none;
     border-radius:5px;
     background:none; 
@@ -95,16 +95,16 @@ QCheckBox#ontop::indicator{
     height:15px;
     subcontrol-position: right center;
 }
-QCheckBox#ontop::indicator:unchecked,QCheckBox#debug::indicator:unchecked{
+QCheckBox#ontop::indicator:unchecked,QCheckBox#debug::indicator:unchecked,QCheckBox#async::indicator:unchecked{
     background-color:#abb2df;
 }
-QCheckBox#ontop::indicator:unchecked:hover,QCheckBox#debug::indicator:unchecked:hover{
+QCheckBox#ontop::indicator:unchecked:hover,QCheckBox#debug::indicator:unchecked:hover,QCheckBox#async::indicator:unchecked{
     background-color:#9ca3d9;
 }
-QCheckBox#ontop::indicator:checked,QCheckBox#debug::indicator:checked{
+QCheckBox#ontop::indicator:checked,QCheckBox#debug::indicator:checked,QCheckBox#async::indicator:checked{
     background-color:#8c95d3;
 }
-QCheckBox#ontop::indicator:checked:hover,QCheckBox#debug::indicator:checked:hover{
+QCheckBox#ontop::indicator:checked:hover,QCheckBox#debug::indicator:checked:hover,QCheckBox#async::indicator:checked:hover{
     background-color:#7c86cd;
 }
 /*设置标题*/
@@ -147,7 +147,7 @@ QAbstractItemView::item:selected{
     background-color:#b5bce3;
 }
 /*调试模式复选框*/
-QCheckBox#debug::indicator{
+QCheckBox#debug::indicator,QCheckBox#async::indicator{
     border:none;
     border-radius:5px;
     width:15px;
