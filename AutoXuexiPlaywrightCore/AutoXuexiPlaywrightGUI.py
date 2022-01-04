@@ -157,14 +157,13 @@ class MainUI(QMainWindow):
             label.move(round((self.centralWidget().width()-label.width())/2),round((self.centralWidget().height()-label.height())/2))
             label.show()
     def pause_thread(self,title:str):
-        text,status=QInputDialog.getText(self,"手动输入答案，使用 # 连接多选题的答案:",title,QLineEdit.Normal,"")
+        text,status=QInputDialog.getText(self,"手动输入答案，使用 # 连接多选题的答案:",title,QLineEdit.Normal,"",Qt.FramelessWindowHint)
         if status==False:
             answer=[""]
         else:
             answer=text.strip().split("#")
         self.answer_queue.put(answer)
         self.wait.wakeAll()
-        # TODO: pause QThread and wait for input
     def switch_ontop(self,state:Qt.CheckState):
         if state==Qt.CheckState.Checked:
             self.setWindowFlags(Qt.FramelessWindowHint|Qt.WindowStaysOnTopHint)
