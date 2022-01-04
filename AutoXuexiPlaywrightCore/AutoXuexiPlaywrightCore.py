@@ -17,6 +17,7 @@ from urllib.parse import urlparse
 from playwright.sync_api import sync_playwright, BrowserContext, Page, TimeoutError
 # async in development
 import asyncio
+from aiohttp import ClientSession
 from playwright.async_api import async_playwright, BrowserContext as AsyncBrowserContext, Page as AsyncPage, TimeoutError as AsyncTimeoutError
 
 APPID="AutoXuexiPlaywright"
@@ -1277,8 +1278,11 @@ class XuexiProcessor():
                         for line in text.split("\n"):
                             if line.startswith("#")==False:
                                 self.logger.debug("正在下载视频 %s" %line)
-                                i.write(requests.get(url=prefix+line,headers=value.all_headers()).content)
-                                shutil.copyfileobj(i,writer) 
+                                async with ClientSession() as session:
+                                    session.headers.update(await value.all_headers())
+                                    async with session.get(prefix+line) as response:
+                                        i.write(await response.read())
+                                        shutil.copyfileobj(i,writer) 
                 else:
                     self.logger.warning("未知的视频模式")
                 self.logger.info("已将视频下载至脚本文件夹下的 video.mp4 文件")

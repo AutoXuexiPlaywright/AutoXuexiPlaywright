@@ -1,6 +1,7 @@
-Pillow==8.4.0
-playwright==1.17.1
-PySide6==6.2.1
+aiohttp==3.8.1
+Pillow==9.0.0
+playwright==1.17.2
+PySide6==6.2.2.1
 pyzbar==0.1.8
 qrcode==7.3.1
-requests==2.26.0
+requests==2.27.0
