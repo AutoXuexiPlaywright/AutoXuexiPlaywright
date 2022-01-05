@@ -1305,13 +1305,13 @@ class XuexiProcessor():
                         self.logger.debug("已保存播放列表文件")
                     url=urlparse(response.value.url)
                     prefix="%s://%s/" %(url.scheme,url.netloc+"/".join(url.path.split("/")[:-1]))
+                    data=bytes()
+                    for line in text.split("\n"):
+                        if line.startswith("#")==False:
+                            self.logger.debug("正在下载视频 %s" %line)
+                            data+=requests.get(url=prefix+line,headers=response.value.request.all_headers()).content
                     with open("video.mp4","wb") as writer:
-                        i=io.BytesIO()
-                        for line in text.split("\n"):
-                            if line.startswith("#")==False:
-                                self.logger.debug("正在下载视频 %s" %line)
-                                i.write(requests.get(url=prefix+line,headers=response.value.request.all_headers()).content)
-                                shutil.copyfileobj(i,writer) 
+                        writer.write(data)
                 else:
                     self.logger.warning("未知的视频模式")
                 self.logger.info("已将视频下载至脚本文件夹下的 video.mp4 文件")
