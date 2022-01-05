@@ -26,7 +26,12 @@ OR
 None
 ```
 
-We will add a GUI config editor soon.
+~~We will add a GUI config editor soon.~~  
+We have added a GUI config editor and it should work as expected. If you are using headless version, please check config format before saving file.
+
+## About async API
+
+We use Playwright as backend, it provides an async API. We will try to use this instead sync API to improve IO performance. It is in early development phase and has many problems, if you are just a common user, we recommend you keep it disabled.
 
 ## Notes
 

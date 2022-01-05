@@ -242,7 +242,7 @@ class SettingWindow(QDialog):
         debug.stateChanged.connect(lambda state: self.conf.update({"debug":state==Qt.Checked}))
         extra.addWidget(debug,1)
         async_check=QCheckBox("异步 API")
-        async_check.setToolTip("使用 Playwright 的异步API完成处理")
+        async_check.setToolTip("使用 Playwright 的异步 API 完成处理\n注意；此功能正在开发阶段，极度不稳定")
         async_check.setObjectName("async")
         async_check.setChecked(self.conf["async"])
         async_check.stateChanged.connect(lambda state: self.conf.update({"async":state==Qt.Checked}))
