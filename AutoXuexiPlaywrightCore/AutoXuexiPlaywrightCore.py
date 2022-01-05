@@ -1254,8 +1254,7 @@ class XuexiProcessor():
                 self.logger.error("下载视频失败，原因:%s" %e)
             else:
                 value=await response.value
-                headers=await value.all_headers()
-                self.logger.debug("开始下载 %s MIME类型视频 %s" %(headers["content-type"],value.url))
+                self.logger.debug("开始下载 %s MIME类型视频 %s" %((await value.all_headers())["content-type"],value.url))
                 if value.url.endswith(".mp4"):
                     with open("video.mp4","wb") as writer:
                         writer.write(await value.body())
@@ -1269,15 +1268,14 @@ class XuexiProcessor():
                     prefix="%s://%s/" %(url.scheme,url.netloc+"/".join(url.path.split("/")[:-1]))
                     async def get_content(url:str) -> bytes:
                         async with ClientSession() as session:
-                            session.headers.update(headers)
+                            session.headers.update(await value.request.all_headers())
                             async with session.get(url) as response:
                                 return await response.read()
                     tasks=[]
-                    loop=asyncio.get_event_loop()
                     for line in text.split("\n"):
                         if line.startswith("#")==False:
-                            tasks.append(asyncio.ensure_future(get_content(prefix+line)))
-                    results=loop.run_until_complete(asyncio.gather(*tasks))
+                            tasks.append(get_content(prefix+line))
+                    results=await asyncio.gather(*tasks)
                     with open("video.mp4","wb") as writer:
                         writer.write(bytes().join(results))
                 else:
@@ -1312,7 +1310,7 @@ class XuexiProcessor():
                         for line in text.split("\n"):
                             if line.startswith("#")==False:
                                 self.logger.debug("正在下载视频 %s" %line)
-                                i.write(requests.get(url=prefix+line,headers=response.value.all_headers()).content)
+                                i.write(requests.get(url=prefix+line,headers=response.value.request.all_headers()).content)
                                 shutil.copyfileobj(i,writer) 
                 else:
                     self.logger.warning("未知的视频模式")
