@@ -67,6 +67,7 @@ class XuexiProcessor():
         self.logger.info("处理类完成初始化")
     async def start_async(self,test:bool=False):
         if self.conf["async"]==True:
+            self.logger.debug("启用异步 API")
             async with async_playwright() as p:
                 if self.conf["browser"]=="chromium":
                     browser=await p.chromium.launch(channel=self.conf["channel"],headless=not self.conf["debug"],proxy=self.conf["proxy"],devtools=self.conf["debug"])
@@ -101,13 +102,14 @@ class XuexiProcessor():
                     await context.storage_state(path="cookies.json")
                     self.logger.debug("已保存 cookie 用于尝试下次免登录")
                     await browser.close()
+            with open("config.json","w",encoding="utf-8") as writer:
+                json.dump(obj=self.conf,fp=writer,sort_keys=True,indent=4,ensure_ascii=False)
+                self.logger.debug("已更新配置文件")
         else:
             self.start(test=test)
-        with open("config.json","w",encoding="utf-8") as writer:
-            json.dump(obj=self.conf,fp=writer,sort_keys=True,indent=4,ensure_ascii=False)
-            self.logger.debug("已更新配置文件")
     def start(self,test:bool=False):
         if self.conf["async"]==False:
+            self.logger.debug("启用同步 API")
             with sync_playwright() as p:
                 if self.conf["browser"]=="chromium":
                     browser=p.chromium.launch(channel=self.conf["channel"],headless=not self.conf["debug"],proxy=self.conf["proxy"],devtools=self.conf["debug"])
@@ -142,11 +144,11 @@ class XuexiProcessor():
                     context.storage_state(path="cookies.json")
                     self.logger.debug("已保存 cookie 用于尝试下次免登录")
                     browser.close()
+            with open("config.json","w",encoding="utf-8") as writer:
+                json.dump(obj=self.conf,fp=writer,sort_keys=True,indent=4,ensure_ascii=False)
+                self.logger.debug("已更新配置文件")
         else:
             asyncio.run(self.start_async(test=test))
-        with open("config.json","w",encoding="utf-8") as writer:
-            json.dump(obj=self.conf,fp=writer,sort_keys=True,indent=4,ensure_ascii=False)
-            self.logger.debug("已更新配置文件")
         self.db.close()
         self.logger.debug("已关闭数据库连接")
         if self.conf["debug"]==False:
@@ -183,89 +185,91 @@ class XuexiProcessor():
                 json.dump(obj=old_conf,fp=writer,ensure_ascii=False,sort_keys=True,indent=4)
         return need_update
     async def login_async(self,context:AsyncBrowserContext):
-        self.logger.info("正在开始登录")
-        if self.gui==True and self.update_status_signal is not None:
-            self.update_status_signal.emit("当前状态:正在登录")
-        page=await context.new_page()
-        await page.bring_to_front()
-        await page.goto("https://pc.xuexi.cn/points/login.html")
-        if page.locator("div.main-box").count()==0:
-            self.logger.info("未能使用 cookie 免登录，将使用传统方案")
-            fnum=0
-            while True:
-                qglogin=page.locator("div#qglogin")
-                try:
-                    await qglogin.scroll_into_view_if_needed()
-                except AsyncTimeoutError:
-                    self.logger.error("加载图片失败")
-                    raise RuntimeError("加载二维码图片失败，请检查网络连接并等一会儿再试。")
-                locator=qglogin.frame_locator("iframe").locator("div#app img")
-                img=base64.b64decode(str(locator.get_attribute("src")).split(",")[1])
-                with open(file="qr.png",mode="wb") as writer:
-                    writer.write(img)
-                self.logger.info("登录二维码已保存至程序文件夹，请扫描下方或者文件夹内的二维码完成登录")
-                self.img2shell(img)
-                locator=page.locator('div.point-manage')
-                try:
-                    await locator.wait_for(timeout=300000)
-                except AsyncTimeoutError as e:
-                    if fnum>self.conf["advanced"]["login_retry"]:
-                        self.logger.error("超时次数超过 %d 次，终止尝试" %self.conf["advanced"]["login_retry"])
-                        raise e
+        if self.is_login==False:
+            self.logger.info("正在开始登录")
+            if self.gui==True and self.update_status_signal is not None:
+                self.update_status_signal.emit("当前状态:正在登录")
+            page=await context.new_page()
+            await page.bring_to_front()
+            await page.goto("https://pc.xuexi.cn/points/login.html")
+            if page.locator("div.main-box").count()==0:
+                self.logger.info("未能使用 cookie 免登录，将使用传统方案")
+                fnum=0
+                while True:
+                    qglogin=page.locator("div#qglogin")
+                    try:
+                        await qglogin.scroll_into_view_if_needed()
+                    except AsyncTimeoutError:
+                        self.logger.error("加载图片失败")
+                        raise RuntimeError("加载二维码图片失败，请检查网络连接并等一会儿再试。")
+                    locator=qglogin.frame_locator("iframe").locator("div#app img")
+                    img=base64.b64decode(str(locator.get_attribute("src")).split(",")[1])
+                    with open(file="qr.png",mode="wb") as writer:
+                        writer.write(img)
+                    self.logger.info("登录二维码已保存至程序文件夹，请扫描下方或者文件夹内的二维码完成登录")
+                    self.img2shell(img)
+                    locator=page.locator('div.point-manage')
+                    try:
+                        await locator.wait_for(timeout=300000)
+                    except AsyncTimeoutError as e:
+                        if fnum>self.conf["advanced"]["login_retry"]:
+                            self.logger.error("超时次数超过 %d 次，终止尝试" %self.conf["advanced"]["login_retry"])
+                            raise e
+                        else:
+                            fnum=fnum+1
+                            await page.reload()
                     else:
-                        fnum=fnum+1
-                        await page.reload()
-                else:
-                    break
-        else:
-            self.logger.info("成功使用 cookie 免登录")
-        await page.close()
-        self.logger.info("完成登录")
-        self.is_login=True
-        if self.gui==True and self.qr_control_signal is not None:
-            self.qr_control_signal.emit("".encode())
+                        break
+            else:
+                self.logger.info("成功使用 cookie 免登录")
+            await page.close()
+            self.logger.info("完成登录")
+            self.is_login=True
+            if self.gui==True and self.qr_control_signal is not None:
+                self.qr_control_signal.emit("".encode())
     def login(self,context:BrowserContext):
-        self.logger.info("正在开始登录")
-        if self.gui==True and self.update_status_signal is not None:
-            self.update_status_signal.emit("当前状态:正在登录")
-        page=context.new_page()
-        page.bring_to_front()
-        page.goto("https://pc.xuexi.cn/points/login.html")
-        if page.locator("div.main-box").count()==0:
-            self.logger.info("未能使用 cookie 免登录，将使用传统方案")
-            fnum=0
-            while True:
-                qglogin=page.locator("div#qglogin")
-                try:
-                    qglogin.scroll_into_view_if_needed()
-                except TimeoutError:
-                    self.logger.error("加载图片失败")
-                    raise RuntimeError("加载二维码图片失败，请检查网络连接并等一会儿再试。")
-                locator=qglogin.frame_locator("iframe").locator("div#app img")
-                img=base64.b64decode(str(locator.get_attribute("src")).split(",")[1])
-                with open(file="qr.png",mode="wb") as writer:
-                    writer.write(img)
-                self.logger.info("登录二维码已保存至程序文件夹，请扫描下方或者文件夹内的二维码完成登录")
-                self.img2shell(img)
-                locator=page.locator('div.point-manage')
-                try:
-                    locator.wait_for(timeout=300000)
-                except TimeoutError as e:
-                    if fnum>self.conf["advanced"]["login_retry"]:
-                        self.logger.error("超时次数超过 %d 次，终止尝试" %self.conf["advanced"]["login_retry"])
-                        raise e
+        if self.is_login==False:
+            self.logger.info("正在开始登录")
+            if self.gui==True and self.update_status_signal is not None:
+                self.update_status_signal.emit("当前状态:正在登录")
+            page=context.new_page()
+            page.bring_to_front()
+            page.goto("https://pc.xuexi.cn/points/login.html")
+            if page.locator("div.main-box").count()==0:
+                self.logger.info("未能使用 cookie 免登录，将使用传统方案")
+                fnum=0
+                while True:
+                    qglogin=page.locator("div#qglogin")
+                    try:
+                        qglogin.scroll_into_view_if_needed()
+                    except TimeoutError:
+                        self.logger.error("加载图片失败")
+                        raise RuntimeError("加载二维码图片失败，请检查网络连接并等一会儿再试。")
+                    locator=qglogin.frame_locator("iframe").locator("div#app img")
+                    img=base64.b64decode(str(locator.get_attribute("src")).split(",")[1])
+                    with open(file="qr.png",mode="wb") as writer:
+                        writer.write(img)
+                    self.logger.info("登录二维码已保存至程序文件夹，请扫描下方或者文件夹内的二维码完成登录")
+                    self.img2shell(img)
+                    locator=page.locator('div.point-manage')
+                    try:
+                        locator.wait_for(timeout=300000)
+                    except TimeoutError as e:
+                        if fnum>self.conf["advanced"]["login_retry"]:
+                            self.logger.error("超时次数超过 %d 次，终止尝试" %self.conf["advanced"]["login_retry"])
+                            raise e
+                        else:
+                            fnum=fnum+1
+                            page.reload()
                     else:
-                        fnum=fnum+1
-                        page.reload()
-                else:
-                    break
-        else:
-            self.logger.info("成功使用 cookie 免登录")
-        page.close()
-        self.logger.info("完成登录")
-        self.is_login=True
-        if self.gui==True and self.qr_control_signal is not None:
-            self.qr_control_signal.emit("".encode())
+                        break
+            else:
+                self.logger.info("成功使用 cookie 免登录")
+            page.close()
+            self.logger.info("完成登录")
+            self.is_login=True
+            if self.gui==True and self.qr_control_signal is not None:
+                self.qr_control_signal.emit("".encode())
     async def process_async(self,context:AsyncBrowserContext):
         if self.is_login==False:
             raise RuntimeError("当前未登录")
