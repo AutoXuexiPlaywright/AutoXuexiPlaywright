@@ -69,11 +69,11 @@ class XuexiProcessor():
         if self.conf["async"]==True:
             async with async_playwright() as p:
                 if self.conf["browser"]=="chromium":
-                    browser=await p.chromium.launch(channel=self.conf["channel"],headless=not self.conf["debug"],proxy=self.conf["proxy"])
+                    browser=await p.chromium.launch(channel=self.conf["channel"],headless=not self.conf["debug"],proxy=self.conf["proxy"],devtools=self.conf["debug"])
                 elif self.conf["browser"]=="firefox":
-                    browser=await p.firefox.launch(headless=not self.conf["debug"],proxy=self.conf["proxy"])
+                    browser=await p.firefox.launch(headless=not self.conf["debug"],proxy=self.conf["proxy"],devtools=self.conf["debug"])
                 elif self.conf["browser"]=="webkit":
-                    browser=await p.webkit.launch(headless=not self.conf["debug"],proxy=self.conf["proxy"])
+                    browser=await p.webkit.launch(headless=not self.conf["debug"],proxy=self.conf["proxy"],devtools=self.conf["debug"])
                 else:
                     self.logger.error("浏览器类型有误")
                     raise ValueError("设置的浏览器类型有误")
@@ -110,11 +110,11 @@ class XuexiProcessor():
         if self.conf["async"]==False:
             with sync_playwright() as p:
                 if self.conf["browser"]=="chromium":
-                    browser=p.chromium.launch(channel=self.conf["channel"],headless=not self.conf["debug"],proxy=self.conf["proxy"])
+                    browser=p.chromium.launch(channel=self.conf["channel"],headless=not self.conf["debug"],proxy=self.conf["proxy"],devtools=self.conf["debug"])
                 elif self.conf["browser"]=="firefox":
-                    browser=p.firefox.launch(headless=not self.conf["debug"],proxy=self.conf["proxy"])
+                    browser=p.firefox.launch(headless=not self.conf["debug"],proxy=self.conf["proxy"],devtools=self.conf["debug"])
                 elif self.conf["browser"]=="webkit":
-                    browser=p.webkit.launch(headless=not self.conf["debug"],proxy=self.conf["proxy"])
+                    browser=p.webkit.launch(headless=not self.conf["debug"],proxy=self.conf["proxy"],devtools=self.conf["debug"])
                 else:
                     self.logger.error("浏览器类型有误")
                     raise ValueError("设置的浏览器类型有误")
@@ -447,7 +447,7 @@ class XuexiProcessor():
                 self.logger.debug("已点击“片库”按钮")
                 page_3=await page_info.value
                 await page_3.bring_to_front()
-                await page_3.wait_for_load_state("networkidle")
+                await page_3.locator('section[data-component-wrapper="22af"]').wait_for()
                 while True:
                     divs=page_3.locator('div.textWrapper')
                     if divs.count==0:
@@ -662,7 +662,7 @@ class XuexiProcessor():
                 self.logger.debug("已点击“片库”按钮")
                 page_3=page_info.value
                 page_3.bring_to_front()
-                page_3.wait_for_load_state("networkidle")
+                page_3.locator('section[data-component-wrapper="22af"]').wait_for()
                 while True:
                     divs=page_3.locator('div.textWrapper')
                     if divs.count==0:
