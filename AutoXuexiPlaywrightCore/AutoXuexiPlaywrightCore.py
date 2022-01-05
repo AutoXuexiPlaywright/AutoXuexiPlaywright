@@ -14,6 +14,7 @@ import platform
 from PIL import Image
 from pyzbar import pyzbar
 from urllib.parse import urlparse
+from .AutoXuexiPlaywrightDefines import ProcessType
 from playwright.sync_api import sync_playwright, BrowserContext, Page, TimeoutError
 # async in development
 import asyncio
@@ -192,7 +193,7 @@ class XuexiProcessor():
             page=await context.new_page()
             await page.bring_to_front()
             await page.goto("https://pc.xuexi.cn/points/login.html")
-            if page.locator("div.main-box").count()==0:
+            if await page.locator("div.main-box").count()==0:
                 self.logger.info("未能使用 cookie 免登录，将使用传统方案")
                 fnum=0
                 while True:
@@ -203,7 +204,7 @@ class XuexiProcessor():
                         self.logger.error("加载图片失败")
                         raise RuntimeError("加载二维码图片失败，请检查网络连接并等一会儿再试。")
                     locator=qglogin.frame_locator("iframe").locator("div#app img")
-                    img=base64.b64decode(str(locator.get_attribute("src")).split(",")[1])
+                    img=base64.b64decode(str(await locator.get_attribute("src")).split(",")[1])
                     with open(file="qr.png",mode="wb") as writer:
                         writer.write(img)
                     self.logger.info("登录二维码已保存至程序文件夹，请扫描下方或者文件夹内的二维码完成登录")
@@ -312,11 +313,11 @@ class XuexiProcessor():
                 target=int(point_text.split("/")[1].replace("分",""))
                 card_title=(await titles.all_inner_texts())[i].strip()
                 if "视听学习" in card_title:
-                    handle_type="video"
+                    handle_type=ProcessType.VIDEO
                 elif "答题" in card_title:
-                    handle_type="test"
+                    handle_type=ProcessType.TEST
                 else:
-                    handle_type="news"
+                    handle_type=ProcessType.NEWS
                 if have>=target or card_title in finished:
                     self.logger.info("%s 已完成" %card_title)
                     finished.add(card_title)
@@ -325,13 +326,13 @@ class XuexiProcessor():
                     self.logger.info("正在处理 %s" %card_title)
                     if self.gui==True and self.update_status_signal is not None:
                         self.update_status_signal.emit("当前状态:正在处理 %s" %card_title)
-                    if handle_type!="test":
+                    if handle_type!=ProcessType.TEST:
                         try:
                             async with context.expect_page(timeout=self.conf["advanced"]["wait_newpage_secs"]*1000) as page_info:
                                 await buttons.nth(i).click()
-                            all_available=self.handle_async(page=(await page_info.value),handle_type=handle_type)
+                            all_available=await self.handle_async(page=(await page_info.value),handle_type=handle_type)
                         except AsyncTimeoutError:
-                            all_available=self.handle_async(page=page,handle_type=handle_type)
+                            all_available=await self.handle_async(page=page,handle_type=handle_type)
                         else:
                             if len(context.pages)>1:
                                 for page_ in context.pages[1:]:
@@ -339,7 +340,7 @@ class XuexiProcessor():
                     else:
                         await page.add_init_script("() => delete window.navigator.serviceWorker")
                         await buttons.nth(i).click()
-                        all_available=self.handle_async(page=page,handle_type=handle_type)
+                        all_available=await self.handle_async(page=page,handle_type=handle_type)
                         if all_available==False:
                             finished.add(card_title)
                             self.logger.warning("有未完成的任务，但找不到完成它的途径（比如已完成全部专项答题，而每天专项答题的得分项目都会刷新）")
@@ -393,11 +394,11 @@ class XuexiProcessor():
                 target=int(point_text.split("/")[1].replace("分",""))
                 card_title=titles.all_inner_texts()[i].strip()
                 if "视听学习" in card_title:
-                    handle_type="video"
+                    handle_type=ProcessType.VIDEO
                 elif "答题" in card_title:
-                    handle_type="test"
+                    handle_type=ProcessType.TEST
                 else:
-                    handle_type="news"
+                    handle_type=ProcessType.NEWS
                 if have>=target or card_title in finished:
                     self.logger.info("%s 已完成" %card_title)
                     finished.add(card_title)
@@ -406,7 +407,7 @@ class XuexiProcessor():
                     self.logger.info("正在处理 %s" %card_title)
                     if self.gui==True and self.update_status_signal is not None:
                         self.update_status_signal.emit("当前状态:正在处理 %s" %card_title)
-                    if handle_type!="test":
+                    if handle_type!=ProcessType.TEST:
                         try:
                             with context.expect_page(timeout=self.conf["advanced"]["wait_newpage_secs"]*1000) as page_info:
                                 buttons.nth(i).click()
@@ -432,13 +433,13 @@ class XuexiProcessor():
         mins,secs=divmod(time.time()-start_time,60)
         hrs,mins=divmod(mins,60)
         self.logger.info("结束所有任务，共计用时 {:0>2d}:{:0>2d}:{:0>2d}".format(int(hrs),int(mins),int(secs)))
-    async def handle_async(self,page:AsyncPage,handle_type:str):
+    async def handle_async(self,page:AsyncPage,handle_type:ProcessType):
         self.logger.debug("页面URL:%s" %page.url)
         record_url=""
         available=True
-        if handle_type!="test":
+        if handle_type!=ProcessType.TEST:
             self.logger.debug("非答题模式")
-            if handle_type=="video":
+            if handle_type==ProcessType.VIDEO:
                 self.logger.debug("处理类型:视频")
                 # 视频
                 async with page.context.expect_page() as page_info:
@@ -518,7 +519,7 @@ class XuexiProcessor():
                         await page_3.locator('//div/div[contains(text(),">>")]').click()
                     else:
                         break
-            elif handle_type=="news":
+            elif handle_type==ProcessType.NEWS:
                 self.logger.debug("处理类型:文章")
                 # 文章
                 async with page.context.expect_page() as page_info:
@@ -647,13 +648,13 @@ class XuexiProcessor():
             for page_ in page.context.pages[1:]:
                 await page_.close()
         return available
-    def handle(self,page:Page,handle_type:str):
+    def handle(self,page:Page,handle_type:ProcessType):
         self.logger.debug("页面URL:%s" %page.url)
         record_url=""
         available=True
-        if handle_type!="test":
+        if handle_type!=ProcessType.TEST:
             self.logger.debug("非答题模式")
-            if handle_type=="video":
+            if handle_type==ProcessType.VIDEO:
                 self.logger.debug("处理类型:视频")
                 # 视频
                 with page.context.expect_page() as page_info:
@@ -733,7 +734,7 @@ class XuexiProcessor():
                         page_3.locator('//div/div[contains(text(),">>")]').click()
                     else:
                         break
-            elif handle_type=="news":
+            elif handle_type==ProcessType.NEWS:
                 self.logger.debug("处理类型:文章")
                 # 文章
                 with page.context.expect_page() as page_info:
@@ -907,20 +908,19 @@ class XuexiProcessor():
                     if self.mutex is not None and self.wait is not None:
                         self.mutex.lock()
                         self.wait.wait(self.mutex)
+                        if self.pause_thread_signal is not None:
+                            self.pause_thread_signal.emit(title)
+                        else:
+                            self.logger.warning("暂停信号为空，子线程可能无法正常暂停")
+                        if self.answer_queue is not None:
+                            tips=self.answer_queue.get()
+                        else:
+                            tips=[""]
+                        self.mutex.unlock()
                     else:
                         self.logger.warning("互斥锁或者等待情况为空，子线程可能无法正常暂停")
-                    if self.pause_thread_signal is not None:
-                        self.pause_thread_signal.emit(title)
-                    else:
-                        self.logger.warning("暂停信号为空，子线程可能无法正常暂停")
-                    if self.answer_queue is not None:
-                        tips=self.answer_queue.get()
-                    else:
-                        tips=[""]
-                    if self.mutex is not None:
-                        self.mutex.unlock()
                 manual=True
-                c=asyncio.to_thread(self.get_video_async,page)
+                await asyncio.to_thread(self.get_video_async,page)
             answers_e=question.locator("div.q-answers")
             if answers_e.count()==0:
                 answers=question.locator("input.blank")
@@ -1052,18 +1052,17 @@ class XuexiProcessor():
                     if self.mutex is not None and self.wait is not None:
                         self.mutex.lock()
                         self.wait.wait(self.mutex)
+                        if self.pause_thread_signal is not None:
+                            self.pause_thread_signal.emit(title)
+                        else:
+                            self.logger.warning("暂停信号为空，子线程可能无法正常暂停")
+                        if self.answer_queue is not None:
+                            tips=self.answer_queue.get()
+                        else:
+                            tips=[""]
+                        self.mutex.unlock()
                     else:
                         self.logger.warning("互斥锁或者等待情况为空，子线程可能无法正常暂停")
-                    if self.pause_thread_signal is not None:
-                        self.pause_thread_signal.emit(title)
-                    else:
-                        self.logger.warning("暂停信号为空，子线程可能无法正常暂停")
-                    if self.answer_queue is not None:
-                        tips=self.answer_queue.get()
-                    else:
-                        tips=[""]
-                    if self.mutex is not None:
-                        self.mutex.unlock()
                 manual=True
                 self.get_video(page)
             answers_e=question.locator("div.q-answers")
