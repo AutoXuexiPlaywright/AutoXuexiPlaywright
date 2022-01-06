@@ -464,10 +464,12 @@ class XuexiProcessor():
                     await page_2.click('div.more-wrap>p.text')
                 self.logger.debug("已点击“片库”按钮")
                 page_3=await page_info.value
-                await page_3.bring_to_front()
-                await page_3.locator('section[data-component-wrapper="22af"]').wait_for()
+                data_data_id=page_3.url.split("#")[-1]
+                self.logger.debug("容器 ID: %s" %data_data_id)
+                container=page_3.locator('div[data-data-id="%s"]' %data_data_id)
+                await container.locator('div.textWrapper').last.wait_for()
                 while True:
-                    divs=page_3.locator('div.textWrapper')
+                    divs=container.locator('div.textWrapper')
                     if await divs.count()==0:
                         self.logger.error("未找到有效的视频")
                         raise RuntimeError("未找到有效视频")
@@ -600,7 +602,7 @@ class XuexiProcessor():
                     container=page.locator("div.ant-spin-container")
                     await container.wait_for()
                     weeks=container.locator("div.week")
-                    self.logger.debug("本页共 %d 个测试" %weeks.count())
+                    self.logger.debug("本页共 %d 个测试" %await weeks.count())
                     for i in range(await weeks.count()):
                         test_title=(await weeks.nth(i).locator("div.week-title").inner_text()).strip().replace("\n","")
                         test_stat=await weeks.nth(i).locator("div.stats>span.stat>div").get_attribute("class")
@@ -633,7 +635,7 @@ class XuexiProcessor():
                     await item.wait_for()
                     items=item.locator('div.item')
                     savailable=False
-                    self.logger.debug("本页找到 %d 个测试" %items.count())
+                    self.logger.debug("本页找到 %d 个测试" %await items.count())
                     for i in range(await items.count()):
                         if await items.nth(i).locator("a.solution").count()!=0 or await items.nth(i).locator("span.points").count()!=0:
                             self.logger.debug("答题已完成，正在跳过")
@@ -679,10 +681,12 @@ class XuexiProcessor():
                     page_2.click('div.more-wrap>p.text')
                 self.logger.debug("已点击“片库”按钮")
                 page_3=page_info.value
-                page_3.bring_to_front()
-                page_3.locator('section[data-component-wrapper="22af"]').wait_for()
+                data_data_id=page_3.url.split("#")[-1]
+                self.logger.debug("容器 ID: %s" %data_data_id)
+                container=page_3.locator('div[data-data-id="%s"]' %data_data_id)
+                container.locator('div.textWrapper').last.wait_for()
                 while True:
-                    divs=page_3.locator('div.textWrapper')
+                    divs=container.locator('div.textWrapper')
                     if divs.count()==0:
                         self.logger.error("未找到有效的视频")
                         raise RuntimeError("未找到有效视频")
@@ -977,14 +981,14 @@ class XuexiProcessor():
             while True:
                 action_row=page.locator("div.action-row")
                 btn_next=action_row.locator('button[class*="next-btn"]')
-                if btn_next.is_enabled()==False:
+                if await btn_next.is_enabled()==False:
                     self.logger.debug("已点击“提交”按钮")
                     await action_row.locator('button[class*="submit-btn"]').click(delay=random.uniform(self.conf["advanced"]["answer_sleep_min"],self.conf["advanced"]["answer_sleep_max"])*1000)
                 else:
                     self.logger.debug("已点击“下一个”按钮")
                     await btn_next.click(delay=random.uniform(self.conf["advanced"]["answer_sleep_min"],self.conf["advanced"]["answer_sleep_max"])*1000)
                 solution=page.locator('div.solution')
-                if solution.count()!=0:
+                if await solution.count()!=0:
                     if answer_in_db !=[]:
                         self.logger.info("数据库似乎记录了错误的答案？我们将删除这条记录")
                         self.remove_answer(title)
