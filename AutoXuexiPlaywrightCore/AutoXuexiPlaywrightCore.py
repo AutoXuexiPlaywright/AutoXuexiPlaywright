@@ -103,6 +103,7 @@ class XuexiProcessor():
                     await context.storage_state(path="cookies.json")
                     self.logger.debug("已保存 cookie 用于尝试下次免登录")
                     await browser.close()
+                    self.db.close()
             with open("config.json","w",encoding="utf-8") as writer:
                 json.dump(obj=self.conf,fp=writer,sort_keys=True,indent=4,ensure_ascii=False)
                 self.logger.debug("已更新配置文件")
@@ -145,6 +146,7 @@ class XuexiProcessor():
                     context.storage_state(path="cookies.json")
                     self.logger.debug("已保存 cookie 用于尝试下次免登录")
                     browser.close()
+                    self.db.close()
             with open("config.json","w",encoding="utf-8") as writer:
                 json.dump(obj=self.conf,fp=writer,sort_keys=True,indent=4,ensure_ascii=False)
                 self.logger.debug("已更新配置文件")
