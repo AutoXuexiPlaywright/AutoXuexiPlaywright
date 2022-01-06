@@ -103,12 +103,24 @@ class XuexiProcessor():
                     await context.storage_state(path="cookies.json")
                     self.logger.debug("已保存 cookie 用于尝试下次免登录")
                     await browser.close()
-                    self.db.close()
             with open("config.json","w",encoding="utf-8") as writer:
                 json.dump(obj=self.conf,fp=writer,sort_keys=True,indent=4,ensure_ascii=False)
                 self.logger.debug("已更新配置文件")
         else:
             self.start(test=test)
+        self.db.close()
+        self.logger.debug("已关闭数据库连接")
+        if self.conf["debug"]==False:
+            self.logger.info("正在删除临时文件")
+            if os.path.exists("video.mp4"):
+                os.remove("video.mp4")
+            if os.path.exists("qr.png"):
+                os.remove("qr.png")
+        if self.gui==True and self.job_finish_signal is not None:
+            try:
+                self.job_finish_signal.emit()
+            except Exception as e:
+                self.logger.error("提交中止信号出错，GUI 线程可能无法正常中止")
     def start(self,test:bool=False):
         if self.conf["async"]==False:
             self.logger.debug("启用同步 API")
@@ -146,7 +158,6 @@ class XuexiProcessor():
                     context.storage_state(path="cookies.json")
                     self.logger.debug("已保存 cookie 用于尝试下次免登录")
                     browser.close()
-                    self.db.close()
             with open("config.json","w",encoding="utf-8") as writer:
                 json.dump(obj=self.conf,fp=writer,sort_keys=True,indent=4,ensure_ascii=False)
                 self.logger.debug("已更新配置文件")
@@ -457,10 +468,10 @@ class XuexiProcessor():
                 await page_3.locator('section[data-component-wrapper="22af"]').wait_for()
                 while True:
                     divs=page_3.locator('div.textWrapper')
-                    if divs.count==0:
+                    if await divs.count()==0:
                         self.logger.error("未找到有效的视频")
                         raise RuntimeError("未找到有效视频")
-                    self.logger.debug("找到 %d 个视频" %divs.count())
+                    self.logger.debug("找到 %d 个视频" %await divs.count())
                     empty=True
                     page_num=1
                     for i in range(await divs.count()):
@@ -506,12 +517,12 @@ class XuexiProcessor():
                             ps=page_4.locator("div.video-article-summary>p,div.videoSet-article-summary>p")
                             if await ps.count()>0:
                                 for i in range(await ps.count()):
-                                    if ps.nth(i).is_visible()==True:
+                                    if await ps.nth(i).is_visible()==True:
                                         await asyncio.sleep(random.uniform(0.1,5.0))
                                         await ps.nth(i).scroll_into_view_if_needed()
                                 await asyncio.sleep(random.uniform(0,3))
                                 p_r=ps.nth(random.randint(0,await ps.count()-1))
-                                if p_r.is_visible()==True:
+                                if await p_r.is_visible()==True:
                                     await p_r.scroll_into_view_if_needed()
                         await page_4.close()
                         break
@@ -558,12 +569,12 @@ class XuexiProcessor():
                             ps=page_3.locator('div[class*="render-detail-content"]>p')
                             if await ps.count()>0:
                                 for i in range(await ps.count()):
-                                    if ps.nth(i).is_visible()==True:
+                                    if await ps.nth(i).is_visible()==True:
                                         await asyncio.sleep(random.uniform(0.1,5.0))
                                         await ps.nth(i).scroll_into_view_if_needed()
                                 await asyncio.sleep(random.uniform(0.5,5.0))
                                 p_r=ps.nth(random.randint(0,await ps.count()-1))
-                                if p_r.is_visible()==True:
+                                if await p_r.is_visible()==True:
                                     await p_r.scroll_into_view_if_needed()
                         await page_3.close()
                         break
@@ -611,7 +622,7 @@ class XuexiProcessor():
                         p+=1
                         self.logger.warning("本页测试均完成，将在第 %d 页寻找新的未完成测试" %p)
                         await next_btn.click()
-                        if next_btn.get_attribute("aria-disabled")=="true":
+                        if await next_btn.get_attribute("aria-disabled")=="true":
                             self.logger.warning("无可用测试")
                             break
             elif page_title=="专项答题列表" or page.url=="https://pc.xuexi.cn/points/exam-paper-list.html":
@@ -624,7 +635,7 @@ class XuexiProcessor():
                     savailable=False
                     self.logger.debug("本页找到 %d 个测试" %items.count())
                     for i in range(await items.count()):
-                        if items.nth(i).locator("a.solution").count()!=0 or items.nth(i).locator("span.points").count()!=0:
+                        if await items.nth(i).locator("a.solution").count()!=0 or await items.nth(i).locator("span.points").count()!=0:
                             self.logger.debug("答题已完成，正在跳过")
                         else:
                             test_title=(await items.nth(i).locator('div[class*="item-title"]').inner_text()).replace("...\n","").strip()
@@ -641,7 +652,7 @@ class XuexiProcessor():
                         p+=1
                         self.logger.warning("本页测试均完成，将在第 %d 页寻找新的未完成测试" %p)
                         await next_btn.click()
-                        if next_btn.get_attribute("aria-disabled")=="true":
+                        if await next_btn.get_attribute("aria-disabled")=="true":
                             self.logger.warning("无可用测试")
                             break
             else:
@@ -672,7 +683,7 @@ class XuexiProcessor():
                 page_3.locator('section[data-component-wrapper="22af"]').wait_for()
                 while True:
                     divs=page_3.locator('div.textWrapper')
-                    if divs.count==0:
+                    if divs.count()==0:
                         self.logger.error("未找到有效的视频")
                         raise RuntimeError("未找到有效视频")
                     self.logger.debug("找到 %d 个视频" %divs.count())
