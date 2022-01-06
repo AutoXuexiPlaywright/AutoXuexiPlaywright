@@ -490,7 +490,7 @@ class XuexiProcessor():
                                 record_url=page_4.url
                                 empty=False
                                 break
-                            time.sleep(random.uniform(0.0,5.0))
+                            await asyncio.sleep(random.uniform(0.0,5.0))
                             await video.scroll_into_view_if_needed()
                             if random.randint(0,1)==1:
                                 await page_4.hover('div.videoSet-article-video')
@@ -505,9 +505,9 @@ class XuexiProcessor():
                             if await ps.count()>0:
                                 for i in range(await ps.count()):
                                     if ps.nth(i).is_visible()==True:
-                                        time.sleep(random.uniform(0.1,5.0))
+                                        await asyncio.sleep(random.uniform(0.1,5.0))
                                         await ps.nth(i).scroll_into_view_if_needed()
-                                time.sleep(random.uniform(0,3))
+                                await asyncio.sleep(random.uniform(0,3))
                                 p_r=ps.nth(random.randint(0,await ps.count()-1))
                                 if p_r.is_visible()==True:
                                     await p_r.scroll_into_view_if_needed()
@@ -552,14 +552,14 @@ class XuexiProcessor():
                                 record_url=page_3.url
                                 empty=False
                                 break
-                            time.sleep(random.uniform(0.0,5.0))
+                            await asyncio.sleep(random.uniform(0.0,5.0))
                             ps=page_3.locator('div[class*="render-detail-content"]>p')
                             if await ps.count()>0:
                                 for i in range(await ps.count()):
                                     if ps.nth(i).is_visible()==True:
-                                        time.sleep(random.uniform(0.1,5.0))
+                                        await asyncio.sleep(random.uniform(0.1,5.0))
                                         await ps.nth(i).scroll_into_view_if_needed()
-                                time.sleep(random.uniform(0.5,5.0))
+                                await asyncio.sleep(random.uniform(0.5,5.0))
                                 p_r=ps.nth(random.randint(0,await ps.count()-1))
                                 if p_r.is_visible()==True:
                                     await p_r.scroll_into_view_if_needed()
@@ -865,7 +865,7 @@ class XuexiProcessor():
         return available
     async def finish_test_async(self,page:AsyncPage):
         while True:
-            if page.locator('div[class*="ant-modal-wrap"]').count()!=0:
+            if await page.locator('div[class*="ant-modal-wrap"]').count()!=0:
                 self.logger.error("答题次数超过网页版限制")
                 break
             manual=False
@@ -879,7 +879,7 @@ class XuexiProcessor():
                 tips=answer_in_db
             else:
                 tips_btn=question.locator('span.tips')
-                class_value=tips_btn.get_attribute("class")
+                class_value=await tips_btn.get_attribute("class")
                 if "ant-popover-open" not in "" if class_value is None else class_value:
                     await tips_btn.click()
                     self.logger.debug("已打开提示")
@@ -892,7 +892,7 @@ class XuexiProcessor():
                 else:
                     tips=[]
                 tips_btn=question.locator('span[class*="tips"]')
-                class_value=tips_btn.get_attribute("class")
+                class_value=await tips_btn.get_attribute("class")
                 if "ant-popover-open" in "" if class_value is None else class_value:
                     await tips_btn.click()
                     self.logger.debug("已关闭提示")
@@ -922,7 +922,7 @@ class XuexiProcessor():
                 manual=True
                 await asyncio.to_thread(self.get_video_async,page)
             answers_e=question.locator("div.q-answers")
-            if answers_e.count()==0:
+            if await answers_e.count()==0:
                 answers=question.locator("input.blank")
                 blank=True
                 self.logger.debug("问题类型为填空题")
@@ -931,9 +931,9 @@ class XuexiProcessor():
                 blank=False
                 self.logger.debug("问题类型为选择题")
             available=False
-            if len(tips)==answers.count() and blank==False:
+            if len(tips)==await answers.count() and blank==False:
                 for i in range(await answers.count()):
-                    class_of_answer=answers.nth(i).get_attribute("class")
+                    class_of_answer=await answers.nth(i).get_attribute("class")
                     if "chosen" not in "" if class_of_answer is None else class_of_answer:
                         await answers.nth(i).click(delay=random.uniform(self.conf["advanced"]["answer_sleep_min"],self.conf["advanced"]["answer_sleep_max"])*1000)
                 available=True
@@ -951,7 +951,7 @@ class XuexiProcessor():
                                 self.logger.debug("选择 %s" %(await answers.nth(i).inner_text()).strip())
                                 available=True
                         elif i==tips.index(tip_):
-                            time.sleep(random.uniform(self.conf["advanced"]["answer_sleep_min"],self.conf["advanced"]["answer_sleep_max"]))
+                            await asyncio.sleep(random.uniform(self.conf["advanced"]["answer_sleep_min"],self.conf["advanced"]["answer_sleep_max"]))
                             await answers.nth(i).fill(tip_)
                             self.logger.debug("填入 %s" %tip_)
                             available=True
