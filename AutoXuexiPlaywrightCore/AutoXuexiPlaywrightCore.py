@@ -106,21 +106,21 @@ class XuexiProcessor():
             with open("config.json","w",encoding="utf-8") as writer:
                 json.dump(obj=self.conf,fp=writer,sort_keys=True,indent=4,ensure_ascii=False)
                 self.logger.debug("已更新配置文件")
+            self.db.close()
+            self.logger.debug("已关闭数据库连接")
+            if self.conf["debug"]==False:
+                self.logger.info("正在删除临时文件")
+                if os.path.exists("video.mp4"):
+                    os.remove("video.mp4")
+                if os.path.exists("qr.png"):
+                    os.remove("qr.png")
+            if self.gui==True and self.job_finish_signal is not None:
+                try:
+                    self.job_finish_signal.emit()
+                except Exception as e:
+                    self.logger.error("提交中止信号出错，GUI 线程可能无法正常中止")
         else:
             self.start(test=test)
-        self.db.close()
-        self.logger.debug("已关闭数据库连接")
-        if self.conf["debug"]==False:
-            self.logger.info("正在删除临时文件")
-            if os.path.exists("video.mp4"):
-                os.remove("video.mp4")
-            if os.path.exists("qr.png"):
-                os.remove("qr.png")
-        if self.gui==True and self.job_finish_signal is not None:
-            try:
-                self.job_finish_signal.emit()
-            except Exception as e:
-                self.logger.error("提交中止信号出错，GUI 线程可能无法正常中止")
     def start(self,test:bool=False):
         if self.conf["async"]==False:
             self.logger.debug("启用同步 API")
@@ -161,21 +161,21 @@ class XuexiProcessor():
             with open("config.json","w",encoding="utf-8") as writer:
                 json.dump(obj=self.conf,fp=writer,sort_keys=True,indent=4,ensure_ascii=False)
                 self.logger.debug("已更新配置文件")
+            self.db.close()
+            self.logger.debug("已关闭数据库连接")
+            if self.conf["debug"]==False:
+                self.logger.info("正在删除临时文件")
+                if os.path.exists("video.mp4"):
+                    os.remove("video.mp4")
+                if os.path.exists("qr.png"):
+                    os.remove("qr.png")
+            if self.gui==True and self.job_finish_signal is not None:
+                try:
+                    self.job_finish_signal.emit()
+                except Exception as e:
+                    self.logger.error("提交中止信号出错，GUI 线程可能无法正常中止")
         else:
             asyncio.run(self.start_async(test=test))
-        self.db.close()
-        self.logger.debug("已关闭数据库连接")
-        if self.conf["debug"]==False:
-            self.logger.info("正在删除临时文件")
-            if os.path.exists("video.mp4"):
-                os.remove("video.mp4")
-            if os.path.exists("qr.png"):
-                os.remove("qr.png")
-        if self.gui==True and self.job_finish_signal is not None:
-            try:
-                self.job_finish_signal.emit()
-            except Exception as e:
-                self.logger.error("提交中止信号出错，GUI 线程可能无法正常中止")
     def update_conf(self,new_conf:dict,old_conf:dict=None,write:bool=True):
         need_update=False
         conf=self.conf if old_conf is None else old_conf
