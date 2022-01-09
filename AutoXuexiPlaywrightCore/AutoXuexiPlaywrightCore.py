@@ -919,25 +919,26 @@ class XuexiProcessor():
             if tips==[]:
                 # 手动输入答案
                 self.logger.warning("无法找到答案")
+                await asyncio.to_thread(self.get_video_async,page)
                 if self.gui==False:
                     tips=input("多个答案请用 # 连接，请输入 %s 的答案:" %title).strip().split("#")
                 else:
                     if self.mutex is not None and self.wait is not None:
                         self.mutex.lock()
-                        self.wait.wait(self.mutex)
                         if self.pause_thread_signal is not None:
                             self.pause_thread_signal.emit(title)
                         else:
                             self.logger.warning("暂停信号为空，子线程可能无法正常暂停")
+                        self.wait.wait(self.mutex)
                         if self.answer_queue is not None:
                             tips=self.answer_queue.get()
                         else:
+                            self.logger.warning("无法从队列获取数据")
                             tips=[""]
                         self.mutex.unlock()
                     else:
                         self.logger.warning("互斥锁或者等待情况为空，子线程可能无法正常暂停")
                 manual=True
-                await asyncio.to_thread(self.get_video_async,page)
             answers_e=question.locator("div.q-answers")
             if await answers_e.count()==0:
                 answers=question.locator("input.blank")
@@ -1063,25 +1064,26 @@ class XuexiProcessor():
             if tips==[]:
                 # 手动输入答案
                 self.logger.warning("无法找到答案")
+                self.get_video(page)
                 if self.gui==False:
                     tips=input("多个答案请用 # 连接，请输入 %s 的答案:" %title).strip().split("#")
                 else:
                     if self.mutex is not None and self.wait is not None:
                         self.mutex.lock()
-                        self.wait.wait(self.mutex)
                         if self.pause_thread_signal is not None:
                             self.pause_thread_signal.emit(title)
                         else:
                             self.logger.warning("暂停信号为空，子线程可能无法正常暂停")
+                        self.wait.wait(self.mutex)
                         if self.answer_queue is not None:
                             tips=self.answer_queue.get()
                         else:
+                            self.logger.warning("无法从队列获取数据")
                             tips=[""]
                         self.mutex.unlock()
                     else:
                         self.logger.warning("互斥锁或者等待情况为空，子线程可能无法正常暂停")
                 manual=True
-                self.get_video(page)
             answers_e=question.locator("div.q-answers")
             if answers_e.count()==0:
                 answers=question.locator("input.blank")
