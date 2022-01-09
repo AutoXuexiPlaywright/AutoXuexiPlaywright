@@ -224,7 +224,7 @@ class XuexiProcessor():
                     self.img2shell(img)
                     locator=page.locator('div.point-manage')
                     try:
-                        await locator.wait_for(timeout=300000)
+                        await locator.wait_for()
                     except AsyncTimeoutError as e:
                         if fnum>self.conf["advanced"]["login_retry"]:
                             self.logger.error("超时次数超过 %d 次，终止尝试" %self.conf["advanced"]["login_retry"])
@@ -267,7 +267,7 @@ class XuexiProcessor():
                     self.img2shell(img)
                     locator=page.locator('div.point-manage')
                     try:
-                        locator.wait_for(timeout=300000)
+                        locator.wait_for()
                     except TimeoutError as e:
                         if fnum>self.conf["advanced"]["login_retry"]:
                             self.logger.error("超时次数超过 %d 次，终止尝试" %self.conf["advanced"]["login_retry"])
@@ -489,10 +489,10 @@ class XuexiProcessor():
                         page_4=await page_info.value
                         try:
                             title=page_4.locator("div.videoSet-article-title")
-                            await title.wait_for(timeout=10000)
+                            await title.wait_for()
                         except AsyncTimeoutError:
                             title=page_4.locator("div.video-article-title")
-                            await title.wait_for(timeout=10000)
+                            await title.wait_for()
                         self.logger.info("正在处理:%s" %(await title.inner_text()).replace("\n"," "))
                         video=page_4.locator("video")
                         if page_4.url.startswith("https://www.xuexi.cn/lgpage/detail/index.html?id=")==False:
@@ -510,10 +510,10 @@ class XuexiProcessor():
                             if random.randint(0,1)==1:
                                 await page_4.hover('div.videoSet-article-video')
                                 try:
-                                    await page_4.click('div[class*="prism-play-btn"]',timeout=2000)
+                                    await page_4.click('div[class*="prism-play-btn"]')
                                 except AsyncTimeoutError:
                                     try:
-                                        await page_4.click('div.outter',timeout=2000)
+                                        await page_4.click('div.outter')
                                     except AsyncTimeoutError:
                                         self.logger.debug("切换视频播放状态失败")
                             ps=page_4.locator("div.video-article-summary>p,div.videoSet-article-summary>p")
@@ -706,10 +706,10 @@ class XuexiProcessor():
                         page_4=page_info.value
                         try:
                             title=page_4.locator("div.videoSet-article-title")
-                            title.wait_for(timeout=10000)
+                            title.wait_for()
                         except TimeoutError:
                             title=page_4.locator("div.video-article-title")
-                            title.wait_for(timeout=10000)
+                            title.wait_for()
                         self.logger.info("正在处理:%s" %title.inner_text().replace("\n"," "))
                         video=page_4.locator("video")
                         if page_4.url.startswith("https://www.xuexi.cn/lgpage/detail/index.html?id=")==False:
@@ -727,10 +727,10 @@ class XuexiProcessor():
                             if random.randint(0,1)==1:
                                 page_4.hover('div.videoSet-article-video')
                                 try:
-                                    page_4.click('div[class*="prism-play-btn"]',timeout=2000)
+                                    page_4.click('div[class*="prism-play-btn"]')
                                 except TimeoutError:
                                     try:
-                                        page_4.click('div.outter',timeout=2000)
+                                        page_4.click('div.outter')
                                     except TimeoutError:
                                         self.logger.debug("切换视频播放状态失败")
                             ps=page_4.locator("div.video-article-summary>p,div.videoSet-article-summary>p")
@@ -1019,7 +1019,7 @@ class XuexiProcessor():
             except AsyncTimeoutError:
                 self.logger.debug("无答题结果元素，测试未结束")
             else:
-                if container.locator('div.practice-result').count()!=0:
+                if await container.locator('div.practice-result').count()!=0:
                     self.logger.info("已完成测试")
                     break
                 else:
@@ -1266,7 +1266,7 @@ class XuexiProcessor():
             await video.hover()
             try:
                 async with page.expect_response(re.compile(r'https://.+.(m3u8|mp4)')) as response:
-                    await page.click('div#videoplayer div.outter',timeout=1000)
+                    await page.click('div#videoplayer div.outter')
             except AsyncTimeoutError as e:
                 self.logger.error("下载视频失败，原因:%s" %e)
             else:
@@ -1306,7 +1306,7 @@ class XuexiProcessor():
             video.hover()
             try:
                 with page.expect_response(re.compile(r'https://.+.(m3u8|mp4)')) as response:
-                    page.click('div#videoplayer div.outter',timeout=1000)
+                    page.click('div#videoplayer div.outter')
             except TimeoutError as e:
                 self.logger.error("下载视频失败，原因:%s" %e)
             else:
