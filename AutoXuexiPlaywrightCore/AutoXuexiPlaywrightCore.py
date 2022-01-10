@@ -86,6 +86,7 @@ class XuexiProcessor():
                     self.logger.warning("未找到 cookie 信息，将启动干净的上下文实例")
                     context=await browser.new_context()
                 context.set_default_timeout(self.conf["advanced"]["wait_page_secs"]*1000)
+                context.on("page",self.reload_if_error_async)
                 try:
                     await self.login_async(context)
                     if test:
@@ -141,6 +142,7 @@ class XuexiProcessor():
                     self.logger.warning("未找到 cookie 信息，将启动干净的上下文实例")
                     context=browser.new_context()
                 context.set_default_timeout(self.conf["advanced"]["wait_page_secs"]*1000)
+                context.on("page",self.reload_if_error)
                 try:
                     self.login(context=context)
                     if test==False:
@@ -1336,6 +1338,12 @@ class XuexiProcessor():
                 self.logger.info("已将视频下载至脚本文件夹下的 video.mp4 文件")
         else:
             self.logger.error("找到 %d 个视频元素" %video.count())
+    async def reload_if_error_async(self,page:AsyncPage):
+        if await page.locator('div.text-wrap>h1.text').count()+await page.locator('div.text-wrap>h2.text').count()>0:
+            await page.reload()
+    def reload_if_error(self,page:Page):
+        if page.locator('div.text-wrap>h1.text').count()+page.locator('div.text-wrap>h2.text').count()>0:
+            page.reload()
     async def test_async(self,context:AsyncBrowserContext):
         # 用于开发时测试脚本功能的函数，在 self.start_async(test=True) 时执行，正常使用时无需此函数
         if self.is_login==False:
