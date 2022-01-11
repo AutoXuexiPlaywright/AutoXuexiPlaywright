@@ -1340,9 +1340,11 @@ class XuexiProcessor():
             self.logger.error("找到 %d 个视频元素" %video.count())
     async def reload_if_error_async(self,page:AsyncPage):
         if await page.locator('div.text-wrap>h1.text').count()+await page.locator('div.text-wrap>h2.text').count()>0:
+            self.logger.warning("网页加载出现问题，我们将重新加载网页，但还是建议你检查网络连接")
             await page.reload()
     def reload_if_error(self,page:Page):
         if page.locator('div.text-wrap>h1.text').count()+page.locator('div.text-wrap>h2.text').count()>0:
+            self.logger.warning("网页加载出现问题，我们将重新加载网页，但还是建议你检查网络连接")
             page.reload()
     async def test_async(self,context:AsyncBrowserContext):
         # 用于开发时测试脚本功能的函数，在 self.start_async(test=True) 时执行，正常使用时无需此函数
