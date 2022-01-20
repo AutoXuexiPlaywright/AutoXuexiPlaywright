@@ -188,3 +188,9 @@ QLineEdit#edit{
     border-radius:5px;
     background-color:transparent;
 }
+/*答案输入框*/
+QInputDialog{
+    border:none;
+    border-radius:5px;
+    background-color:none;
+}

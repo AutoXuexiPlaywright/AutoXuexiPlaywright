@@ -914,10 +914,21 @@ class XuexiProcessor():
                 tips=[tip for tip in tips if tip.strip()!='']
                 self.logger.debug("已删除提示中的空白字符串")
             self.logger.debug("找到答案:%s" %tips)
+            answers_e=question.locator("div.q-answers")
+            if await answers_e.count()==0:
+                answers=question.locator("input.blank")
+                blank=True
+                self.logger.debug("问题类型为填空题")
+            else:
+                answers=answers_e.locator('div[class*="q-answer"]')
+                blank=False
+                self.logger.debug("问题类型为选择题")
             if tips==[]:
                 # 手动输入答案
                 self.logger.warning("无法找到答案")
                 await asyncio.to_thread(self.get_video_async,page)
+                if blank==False:
+                    title+="\n可用选项:"+"#".join([text.strip() for text in await answers.all_inner_texts()])
                 if self.gui==False:
                     tips=input("多个答案请用 # 连接，请输入 %s 的答案:" %title).strip().split("#")
                 else:
@@ -937,15 +948,6 @@ class XuexiProcessor():
                     else:
                         self.logger.warning("互斥锁或者等待情况为空，子线程可能无法正常暂停")
                 manual=True
-            answers_e=question.locator("div.q-answers")
-            if await answers_e.count()==0:
-                answers=question.locator("input.blank")
-                blank=True
-                self.logger.debug("问题类型为填空题")
-            else:
-                answers=answers_e.locator('div[class*="q-answer"]')
-                blank=False
-                self.logger.debug("问题类型为选择题")
             available=False
             if len(tips)==await answers.count() and blank==False:
                 for i in range(await answers.count()):
@@ -1059,10 +1061,21 @@ class XuexiProcessor():
                 tips=[tip for tip in tips if tip.strip()!='']
                 self.logger.debug("已删除提示中的空白字符串")
             self.logger.debug("找到答案:%s" %tips)
+            answers_e=question.locator("div.q-answers")
+            if answers_e.count()==0:
+                answers=question.locator("input.blank")
+                blank=True
+                self.logger.debug("问题类型为填空题")
+            else:
+                answers=answers_e.locator('div[class*="q-answer"]')
+                blank=False
+                self.logger.debug("问题类型为选择题")
             if tips==[]:
                 # 手动输入答案
                 self.logger.warning("无法找到答案")
                 self.get_video(page)
+                if blank==False:
+                    title+="\n可用选项:"+"#".join([text.strip() for text in answers.all_inner_texts()])
                 if self.gui==False:
                     tips=input("多个答案请用 # 连接，请输入 %s 的答案:" %title).strip().split("#")
                 else:
@@ -1082,15 +1095,6 @@ class XuexiProcessor():
                     else:
                         self.logger.warning("互斥锁或者等待情况为空，子线程可能无法正常暂停")
                 manual=True
-            answers_e=question.locator("div.q-answers")
-            if answers_e.count()==0:
-                answers=question.locator("input.blank")
-                blank=True
-                self.logger.debug("问题类型为填空题")
-            else:
-                answers=answers_e.locator('div[class*="q-answer"]')
-                blank=False
-                self.logger.debug("问题类型为选择题")
             available=False
             if len(tips)==answers.count() and blank==False:
                 for i in range(answers.count()):

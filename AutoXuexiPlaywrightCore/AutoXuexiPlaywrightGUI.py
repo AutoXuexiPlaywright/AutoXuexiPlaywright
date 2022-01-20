@@ -157,7 +157,15 @@ class MainUI(QMainWindow):
             label.move(round((self.centralWidget().width()-label.width())/2),round((self.centralWidget().height()-label.height())/2))
             label.show()
     def pause_thread(self,title:str):
-        text,status=QInputDialog.getText(self,"手动输入答案，使用 # 连接多选题的答案:",title,QLineEdit.Normal,"",Qt.FramelessWindowHint)
+        length=15
+        parsed_title=title.split("\n")
+        real_title=parsed_title[0]
+        real_title="\n".join([real_title[i:i+length] for i in range(0,len(real_title),length)])
+        if len(parsed_title)>1:
+            available_choices=parsed_title[1]
+        else:
+            available_choices=""
+        text,status=QInputDialog.getText(self,"手动输入答案，输入框内的数据可作为参考，使用 # 连接多选题的答案:",real_title,QLineEdit.Normal,available_choices,Qt.FramelessWindowHint)
         if status==False:
             answer=[""]
         else:
