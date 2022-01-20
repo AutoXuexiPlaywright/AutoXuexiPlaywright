@@ -297,8 +297,8 @@ class XuexiProcessor():
         total=-1
         while True:
             await page.goto("https://pc.xuexi.cn/points/my-points.html")
-            await page.locator('span[class*="my-points-red"]').wait_for()
             locator=page.locator("span.my-points-points")
+            await locator.last.wait_for()
             points=[point.strip() for point in await locator.all_inner_texts()]
             self.logger.debug("获取总分信息:%s" %points)
             try:
@@ -378,8 +378,8 @@ class XuexiProcessor():
         total=-1
         while True:
             page.goto("https://pc.xuexi.cn/points/my-points.html")
-            page.locator('span[class*="my-points-red"]').wait_for()
             locator=page.locator("span.my-points-points")
+            locator.last.wait_for()
             points=[point.strip() for point in locator.all_inner_texts()]
             self.logger.debug("获取总分信息:%s" %points)
             try:
@@ -469,9 +469,9 @@ class XuexiProcessor():
                 data_data_id=page_3.url.split("#")[-1]
                 self.logger.debug("容器 ID: %s" %data_data_id)
                 container=page_3.locator('div[data-data-id="%s"]' %data_data_id)
-                await container.locator('div.textWrapper').last.wait_for()
                 while True:
                     divs=container.locator('div.textWrapper')
+                    await divs.last.wait_for()
                     if await divs.count()==0:
                         self.logger.error("未找到有效的视频")
                         raise RuntimeError("未找到有效视频")
@@ -544,10 +544,10 @@ class XuexiProcessor():
                 self.logger.debug("已点击“更多头条”链接")
                 page_2=await page_info.value
                 while True:
-                    await page_2.locator("div.text>span").wait_for()
                     spans=page_2.locator('div.text-wrap>span.text')
                     empty=True
                     page_num=1
+                    await spans.last.wait_for()
                     for i in range(await spans.count()):
                         async with page_2.context.expect_page() as page_info:
                             await spans.nth(i).click()
@@ -601,9 +601,8 @@ class XuexiProcessor():
                 p=1
                 while True:
                     wavailable=False
-                    container=page.locator("div.ant-spin-container")
-                    await container.wait_for()
-                    weeks=container.locator("div.week")
+                    weeks=page.locator("div.ant-spin-container>div.week")
+                    await weeks.last.wait_for()
                     self.logger.debug("本页共 %d 个测试" %await weeks.count())
                     for i in range(await weeks.count()):
                         test_title=(await weeks.nth(i).locator("div.week-title").inner_text()).strip().replace("\n","")
@@ -633,9 +632,8 @@ class XuexiProcessor():
                 self.logger.debug("正在处理专项答题")
                 p=1
                 while True:
-                    item=page.locator('div.items')
-                    await item.wait_for()
-                    items=item.locator('div.item')
+                    items=page.locator('div.items>div.item')
+                    await items.last.wait_for()
                     savailable=False
                     self.logger.debug("本页找到 %d 个测试" %await items.count())
                     for i in range(await items.count()):
@@ -686,9 +684,9 @@ class XuexiProcessor():
                 data_data_id=page_3.url.split("#")[-1]
                 self.logger.debug("容器 ID: %s" %data_data_id)
                 container=page_3.locator('div[data-data-id="%s"]' %data_data_id)
-                container.locator('div.textWrapper').last.wait_for()
                 while True:
                     divs=container.locator('div.textWrapper')
+                    divs.last.wait_for()
                     if divs.count()==0:
                         self.logger.error("未找到有效的视频")
                         raise RuntimeError("未找到有效视频")
@@ -761,10 +759,10 @@ class XuexiProcessor():
                 self.logger.debug("已点击“更多头条”链接")
                 page_2=page_info.value
                 while True:
-                    page_2.locator("div.text>span").wait_for()
                     spans=page_2.locator('div.text-wrap>span.text')
                     empty=True
                     page_num=1
+                    spans.last.wait_for()
                     for i in range(spans.count()):
                         with page_2.context.expect_page() as page_info:
                             spans.nth(i).click()
@@ -818,9 +816,8 @@ class XuexiProcessor():
                 p=1
                 while True:
                     wavailable=False
-                    container=page.locator("div.ant-spin-container")
-                    container.wait_for()
-                    weeks=container.locator("div.week")
+                    weeks=page.locator("div.ant-spin-container>div.week")
+                    weeks.last.wait_for()
                     self.logger.debug("本页共 %d 个测试" %weeks.count())
                     for i in range(weeks.count()):
                         test_title=weeks.nth(i).locator("div.week-title").inner_text().strip().replace("\n","")
@@ -850,9 +847,8 @@ class XuexiProcessor():
                 self.logger.debug("正在处理专项答题")
                 p=1
                 while True:
-                    item=page.locator('div.items')
-                    item.wait_for()
-                    items=item.locator('div.item')
+                    items=page.locator('div.items>div.item')
+                    items.last.wait_for()
                     savailable=False
                     self.logger.debug("本页找到 %d 个测试" %items.count())
                     for i in range(items.count()):
