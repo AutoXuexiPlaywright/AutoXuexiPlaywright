@@ -15,11 +15,11 @@ from PIL import Image
 from pyzbar import pyzbar
 from urllib.parse import urlparse
 from .AutoXuexiPlaywrightDefines import ProcessType
-from playwright.sync_api import sync_playwright, BrowserContext, Page, TimeoutError
+from playwright.sync_api import sync_playwright, BrowserContext, Page, TimeoutError, Error
 # async in development
 import asyncio
 from aiohttp import ClientSession
-from playwright.async_api import async_playwright, BrowserContext as AsyncBrowserContext, Page as AsyncPage, TimeoutError as AsyncTimeoutError
+from playwright.async_api import async_playwright, BrowserContext as AsyncBrowserContext, Page as AsyncPage, TimeoutError as AsyncTimeoutError, Error as AsyncError
 
 APPID="AutoXuexiPlaywright"
 
@@ -601,7 +601,7 @@ class XuexiProcessor():
                 p=1
                 while True:
                     wavailable=False
-                    weeks=page.locator("div.ant-spin-container>div.week")
+                    weeks=page.locator("div.ant-spin-container div.week")
                     await weeks.last.wait_for()
                     self.logger.debug("本页共 %d 个测试" %await weeks.count())
                     for i in range(await weeks.count()):
@@ -816,7 +816,7 @@ class XuexiProcessor():
                 p=1
                 while True:
                     wavailable=False
-                    weeks=page.locator("div.ant-spin-container>div.week")
+                    weeks=page.locator("div.ant-spin-container div.week")
                     weeks.last.wait_for()
                     self.logger.debug("本页共 %d 个测试" %weeks.count())
                     for i in range(weeks.count()):
@@ -927,15 +927,14 @@ class XuexiProcessor():
                 # 手动输入答案
                 self.logger.warning("无法找到答案")
                 await asyncio.to_thread(self.get_video_async,page)
-                if blank==False:
-                    title+="\n可用选项:"+"#".join([text.strip() for text in await answers.all_inner_texts()])
+                title_encoded=title+"\n可用选项:"+"#".join([text.strip() for text in await answers.all_inner_texts()]) if blank==False else title
                 if self.gui==False:
-                    tips=input("多个答案请用 # 连接，请输入 %s 的答案:" %title).strip().split("#")
+                    tips=input("多个答案请用 # 连接，请输入 %s 的答案:" %title_encoded).strip().split("#")
                 else:
                     if self.mutex is not None and self.wait is not None:
                         self.mutex.lock()
                         if self.pause_thread_signal is not None:
-                            self.pause_thread_signal.emit(title)
+                            self.pause_thread_signal.emit(title_encoded)
                         else:
                             self.logger.warning("暂停信号为空，子线程可能无法正常暂停")
                         self.wait.wait(self.mutex)
@@ -970,7 +969,7 @@ class XuexiProcessor():
                                 available=True
                         elif i==tips.index(tip_):
                             await asyncio.sleep(random.uniform(self.conf["advanced"]["answer_sleep_min"],self.conf["advanced"]["answer_sleep_max"]))
-                            await answers.nth(i).fill(tip_)
+                            await answers.nth(i).type(tip_)
                             self.logger.debug("填入 %s" %tip_)
                             available=True
             if available==False:
@@ -1074,15 +1073,14 @@ class XuexiProcessor():
                 # 手动输入答案
                 self.logger.warning("无法找到答案")
                 self.get_video(page)
-                if blank==False:
-                    title+="\n可用选项:"+"#".join([text.strip() for text in answers.all_inner_texts()])
+                title_encoded=title+"\n可用选项:"+"#".join([text.strip() for text in answers.all_inner_texts()]) if blank==False else title
                 if self.gui==False:
-                    tips=input("多个答案请用 # 连接，请输入 %s 的答案:" %title).strip().split("#")
+                    tips=input("多个答案请用 # 连接，请输入 %s 的答案:" %title_encoded).strip().split("#")
                 else:
                     if self.mutex is not None and self.wait is not None:
                         self.mutex.lock()
                         if self.pause_thread_signal is not None:
-                            self.pause_thread_signal.emit(title)
+                            self.pause_thread_signal.emit(title_encoded)
                         else:
                             self.logger.warning("暂停信号为空，子线程可能无法正常暂停")
                         self.wait.wait(self.mutex)
@@ -1117,7 +1115,7 @@ class XuexiProcessor():
                                 available=True
                         elif i==tips.index(tip_):
                             time.sleep(random.uniform(self.conf["advanced"]["answer_sleep_min"],self.conf["advanced"]["answer_sleep_max"]))
-                            answers.nth(i).fill(tip_)
+                            answers.nth(i).type(tip_)
                             self.logger.debug("填入 %s" %tip_)
                             available=True
             if available==False:
@@ -1339,13 +1337,29 @@ class XuexiProcessor():
         else:
             self.logger.error("找到 %d 个视频元素" %video.count())
     async def reload_if_error_async(self,page:AsyncPage):
-        if await page.locator('div.text-wrap>h1.text').count()+await page.locator('div.text-wrap>h2.text').count()>0:
-            self.logger.warning("网页加载出现问题，我们将重新加载网页，但还是建议你检查网络连接")
-            await page.reload()
+        h1=page.locator('div.text-wrap>h1.text')
+        h2=page.locator('div.text-wrap>h2.text')
+        try:
+            await h1.last.wait_for()
+            await h2.last.wait_for()
+        except AsyncError:
+            self.logger.debug("未找到故障指示元素")
+        else:
+            if await h1.count()+await h2.count()>0:
+                self.logger.warning("网页加载出现问题，我们将重新加载网页，但还是建议你检查网络连接")
+                await page.reload()
     def reload_if_error(self,page:Page):
-        if page.locator('div.text-wrap>h1.text').count()+page.locator('div.text-wrap>h2.text').count()>0:
-            self.logger.warning("网页加载出现问题，我们将重新加载网页，但还是建议你检查网络连接")
-            page.reload()
+        h1=page.locator('div.text-wrap>h1.text')
+        h2=page.locator('div.text-wrap>h2.text')
+        try:
+            h1.last.wait_for()
+            h2.last.wait_for()
+        except Error:
+            self.logger.debug("未找到故障指示元素")
+        else:
+            if h1.count()+h2.count()>0:
+                self.logger.warning("网页加载出现问题，我们将重新加载网页，但还是建议你检查网络连接")
+                page.reload()
     async def test_async(self,context:AsyncBrowserContext):
         # 用于开发时测试脚本功能的函数，在 self.start_async(test=True) 时执行，正常使用时无需此函数
         if self.is_login==False:
