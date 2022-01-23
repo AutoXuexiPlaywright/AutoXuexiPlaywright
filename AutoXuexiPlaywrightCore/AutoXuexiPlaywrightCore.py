@@ -10,7 +10,6 @@ import shutil
 import logging
 import sqlite3
 import requests
-import platform
 from PIL import Image
 from pyzbar import pyzbar
 from urllib.parse import urlparse
@@ -72,10 +71,13 @@ class XuexiProcessor():
             async with async_playwright() as p:
                 if self.conf["browser"]=="chromium":
                     browser=await p.chromium.launch(channel=self.conf["channel"],headless=not self.conf["debug"],proxy=self.conf["proxy"],devtools=self.conf["debug"])
+                    self.logger.debug("启用 Chromium 浏览器")
                 elif self.conf["browser"]=="firefox":
-                    browser=await p.firefox.launch(headless=not self.conf["debug"],proxy=self.conf["proxy"],devtools=self.conf["debug"])
+                    browser=await p.firefox.launch(headless=not self.conf["debug"],proxy=self.conf["proxy"])
+                    self.logger.debug("启用 Firefox 浏览器")
                 elif self.conf["browser"]=="webkit":
-                    browser=await p.webkit.launch(headless=not self.conf["debug"],proxy=self.conf["proxy"],devtools=self.conf["debug"])
+                    browser=await p.webkit.launch(headless=not self.conf["debug"],proxy=self.conf["proxy"])
+                    self.logger.debug("启用 Webkit 浏览器")
                 else:
                     self.logger.error("浏览器类型有误")
                     raise ValueError("设置的浏览器类型有误")
@@ -86,7 +88,6 @@ class XuexiProcessor():
                     self.logger.warning("未找到 cookie 信息，将启动干净的上下文实例")
                     context=await browser.new_context()
                 context.set_default_timeout(self.conf["advanced"]["wait_page_secs"]*1000)
-                context.on("page",self.reload_if_error_async)
                 try:
                     await self.login_async(context)
                     if test:
@@ -95,15 +96,11 @@ class XuexiProcessor():
                         await self.process_async(context)
                 except Exception as e:
                     self.logger.error("处理过程出现错误\n%s" %e)
-                    if self.gui==True and self.job_finish_signal is not None:
-                        try:
-                            self.job_finish_signal.emit()
-                        except Exception as e:
-                            self.logger.error("提交中止信号出错，GUI 线程可能无法正常中止")
                 finally:
-                    await context.storage_state(path="cookies.json")
-                    self.logger.debug("已保存 cookie 用于尝试下次免登录")
-                    await browser.close()
+                    await context.close()
+                    if self.gui==True and self.job_finish_signal is not None:
+                        self.job_finish_signal.emit()
+                await browser.close()
             with open("config.json","w",encoding="utf-8") as writer:
                 json.dump(obj=self.conf,fp=writer,sort_keys=True,indent=4,ensure_ascii=False)
                 self.logger.debug("已更新配置文件")
@@ -128,10 +125,13 @@ class XuexiProcessor():
             with sync_playwright() as p:
                 if self.conf["browser"]=="chromium":
                     browser=p.chromium.launch(channel=self.conf["channel"],headless=not self.conf["debug"],proxy=self.conf["proxy"],devtools=self.conf["debug"])
+                    self.logger.debug("启用 Chromium 浏览器")
                 elif self.conf["browser"]=="firefox":
-                    browser=p.firefox.launch(headless=not self.conf["debug"],proxy=self.conf["proxy"],devtools=self.conf["debug"])
+                    browser=p.firefox.launch(headless=not self.conf["debug"],proxy=self.conf["proxy"])
+                    self.logger.debug("启用 Firefox 浏览器")
                 elif self.conf["browser"]=="webkit":
-                    browser=p.webkit.launch(headless=not self.conf["debug"],proxy=self.conf["proxy"],devtools=self.conf["debug"])
+                    browser=p.webkit.launch(headless=not self.conf["debug"],proxy=self.conf["proxy"])
+                    self.logger.debug("启用 Webkit 浏览器")
                 else:
                     self.logger.error("浏览器类型有误")
                     raise ValueError("设置的浏览器类型有误")
@@ -142,7 +142,6 @@ class XuexiProcessor():
                     self.logger.warning("未找到 cookie 信息，将启动干净的上下文实例")
                     context=browser.new_context()
                 context.set_default_timeout(self.conf["advanced"]["wait_page_secs"]*1000)
-                context.on("page",self.reload_if_error)
                 try:
                     self.login(context=context)
                     if test==False:
@@ -151,15 +150,11 @@ class XuexiProcessor():
                         self.test(context=context)
                 except Exception as e:
                     self.logger.error("处理过程出现错误\n%s" %e)
-                    if self.gui==True and self.job_finish_signal is not None:
-                        try:
-                            self.job_finish_signal.emit()
-                        except Exception as e:
-                            self.logger.error("提交中止信号出错，GUI 线程可能无法正常中止")
                 finally:
-                    context.storage_state(path="cookies.json")
-                    self.logger.debug("已保存 cookie 用于尝试下次免登录")
-                    browser.close()
+                    context.close()
+                    if self.gui==True and self.job_finish_signal is not None:
+                        self.job_finish_signal.emit()
+                browser.close()
             with open("config.json","w",encoding="utf-8") as writer:
                 json.dump(obj=self.conf,fp=writer,sort_keys=True,indent=4,ensure_ascii=False)
                 self.logger.debug("已更新配置文件")
@@ -362,6 +357,8 @@ class XuexiProcessor():
                     break
             if finish==True:
                 break
+        await context.storage_state(path="cookies.json")
+        self.logger.debug("已保存 cookie 用于尝试下次免登录")
         for page_ in context.pages:
             await page_.close()
         mins,secs=divmod(time.time()-start_time,60)
@@ -402,7 +399,7 @@ class XuexiProcessor():
                 texts=cards.locator("div.my-points-card-text")
                 buttons=cards.locator("div.big")
             self.logger.debug("得分卡片:%s" %[title.strip() for title in titles.all_inner_texts()])
-            finish=True
+            all_finish=True
             for i in range(cards.count()):
                 point_text=texts.all_inner_texts()[i].strip()
                 have=int(point_text.split("/")[0].replace("分",""))
@@ -418,7 +415,6 @@ class XuexiProcessor():
                     self.logger.info("%s 已完成" %card_title)
                     finished.add(card_title)
                 else:
-                    finish=False
                     self.logger.info("正在处理 %s" %card_title)
                     if self.gui==True and self.update_status_signal is not None:
                         self.update_status_signal.emit("当前状态:正在处理 %s" %card_title)
@@ -440,9 +436,12 @@ class XuexiProcessor():
                         if all_available==False:
                             finished.add(card_title)
                             self.logger.warning("有未完成的任务，但找不到完成它的途径（比如已完成全部专项答题，而每天专项答题的得分项目都会刷新）")
+                    all_finish=False
                     break
-            if finish==True:
+            if all_finish==True:
                 break
+        context.storage_state(path="cookies.json")
+        self.logger.debug("已保存 cookie 用于尝试下次免登录")
         for page_ in context.pages:
             page_.close()
         mins,secs=divmod(time.time()-start_time,60)
@@ -457,15 +456,17 @@ class XuexiProcessor():
             if handle_type==ProcessType.VIDEO:
                 self.logger.debug("处理类型:视频")
                 # 视频
+                await page.locator('div[data-data-id="tv-station-header"]').last.scroll_into_view_if_needed()
                 async with page.context.expect_page() as page_info:
-                    await page.click('div[data-data-id="tv-station-header"] span.moreText')
+                    await page.click('div[data-data-id="tv-station-header"]>div.right>span.moreText')
                 self.logger.debug("已点击“打开”按钮")
                 page_2=await page_info.value
-                await page_2.bring_to_front()
+                page_2.on("load",self.reload_if_error_async)
                 async with page_2.context.expect_page() as page_info:
                     await page_2.click('div.more-wrap>p.text')
                 self.logger.debug("已点击“片库”按钮")
                 page_3=await page_info.value
+                page_3.on("load",self.reload_if_error_async)
                 data_data_id=page_3.url.split("#")[-1]
                 self.logger.debug("容器 ID: %s" %data_data_id)
                 container=page_3.locator('div[data-data-id="%s"]' %data_data_id)
@@ -499,6 +500,7 @@ class XuexiProcessor():
                         video=page_4.locator("video")
                         if page_4.url.startswith("https://www.xuexi.cn/lgpage/detail/index.html?id=")==False:
                             self.logger.debug("非正常视频页面")
+                            await page_4.close()
                             continue
                         start_time=time.time()
                         while True:
@@ -508,7 +510,12 @@ class XuexiProcessor():
                                 empty=False
                                 break
                             await asyncio.sleep(random.uniform(0.0,5.0))
-                            await video.scroll_into_view_if_needed()
+                            try:
+                                await video.scroll_into_view_if_needed()
+                            except AsyncTimeoutError:
+                                self.logger.error("操作视频失败")
+                                await page_4.close()
+                                break
                             if random.randint(0,1)==1:
                                 await page_4.hover('div.videoSet-article-video')
                                 try:
@@ -543,6 +550,7 @@ class XuexiProcessor():
                     await page.locator('section[data-data-id="zhaiyao-title"] span.moreUrl').click()
                 self.logger.debug("已点击“更多头条”链接")
                 page_2=await page_info.value
+                page_2.on("load",self.reload_if_error_async)
                 while True:
                     spans=page_2.locator('div.text-wrap>span.text')
                     empty=True
@@ -553,10 +561,12 @@ class XuexiProcessor():
                             await spans.nth(i).click()
                         self.logger.debug("已点击对应链接")
                         page_3=await page_info.value
+                        page_3.on("load",self.reload_if_error_async)
                         target_title=(await page_3.locator("div.render-detail-title").inner_text()).strip().replace("\n"," ")
                         self.logger.info("正在处理:%s" %target_title)
                         if page_3.url.startswith("https://www.xuexi.cn/lgpage/detail/index.html?id=")==False:
                             self.logger.debug("非正常文章页面")
+                            await page_3.close()
                             continue
                         if self.is_read(url=page_3.url)==True:
                             self.logger.info("%s 在 %d 天内已阅读" %(target_title,self.conf["keep_in_database"]))
@@ -672,15 +682,17 @@ class XuexiProcessor():
             if handle_type==ProcessType.VIDEO:
                 self.logger.debug("处理类型:视频")
                 # 视频
+                page.locator('div[data-data-id="tv-station-header"]').last.scroll_into_view_if_needed()
                 with page.context.expect_page() as page_info:
-                    page.click('div[data-data-id="tv-station-header"] span.moreText')
+                    page.click('div[data-data-id="tv-station-header"]>div.right>span.moreText')
                 self.logger.debug("已点击“打开”按钮")
                 page_2=page_info.value
-                page_2.bring_to_front()
+                page_2.on("load",self.reload_if_error)
                 with page_2.context.expect_page() as page_info:
                     page_2.click('div.more-wrap>p.text')
                 self.logger.debug("已点击“片库”按钮")
                 page_3=page_info.value
+                page_3.on("load",self.reload_if_error)
                 data_data_id=page_3.url.split("#")[-1]
                 self.logger.debug("容器 ID: %s" %data_data_id)
                 container=page_3.locator('div[data-data-id="%s"]' %data_data_id)
@@ -714,6 +726,7 @@ class XuexiProcessor():
                         video=page_4.locator("video")
                         if page_4.url.startswith("https://www.xuexi.cn/lgpage/detail/index.html?id=")==False:
                             self.logger.debug("非正常视频页面")
+                            page_4.close()
                             continue
                         start_time=time.time()
                         while True:
@@ -723,7 +736,12 @@ class XuexiProcessor():
                                 empty=False
                                 break
                             time.sleep(random.uniform(0.0,5.0))
-                            video.scroll_into_view_if_needed()
+                            try:
+                                video.scroll_into_view_if_needed()
+                            except TimeoutError:
+                                self.logger.error("操作视频失败")
+                                page_4.close()
+                                break
                             if random.randint(0,1)==1:
                                 page_4.hover('div.videoSet-article-video')
                                 try:
@@ -758,6 +776,7 @@ class XuexiProcessor():
                     page.locator('section[data-data-id="zhaiyao-title"] span.moreUrl').click()
                 self.logger.debug("已点击“更多头条”链接")
                 page_2=page_info.value
+                page_2.on("load",self.reload_if_error)
                 while True:
                     spans=page_2.locator('div.text-wrap>span.text')
                     empty=True
@@ -768,10 +787,12 @@ class XuexiProcessor():
                             spans.nth(i).click()
                         self.logger.debug("已点击对应链接")
                         page_3=page_info.value
+                        page_3.on("load",self.reload_if_error)
                         target_title=page_3.locator("div.render-detail-title").inner_text().strip().replace("\n"," ")
                         self.logger.info("正在处理:%s" %target_title)
                         if page_3.url.startswith("https://www.xuexi.cn/lgpage/detail/index.html?id=")==False:
                             self.logger.debug("非正常文章页面")
+                            page_3.close()
                             continue
                         if self.is_read(url=page_3.url)==True:
                             self.logger.info("%s 在 %d 天内已阅读" %(target_title,self.conf["keep_in_database"]))
@@ -879,6 +900,7 @@ class XuexiProcessor():
                 page_.close()
         return available
     async def finish_test_async(self,page:AsyncPage):
+        page.on("load",self.reload_if_error_async)
         while True:
             if await page.locator('div[class*="ant-modal-wrap"]').count()!=0:
                 self.logger.error("答题次数超过网页版限制")
@@ -1025,6 +1047,7 @@ class XuexiProcessor():
                 else:
                     self.logger.debug("未完成测试，继续")
     def finish_test(self,page:Page):
+        page.on("load",self.reload_if_error)
         while True:
             if page.locator('div[class*="ant-modal-wrap"]').count()!=0:
                 self.logger.error("答题次数超过网页版限制")
@@ -1337,29 +1360,35 @@ class XuexiProcessor():
         else:
             self.logger.error("找到 %d 个视频元素" %video.count())
     async def reload_if_error_async(self,page:AsyncPage):
-        h1=page.locator('div.text-wrap>h1.text')
-        h2=page.locator('div.text-wrap>h2.text')
-        try:
-            await h1.last.wait_for()
-            await h2.last.wait_for()
-        except AsyncError:
-            self.logger.debug("未找到故障指示元素")
-        else:
-            if await h1.count()+await h2.count()>0:
-                self.logger.warning("网页加载出现问题，我们将重新加载网页，但还是建议你检查网络连接")
+        if self.conf["browser"]=="chromium":
+            if page.url=="https://xuexi.cn/notFound.html":
                 await page.reload()
+            else:
+                h1=page.locator('div.text-wrap>h1.text')
+                h2=page.locator('div.text-wrap>h2.text')
+                try:
+                    if await h1.count()+await h2.count()>0:
+                        self.logger.warning("网页加载出现问题，我们将重新加载网页，但还是建议你检查网络连接")
+                        await page.reload()
+                    else:
+                        self.logger.debug("未找到故障指示元素")
+                except AsyncError as e:
+                    self.logger.debug("未找到故障指示元素(%s)" %e)
     def reload_if_error(self,page:Page):
-        h1=page.locator('div.text-wrap>h1.text')
-        h2=page.locator('div.text-wrap>h2.text')
-        try:
-            h1.last.wait_for()
-            h2.last.wait_for()
-        except Error:
-            self.logger.debug("未找到故障指示元素")
-        else:
-            if h1.count()+h2.count()>0:
-                self.logger.warning("网页加载出现问题，我们将重新加载网页，但还是建议你检查网络连接")
+        if self.conf["browser"]=="chromium":
+            if page.url=="https://xuexi.cn/notFound.html":
                 page.reload()
+            else:
+                h1=page.locator('div.text-wrap>h1.text')
+                h2=page.locator('div.text-wrap>h2.text')
+                try:
+                    if h1.count()+h2.count()>0:
+                        self.logger.warning("网页加载出现问题，我们将重新加载网页，但还是建议你检查网络连接")
+                        page.reload()
+                    else:
+                        self.logger.debug("未找到故障指示元素")
+                except Error as e:
+                    self.logger.debug("未找到故障指示元素(%s)" %e)
     async def test_async(self,context:AsyncBrowserContext):
         # 用于开发时测试脚本功能的函数，在 self.start_async(test=True) 时执行，正常使用时无需此函数
         if self.is_login==False:
@@ -1385,7 +1414,7 @@ def generate_conf():
         "debug":False,
         "proxy":None,
         "browser":"chromium",
-        "channel":"msedge",
+        "channel":"chromium",
         "keep_in_database":3,
         "advanced":{
             "read_time":60,
@@ -1397,7 +1426,4 @@ def generate_conf():
             "wait_newpage_secs":5
         }
     }
-    if platform.system()!="Windows":
-        default_conf["browser"]="firefox"
-        default_conf["channel"]=None
     return default_conf
