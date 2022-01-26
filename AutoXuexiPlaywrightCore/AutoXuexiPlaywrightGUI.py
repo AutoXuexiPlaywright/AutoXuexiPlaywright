@@ -112,7 +112,7 @@ class MainUI(QMainWindow):
         self.update_status_signal.connect(log_panel.setToolTip)
         self.pause_thread_signal.connect(self.pause_thread)
         self.qr_control_signal.connect(self.handle_qr)
-        self.update_score_signal.connect(lambda scores:score.setText("全部得分:%d\n今日得分:%d" %scores))
+        self.update_score_signal.connect(lambda scores:score.setText("全部得分:%d\n今日得分:%d" %scores) if scores!=(-1,-1) else None)
         self.wthread=QThread()
         self.job=SubProcessJob(answer_queue=self.answer_queue,job_finish_signal=self.job_finish_signal,update_log_signal=self.update_log_signal,
                                update_status_signal=self.update_status_signal,pause_thread_signal=self.pause_thread_signal,wait=self.wait,
@@ -157,7 +157,7 @@ class MainUI(QMainWindow):
             label.move(round((self.centralWidget().width()-label.width())/2),round((self.centralWidget().height()-label.height())/2))
             label.show()
     def pause_thread(self,title:str):
-        length=15
+        length=30
         parsed_title=title.split("\n")
         real_title=parsed_title[0]
         real_title="\n".join([real_title[i:i+length] for i in range(0,len(real_title),length)])

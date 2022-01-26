@@ -461,12 +461,12 @@ class XuexiProcessor():
                     await page.click('div[data-data-id="tv-station-header"]>div.right>span.moreText')
                 self.logger.debug("已点击“打开”按钮")
                 page_2=await page_info.value
-                page_2.on("load",self.reload_if_error_async)
+                await self.reload_if_error_async(page_2)
                 async with page_2.context.expect_page() as page_info:
                     await page_2.click('div.more-wrap>p.text')
                 self.logger.debug("已点击“片库”按钮")
                 page_3=await page_info.value
-                page_3.on("load",self.reload_if_error_async)
+                await self.reload_if_error_async(page_3)
                 data_data_id=page_3.url.split("#")[-1]
                 self.logger.debug("容器 ID: %s" %data_data_id)
                 container=page_3.locator('div[data-data-id="%s"]' %data_data_id)
@@ -550,7 +550,7 @@ class XuexiProcessor():
                     await page.locator('section[data-data-id="zhaiyao-title"] span.moreUrl').click()
                 self.logger.debug("已点击“更多头条”链接")
                 page_2=await page_info.value
-                page_2.on("load",self.reload_if_error_async)
+                await self.reload_if_error_async(page_2)
                 while True:
                     spans=page_2.locator('div.text-wrap>span.text')
                     empty=True
@@ -561,7 +561,7 @@ class XuexiProcessor():
                             await spans.nth(i).click()
                         self.logger.debug("已点击对应链接")
                         page_3=await page_info.value
-                        page_3.on("load",self.reload_if_error_async)
+                        await self.reload_if_error_async(page_3)
                         target_title=(await page_3.locator("div.render-detail-title").inner_text()).strip().replace("\n"," ")
                         self.logger.info("正在处理:%s" %target_title)
                         if page_3.url.startswith("https://www.xuexi.cn/lgpage/detail/index.html?id=")==False:
@@ -687,12 +687,12 @@ class XuexiProcessor():
                     page.click('div[data-data-id="tv-station-header"]>div.right>span.moreText')
                 self.logger.debug("已点击“打开”按钮")
                 page_2=page_info.value
-                page_2.on("load",self.reload_if_error)
+                self.reload_if_error(page_2)
                 with page_2.context.expect_page() as page_info:
                     page_2.click('div.more-wrap>p.text')
                 self.logger.debug("已点击“片库”按钮")
                 page_3=page_info.value
-                page_3.on("load",self.reload_if_error)
+                self.reload_if_error(page_3)
                 data_data_id=page_3.url.split("#")[-1]
                 self.logger.debug("容器 ID: %s" %data_data_id)
                 container=page_3.locator('div[data-data-id="%s"]' %data_data_id)
@@ -776,7 +776,7 @@ class XuexiProcessor():
                     page.locator('section[data-data-id="zhaiyao-title"] span.moreUrl').click()
                 self.logger.debug("已点击“更多头条”链接")
                 page_2=page_info.value
-                page_2.on("load",self.reload_if_error)
+                self.reload_if_error(page_2)
                 while True:
                     spans=page_2.locator('div.text-wrap>span.text')
                     empty=True
@@ -787,7 +787,7 @@ class XuexiProcessor():
                             spans.nth(i).click()
                         self.logger.debug("已点击对应链接")
                         page_3=page_info.value
-                        page_3.on("load",self.reload_if_error)
+                        self.reload_if_error(page_3)
                         target_title=page_3.locator("div.render-detail-title").inner_text().strip().replace("\n"," ")
                         self.logger.info("正在处理:%s" %target_title)
                         if page_3.url.startswith("https://www.xuexi.cn/lgpage/detail/index.html?id=")==False:
@@ -900,7 +900,7 @@ class XuexiProcessor():
                 page_.close()
         return available
     async def finish_test_async(self,page:AsyncPage):
-        page.on("load",self.reload_if_error_async)
+        await self.reload_if_error_async(page)
         while True:
             if await page.locator('div[class*="ant-modal-wrap"]').count()!=0:
                 self.logger.error("答题次数超过网页版限制")
@@ -1042,12 +1042,12 @@ class XuexiProcessor():
                 self.logger.debug("无答题结果元素，测试未结束")
             else:
                 if await container.locator('div.practice-result').count()!=0:
-                    self.logger.info("已完成测试")
+                    self.logger.debug("已完成测试")
                     break
                 else:
                     self.logger.debug("未完成测试，继续")
     def finish_test(self,page:Page):
-        page.on("load",self.reload_if_error)
+        self.reload_if_error(page)
         while True:
             if page.locator('div[class*="ant-modal-wrap"]').count()!=0:
                 self.logger.error("答题次数超过网页版限制")
@@ -1189,7 +1189,7 @@ class XuexiProcessor():
                 self.logger.debug("无答题结果元素，测试未结束")
             else:
                 if container.locator('div.practice-result').count()!=0:
-                    self.logger.info("已完成测试")
+                    self.logger.debug("已完成测试")
                     break
                 else:
                     self.logger.debug("未完成测试，继续")
@@ -1310,7 +1310,7 @@ class XuexiProcessor():
                     prefix="%s://%s/" %(url.scheme,url.netloc+"/".join(url.path.split("/")[:-1]))
                     async def get_content(url:str) -> bytes:
                         async with ClientSession() as session:
-                            session.headers.update(await value.request.all_headers())
+                            session.headers.update(**await value.request.all_headers())
                             async with session.get(url) as response:
                                 return await response.read()
                     tasks=[]
@@ -1360,35 +1360,33 @@ class XuexiProcessor():
         else:
             self.logger.error("找到 %d 个视频元素" %video.count())
     async def reload_if_error_async(self,page:AsyncPage):
-        if self.conf["browser"]=="chromium":
-            if page.url=="https://xuexi.cn/notFound.html":
-                await page.reload()
-            else:
-                h1=page.locator('div.text-wrap>h1.text')
-                h2=page.locator('div.text-wrap>h2.text')
-                try:
-                    if await h1.count()+await h2.count()>0:
-                        self.logger.warning("网页加载出现问题，我们将重新加载网页，但还是建议你检查网络连接")
-                        await page.reload()
-                    else:
-                        self.logger.debug("未找到故障指示元素")
-                except AsyncError as e:
-                    self.logger.debug("未找到故障指示元素(%s)" %e)
+        if page.url=="https://xuexi.cn/notFound.html":
+            await page.reload()
+        else:
+            h1=page.locator('div.text-wrap>h1.text')
+            h2=page.locator('div.text-wrap>h2.text')
+            try:
+                if await h1.count()+await h2.count()>0:
+                    self.logger.warning("网页加载出现问题，我们将重新加载网页，但还是建议你检查网络连接")
+                    await page.reload()
+                else:
+                    self.logger.debug("未找到故障指示元素")
+            except AsyncError as e:
+                self.logger.debug("未找到故障指示元素(%s)" %e)
     def reload_if_error(self,page:Page):
-        if self.conf["browser"]=="chromium":
-            if page.url=="https://xuexi.cn/notFound.html":
-                page.reload()
-            else:
-                h1=page.locator('div.text-wrap>h1.text')
-                h2=page.locator('div.text-wrap>h2.text')
-                try:
-                    if h1.count()+h2.count()>0:
-                        self.logger.warning("网页加载出现问题，我们将重新加载网页，但还是建议你检查网络连接")
-                        page.reload()
-                    else:
-                        self.logger.debug("未找到故障指示元素")
-                except Error as e:
-                    self.logger.debug("未找到故障指示元素(%s)" %e)
+        if page.url=="https://xuexi.cn/notFound.html":
+            page.reload()
+        else:
+            h1=page.locator('div.text-wrap>h1.text')
+            h2=page.locator('div.text-wrap>h2.text')
+            try:
+                if h1.count()+h2.count()>0:
+                    self.logger.warning("网页加载出现问题，我们将重新加载网页，但还是建议你检查网络连接")
+                    page.reload()
+                else:
+                    self.logger.debug("未找到故障指示元素")
+            except Error as e:
+                self.logger.debug("未找到故障指示元素(%s)" %e)
     async def test_async(self,context:AsyncBrowserContext):
         # 用于开发时测试脚本功能的函数，在 self.start_async(test=True) 时执行，正常使用时无需此函数
         if self.is_login==False:
