@@ -997,7 +997,7 @@ class XuexiProcessor():
             if available==False:
                 self.logger.error("无显式答案")
                 r=answers.nth(random.randint(0,await answers.count()))
-                if "chosen" not in str(r.get_attribute("class")) and blank==False:
+                if "chosen" not in str(await r.get_attribute("class")) and blank==False:
                     await r.click()
                     self.logger.info("随机选择:%s" %(await r.inner_text()).strip())
             while True:
