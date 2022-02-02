@@ -172,7 +172,7 @@ class XuexiProcessor():
                 except Exception as e:
                     self.logger.error("提交中止信号出错，GUI 线程可能无法正常中止")
         else:
-            asyncio.run(self.start_async(test=test))
+            asyncio.run(self.start_async(test=test),debug=self.conf["debug"])
     def update_conf(self,new_conf:dict,old_conf:dict=None,write:bool=True):
         need_update=False
         conf=self.conf if old_conf is None else old_conf
@@ -498,6 +498,7 @@ class XuexiProcessor():
                             await title.wait_for()
                         self.logger.info("正在处理:%s" %(await title.inner_text()).replace("\n"," "))
                         video=page_4.locator("video")
+                        await video.evaluate("video => video.muted=true")
                         if page_4.url.startswith("https://www.xuexi.cn/lgpage/detail/index.html?id=")==False:
                             self.logger.debug("非正常视频页面")
                             await page_4.close()
@@ -724,6 +725,7 @@ class XuexiProcessor():
                             title.wait_for()
                         self.logger.info("正在处理:%s" %title.inner_text().replace("\n"," "))
                         video=page_4.locator("video")
+                        video.evaluate("video => video.muted=true")
                         if page_4.url.startswith("https://www.xuexi.cn/lgpage/detail/index.html?id=")==False:
                             self.logger.debug("非正常视频页面")
                             page_4.close()
@@ -948,7 +950,9 @@ class XuexiProcessor():
             if tips==[]:
                 # 手动输入答案
                 self.logger.warning("无法找到答案")
-                await asyncio.to_thread(self.get_video_async,page)
+                task=asyncio.create_task(self.get_video_async(page))
+                task.add_done_callback(lambda future:self.logger.debug("视频下载完成"))
+                await task
                 title_encoded=title+"\n可用选项:"+"#".join([text.strip() for text in await answers.all_inner_texts()]) if blank==False else title
                 if self.gui==False:
                     tips=input("多个答案请用 # 连接，请输入 %s 的答案:" %title_encoded).strip().split("#")
