@@ -23,4 +23,4 @@ jobs:
         echo -e "${{ secrets.SSHKEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
         ssh-keyscan github.com > ~/.ssh/known_hosts
-        git push -f "git@github.com:TechXueXi/study_xxqg.git" "main:main" --tags
+        git push -f "git@github.com:TechXueXi/AutoXuexiPlaywright.git" "main:main" --tags
