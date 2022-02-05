@@ -70,10 +70,10 @@ class XuexiProcessor():
             self.logger.debug("启用异步 API")
             async with async_playwright() as p:
                 if self.conf["browser"]=="chromium":
-                    browser=await p.chromium.launch(channel=self.conf["channel"],headless=not self.conf["debug"],proxy=self.conf["proxy"],devtools=self.conf["debug"])
+                    browser=await p.chromium.launch(channel=self.conf["channel"],args=["--mute-audio"],headless=not self.conf["debug"],proxy=self.conf["proxy"],devtools=self.conf["debug"])
                     self.logger.debug("启用 Chromium 浏览器")
                 elif self.conf["browser"]=="firefox":
-                    browser=await p.firefox.launch(headless=not self.conf["debug"],proxy=self.conf["proxy"])
+                    browser=await p.firefox.launch(headless=not self.conf["debug"],proxy=self.conf["proxy"],firefox_user_prefs={"media.volume_scale":0.0})
                     self.logger.debug("启用 Firefox 浏览器")
                 elif self.conf["browser"]=="webkit":
                     browser=await p.webkit.launch(headless=not self.conf["debug"],proxy=self.conf["proxy"])
@@ -124,10 +124,10 @@ class XuexiProcessor():
             self.logger.debug("启用同步 API")
             with sync_playwright() as p:
                 if self.conf["browser"]=="chromium":
-                    browser=p.chromium.launch(channel=self.conf["channel"],headless=not self.conf["debug"],proxy=self.conf["proxy"],devtools=self.conf["debug"])
+                    browser=p.chromium.launch(channel=self.conf["channel"],args=["--mute-audio"],headless=not self.conf["debug"],proxy=self.conf["proxy"],devtools=self.conf["debug"])
                     self.logger.debug("启用 Chromium 浏览器")
                 elif self.conf["browser"]=="firefox":
-                    browser=p.firefox.launch(headless=not self.conf["debug"],proxy=self.conf["proxy"])
+                    browser=p.firefox.launch(headless=not self.conf["debug"],proxy=self.conf["proxy"],firefox_user_prefs={"media.volume_scale":0.0})
                     self.logger.debug("启用 Firefox 浏览器")
                 elif self.conf["browser"]=="webkit":
                     browser=p.webkit.launch(headless=not self.conf["debug"],proxy=self.conf["proxy"])
@@ -207,7 +207,6 @@ class XuexiProcessor():
                 self.logger.info("未能使用 cookie 免登录，将使用传统方案")
                 fnum=0
                 while True:
-                    await self.mute_media_async(page)
                     qglogin=page.locator("div#qglogin")
                     try:
                         await qglogin.scroll_into_view_if_needed()
@@ -251,7 +250,6 @@ class XuexiProcessor():
                 self.logger.info("未能使用 cookie 免登录，将使用传统方案")
                 fnum=0
                 while True:
-                    self.mute_media(page)
                     qglogin=page.locator("div#qglogin")
                     try:
                         qglogin.scroll_into_view_if_needed()
@@ -499,7 +497,6 @@ class XuexiProcessor():
                             title=page_4.locator("div.video-article-title")
                             await title.wait_for()
                         self.logger.info("正在处理:%s" %(await title.inner_text()).replace("\n"," "))
-                        await self.mute_media_async(page_4)
                         video=page_4.locator("video")
                         if page_4.url.startswith("https://www.xuexi.cn/lgpage/detail/index.html?id=")==False:
                             self.logger.debug("非正常视频页面")
@@ -583,7 +580,6 @@ class XuexiProcessor():
                                 empty=False
                                 break
                             await asyncio.sleep(random.uniform(0.0,5.0))
-                            await self.mute_media_async(page_3)
                             ps=page_3.locator('div[class*="render-detail-content"]>p')
                             if await ps.count()>0:
                                 for i in range(await ps.count()):
@@ -727,7 +723,6 @@ class XuexiProcessor():
                             title=page_4.locator("div.video-article-title")
                             title.wait_for()
                         self.logger.info("正在处理:%s" %title.inner_text().replace("\n"," "))
-                        self.mute_media(page_4)
                         video=page_4.locator("video")
                         if page_4.url.startswith("https://www.xuexi.cn/lgpage/detail/index.html?id=")==False:
                             self.logger.debug("非正常视频页面")
@@ -810,7 +805,6 @@ class XuexiProcessor():
                                 record_url=page_3.url
                                 empty=False
                                 break
-                            self.mute_media(page_3)
                             time.sleep(random.uniform(0.0,5.0))
                             ps=page_3.locator('div[class*="render-detail-content"]>p')
                             if ps.count()>0:
@@ -912,7 +906,6 @@ class XuexiProcessor():
                 self.logger.error("答题次数超过网页版限制")
                 break
             manual=False
-            await self.mute_media_async(page)
             self.logger.debug("正在寻找问题元素")
             question=page.locator('div.detail-body>div.question')
             await question.scroll_into_view_if_needed()
@@ -1062,7 +1055,6 @@ class XuexiProcessor():
                 self.logger.error("答题次数超过网页版限制")
                 break
             manual=False
-            self.mute_media(page)
             self.logger.debug("正在寻找问题元素")
             question=page.locator('div.detail-body>div.question')
             question.scroll_into_view_if_needed()
@@ -1401,36 +1393,6 @@ class XuexiProcessor():
                     self.logger.debug("未找到故障指示元素")
             except Error as e:
                 self.logger.debug("未找到故障指示元素(%s)" %e)
-    async def mute_media_async(self,page:AsyncPage):
-        video=page.locator("video")
-        try:
-            await video.last.wait_for(timeout=CHECK_ELEMENT_TIMEOUT)
-        except AsyncTimeoutError:
-            self.logger.debug("未找到视频元素")
-        else:
-            await video.evaluate_all("video => video.muted=true")
-        audio=page.locator("audio")
-        try:
-            await audio.last.wait_for(timeout=CHECK_ELEMENT_TIMEOUT)
-        except AsyncTimeoutError:
-            self.logger.debug("未找到音频元素")
-        else:
-            await audio.evaluate_all("audio => audio.muted=true")
-    def mute_media(self,page:Page):
-        video=page.locator("video")
-        try:
-            video.last.wait_for(timeout=CHECK_ELEMENT_TIMEOUT)
-        except TimeoutError:
-            self.logger.debug("未找到视频元素")
-        else:
-            video.evaluate_all("video => video.muted=true")
-        audio=page.locator("audio")
-        try:
-            audio.last.wait_for(timeout=CHECK_ELEMENT_TIMEOUT)
-        except TimeoutError:
-            self.logger.debug("未找到音频元素")
-        else:
-            audio.evaluate_all("audio => audio.muted=true")
     async def test_async(self,context:AsyncBrowserContext):
         # 用于开发时测试脚本功能的函数，在 self.start_async(test=True) 时执行，正常使用时无需此函数
         if self.is_login==False:
