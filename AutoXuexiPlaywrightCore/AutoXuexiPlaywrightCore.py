@@ -70,10 +70,17 @@ class XuexiProcessor():
             self.logger.debug("启用异步 API")
             async with async_playwright() as p:
                 if self.conf["browser"]=="chromium":
-                    browser=await p.chromium.launch(channel=self.conf["channel"],args=["--mute-audio"],headless=not self.conf["debug"],proxy=self.conf["proxy"],devtools=self.conf["debug"])
+                    browser=await p.chromium.launch(
+                        channel=self.conf["channel"],
+                        args=["--mute-audio"],headless=not self.conf["debug"],
+                        proxy=self.conf["proxy"],devtools=self.conf["debug"]
+                    )
                     self.logger.debug("启用 Chromium 浏览器")
                 elif self.conf["browser"]=="firefox":
-                    browser=await p.firefox.launch(headless=not self.conf["debug"],proxy=self.conf["proxy"],firefox_user_prefs={"media.volume_scale":0.0})
+                    browser=await p.firefox.launch(
+                        headless=not self.conf["debug"],proxy=self.conf["proxy"],
+                        firefox_user_prefs={"media.volume_scale":"0.0"}
+                    )
                     self.logger.debug("启用 Firefox 浏览器")
                 elif self.conf["browser"]=="webkit":
                     browser=await p.webkit.launch(headless=not self.conf["debug"],proxy=self.conf["proxy"])
@@ -124,10 +131,17 @@ class XuexiProcessor():
             self.logger.debug("启用同步 API")
             with sync_playwright() as p:
                 if self.conf["browser"]=="chromium":
-                    browser=p.chromium.launch(channel=self.conf["channel"],args=["--mute-audio"],headless=not self.conf["debug"],proxy=self.conf["proxy"],devtools=self.conf["debug"])
+                    browser=p.chromium.launch(
+                        channel=self.conf["channel"],
+                        args=["--mute-audio"],headless=not self.conf["debug"],
+                        proxy=self.conf["proxy"],devtools=self.conf["debug"]
+                    )
                     self.logger.debug("启用 Chromium 浏览器")
                 elif self.conf["browser"]=="firefox":
-                    browser=p.firefox.launch(headless=not self.conf["debug"],proxy=self.conf["proxy"],firefox_user_prefs={"media.volume_scale":0.0})
+                    browser=p.firefox.launch(
+                        headless=not self.conf["debug"],proxy=self.conf["proxy"],
+                        firefox_user_prefs={"media.volume_scale":"0.0"}
+                    )
                     self.logger.debug("启用 Firefox 浏览器")
                 elif self.conf["browser"]=="webkit":
                     browser=p.webkit.launch(headless=not self.conf["debug"],proxy=self.conf["proxy"])
