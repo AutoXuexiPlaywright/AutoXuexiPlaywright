@@ -12,8 +12,10 @@ import sqlite3
 import requests
 from PIL import Image
 from pyzbar import pyzbar
+from functools import wraps
 from urllib.parse import urlparse
-from .AutoXuexiPlaywrightDefines import ProcessType, CHECK_ELEMENT_TIMEOUT
+from typing import Any, Callable, Coroutine
+from .AutoXuexiPlaywrightDefines import ProcessType, CHECK_ELEMENT_TIMEOUT, RELOAD_TIMES
 from playwright.sync_api import sync_playwright, BrowserContext, Page, TimeoutError, Error
 # async in development
 import asyncio
@@ -213,11 +215,13 @@ class XuexiProcessor():
         if self.is_login==False:
             self.logger.info("正在开始登录")
             if self.gui==True and self.update_status_signal is not None:
-                self.update_status_signal.emit("当前状态:正在登录")
+                self.update_status_signal.emit("当前状态：正在登录")
             page=await context.new_page()
             await page.bring_to_front()
             await page.goto("https://pc.xuexi.cn/points/login.html")
-            if await page.locator("div.main-box").count()==0:
+            try:
+                await page.locator("div.main-box").wait_for(timeout=CHECK_ELEMENT_TIMEOUT)
+            except AsyncTimeoutError:
                 self.logger.info("未能使用 cookie 免登录，将使用传统方案")
                 fnum=0
                 while True:
@@ -260,7 +264,9 @@ class XuexiProcessor():
             page=context.new_page()
             page.bring_to_front()
             page.goto("https://pc.xuexi.cn/points/login.html")
-            if page.locator("div.main-box").count()==0:
+            try:
+                page.locator("div.main-box").wait_for(timeout=CHECK_ELEMENT_TIMEOUT)
+            except TimeoutError:
                 self.logger.info("未能使用 cookie 免登录，将使用传统方案")
                 fnum=0
                 while True:
@@ -307,15 +313,16 @@ class XuexiProcessor():
         while True:
             await page.goto("https://pc.xuexi.cn/points/my-points.html")
             locator=page.locator("span.my-points-points")
-            await locator.last.wait_for()
+            await locator.nth(0).wait_for()
+            await locator.nth(1).wait_for()
             points=[point.strip() for point in await locator.all_inner_texts()]
-            self.logger.debug("获取总分信息:%s" %points)
+            self.logger.debug("获取总分信息：%s" %points)
             try:
                 total=int(points[0])
                 today=int(points[1])
             except ValueError:
                 self.logger.warning("获取分数信息失败")
-            self.logger.info("已获得分数:%d，今日获得分数:%d" %(total,today))
+            self.logger.info("已获得分数：%d，今日获得分数：%d" %(total,today))
             if self.gui==True and (self.update_score_signal is not None):
                 self.update_score_signal.emit((total,today))
             points_content=page.locator("div.my-points-content")
@@ -349,7 +356,7 @@ class XuexiProcessor():
                     finish=False
                     self.logger.info("正在处理 %s" %card_title)
                     if self.gui==True and self.update_status_signal is not None:
-                        self.update_status_signal.emit("当前状态:正在处理 %s" %card_title)
+                        self.update_status_signal.emit("当前状态：正在处理 %s" %card_title)
                     if handle_type!=ProcessType.TEST:
                         try:
                             async with context.expect_page(timeout=self.conf["advanced"]["wait_newpage_secs"]*1000) as page_info:
@@ -390,15 +397,16 @@ class XuexiProcessor():
         while True:
             page.goto("https://pc.xuexi.cn/points/my-points.html")
             locator=page.locator("span.my-points-points")
-            locator.last.wait_for()
+            locator.nth(0).wait_for()
+            locator.nth(1).wait_for()
             points=[point.strip() for point in locator.all_inner_texts()]
-            self.logger.debug("获取总分信息:%s" %points)
+            self.logger.debug("获取总分信息：%s" %points)
             try:
                 total=int(points[0])
                 today=int(points[1])
             except ValueError:
                 self.logger.warning("获取分数信息失败")
-            self.logger.info("已获得分数:%d，今日获得分数:%d" %(total,today))
+            self.logger.info("已获得分数：%d，今日获得分数：%d" %(total,today))
             if self.gui==True and (self.update_score_signal is not None):
                 self.update_score_signal.emit((total,today))
             points_content=page.locator("div.my-points-content")
@@ -412,7 +420,7 @@ class XuexiProcessor():
                 titles=cards.locator("p.my-points-card-title")
                 texts=cards.locator("div.my-points-card-text")
                 buttons=cards.locator("div.big")
-            self.logger.debug("得分卡片:%s" %[title.strip() for title in titles.all_inner_texts()])
+            self.logger.debug("得分卡片：%s" %[title.strip() for title in titles.all_inner_texts()])
             all_finish=True
             for i in range(cards.count()):
                 point_text=texts.all_inner_texts()[i].strip()
@@ -431,7 +439,7 @@ class XuexiProcessor():
                 else:
                     self.logger.info("正在处理 %s" %card_title)
                     if self.gui==True and self.update_status_signal is not None:
-                        self.update_status_signal.emit("当前状态:正在处理 %s" %card_title)
+                        self.update_status_signal.emit("当前状态：正在处理 %s" %card_title)
                     if handle_type!=ProcessType.TEST:
                         try:
                             with context.expect_page(timeout=self.conf["advanced"]["wait_newpage_secs"]*1000) as page_info:
@@ -468,25 +476,29 @@ class XuexiProcessor():
         if handle_type!=ProcessType.TEST:
             self.logger.debug("非答题模式")
             if handle_type==ProcessType.VIDEO:
-                self.logger.debug("处理类型:视频")
+                self.logger.debug("处理类型：视频")
                 # 视频
                 await page.locator('div[data-data-id="tv-station-header"]').last.scroll_into_view_if_needed()
                 async with page.context.expect_page() as page_info:
                     await page.click('div[data-data-id="tv-station-header"]>div.right>span.moreText')
                 self.logger.debug("已点击“打开”按钮")
                 page_2=await page_info.value
-                await self.reload_if_error_async(page_2)
-                async with page_2.context.expect_page() as page_info:
-                    await page_2.click('div.more-wrap>p.text')
+                @do_until_not_timeout_async(page_2,self.reload_if_error_async)
+                async def click():
+                    async with page_2.context.expect_page() as page_info:
+                        await page_2.click('div.more-wrap>p.text')
+                    return page_info
                 self.logger.debug("已点击“片库”按钮")
-                page_3=await page_info.value
-                await self.reload_if_error_async(page_3)
+                page_3=await (await click()).value
                 data_data_id=page_3.url.split("#")[-1]
-                self.logger.debug("容器 ID: %s" %data_data_id)
+                self.logger.debug("容器 ID：%s" %data_data_id)
                 container=page_3.locator('div[data-data-id="%s"]' %data_data_id)
                 while True:
                     divs=container.locator('div.textWrapper')
-                    await divs.last.wait_for()
+                    @do_until_not_timeout_async(page_3,self.reload_if_error_async)
+                    async def wait_div():
+                        await divs.last.wait_for()
+                    await wait_div()
                     if await divs.count()==0:
                         self.logger.error("未找到有效的视频")
                         raise RuntimeError("未找到有效视频")
@@ -558,26 +570,31 @@ class XuexiProcessor():
                     else:
                         break
             elif handle_type==ProcessType.NEWS:
-                self.logger.debug("处理类型:文章")
+                self.logger.debug("处理类型：文章")
                 # 文章
                 async with page.context.expect_page() as page_info:
                     await page.locator('section[data-data-id="zhaiyao-title"] span.moreUrl').click()
                 self.logger.debug("已点击“更多头条”链接")
                 page_2=await page_info.value
-                await self.reload_if_error_async(page_2)
                 while True:
                     spans=page_2.locator('div.text-wrap>span.text')
                     empty=True
                     page_num=1
-                    await spans.last.wait_for()
+                    @do_until_not_timeout_async(page_2,self.reload_if_error_async)
+                    async def wait_spans():
+                        await spans.last.wait_for()
+                    await wait_spans()
                     for i in range(await spans.count()):
                         async with page_2.context.expect_page() as page_info:
                             await spans.nth(i).click()
                         self.logger.debug("已点击对应链接")
                         page_3=await page_info.value
-                        await self.reload_if_error_async(page_3)
-                        target_title=(await page_3.locator("div.render-detail-title").inner_text()).strip().replace("\n"," ")
-                        self.logger.info("正在处理:%s" %target_title)
+                        @do_until_not_timeout_async(page_3,self.reload_if_error_async)
+                        async def wait_title():
+                            target_title=(await page_3.locator("div.render-detail-title").inner_text()).strip().replace("\n"," ")
+                            return target_title
+                        target_title = await wait_title()
+                        self.logger.info("正在处理：%s" %target_title)
                         if page_3.url.startswith("https://www.xuexi.cn/lgpage/detail/index.html?id=")==False:
                             self.logger.debug("非正常文章页面")
                             await page_3.close()
@@ -626,7 +643,10 @@ class XuexiProcessor():
                 while True:
                     wavailable=False
                     weeks=page.locator("div.ant-spin-container div.week")
-                    await weeks.last.wait_for()
+                    @do_until_not_timeout_async(page,self.reload_if_error_async)
+                    async def wait_weeks():
+                        await weeks.last.wait_for()
+                    await wait_weeks()
                     self.logger.debug("本页共 %d 个测试" %await weeks.count())
                     for i in range(await weeks.count()):
                         test_title=(await weeks.nth(i).locator("div.week-title").inner_text()).strip().replace("\n","")
@@ -637,7 +657,7 @@ class XuexiProcessor():
                             self.logger.debug("答题 %s 已完成，正在跳至下一个" %test_title)
                         else:
                             await btn.click()
-                            self.logger.info("正在处理:%s" %test_title)
+                            self.logger.info("正在处理：%s" %test_title)
                             await self.finish_test_async(page=page)
                             wavailable=True
                             break
@@ -657,7 +677,10 @@ class XuexiProcessor():
                 p=1
                 while True:
                     items=page.locator('div.items>div.item')
-                    await items.last.wait_for()
+                    @do_until_not_timeout_async(page,self.reload_if_error_async)
+                    async def wait_items():
+                        await items.last.wait_for()
+                    await wait_items()
                     savailable=False
                     self.logger.debug("本页找到 %d 个测试" %await items.count())
                     for i in range(await items.count()):
@@ -666,7 +689,7 @@ class XuexiProcessor():
                         else:
                             test_title=(await items.nth(i).locator('div[class*="item-title"]').inner_text()).replace("...\n","").strip()
                             await items.nth(i).locator('button[type="button"]').click()
-                            self.logger.info("正在处理:%s" %test_title)
+                            self.logger.info("正在处理：%s" %test_title)
                             await self.finish_test_async(page=page)
                             savailable=True
                             break
@@ -682,7 +705,7 @@ class XuexiProcessor():
                             self.logger.warning("无可用测试")
                             break
             else:
-                self.logger.error("未知的答题内容:%s" %page_title)
+                self.logger.error("未知的答题内容：%s" %page_title)
         if len(page.context.pages)>=1:
             for page_ in page.context.pages[1:]:
                 await page_.close()
@@ -694,25 +717,29 @@ class XuexiProcessor():
         if handle_type!=ProcessType.TEST:
             self.logger.debug("非答题模式")
             if handle_type==ProcessType.VIDEO:
-                self.logger.debug("处理类型:视频")
+                self.logger.debug("处理类型：视频")
                 # 视频
                 page.locator('div[data-data-id="tv-station-header"]').last.scroll_into_view_if_needed()
                 with page.context.expect_page() as page_info:
                     page.click('div[data-data-id="tv-station-header"]>div.right>span.moreText')
                 self.logger.debug("已点击“打开”按钮")
                 page_2=page_info.value
-                self.reload_if_error(page_2)
-                with page_2.context.expect_page() as page_info:
-                    page_2.click('div.more-wrap>p.text')
+                @do_until_not_timeout(page_2,self.reload_if_error)
+                def click():
+                    with page_2.context.expect_page() as page_info:
+                        page_2.click('div.more-wrap>p.text')
+                    return page_info
                 self.logger.debug("已点击“片库”按钮")
-                page_3=page_info.value
-                self.reload_if_error(page_3)
+                page_3=click().value
                 data_data_id=page_3.url.split("#")[-1]
                 self.logger.debug("容器 ID: %s" %data_data_id)
                 container=page_3.locator('div[data-data-id="%s"]' %data_data_id)
                 while True:
                     divs=container.locator('div.textWrapper')
-                    divs.last.wait_for()
+                    @do_until_not_timeout(page_3,self.reload_if_error)
+                    def wait_divs():
+                        divs.last.wait_for()
+                    wait_divs()
                     if divs.count()==0:
                         self.logger.error("未找到有效的视频")
                         raise RuntimeError("未找到有效视频")
@@ -736,7 +763,7 @@ class XuexiProcessor():
                         except TimeoutError:
                             title=page_4.locator("div.video-article-title")
                             title.wait_for()
-                        self.logger.info("正在处理:%s" %title.inner_text().replace("\n"," "))
+                        self.logger.info("正在处理：%s" %title.inner_text().replace("\n"," "))
                         video=page_4.locator("video")
                         if page_4.url.startswith("https://www.xuexi.cn/lgpage/detail/index.html?id=")==False:
                             self.logger.debug("非正常视频页面")
@@ -790,20 +817,25 @@ class XuexiProcessor():
                     page.locator('section[data-data-id="zhaiyao-title"] span.moreUrl').click()
                 self.logger.debug("已点击“更多头条”链接")
                 page_2=page_info.value
-                self.reload_if_error(page_2)
                 while True:
                     spans=page_2.locator('div.text-wrap>span.text')
                     empty=True
                     page_num=1
-                    spans.last.wait_for()
+                    @do_until_not_timeout(page_2,self.reload_if_error)
+                    def wait_spans():
+                        spans.last.wait_for()
+                    wait_spans()
                     for i in range(spans.count()):
                         with page_2.context.expect_page() as page_info:
                             spans.nth(i).click()
                         self.logger.debug("已点击对应链接")
                         page_3=page_info.value
-                        self.reload_if_error(page_3)
-                        target_title=page_3.locator("div.render-detail-title").inner_text().strip().replace("\n"," ")
-                        self.logger.info("正在处理:%s" %target_title)
+                        @do_until_not_timeout(page_3,self.reload_if_error)
+                        def process_title():
+                            target_title=page_3.locator("div.render-detail-title").inner_text().strip().replace("\n"," ")
+                            return target_title
+                        target_title=process_title()
+                        self.logger.info("正在处理：%s" %target_title)
                         if page_3.url.startswith("https://www.xuexi.cn/lgpage/detail/index.html?id=")==False:
                             self.logger.debug("非正常文章页面")
                             page_3.close()
@@ -852,7 +884,10 @@ class XuexiProcessor():
                 while True:
                     wavailable=False
                     weeks=page.locator("div.ant-spin-container div.week")
-                    weeks.last.wait_for()
+                    @do_until_not_timeout(page,self.reload_if_error)
+                    def wait_weeks():
+                        weeks.last.wait_for()
+                    wait_weeks()
                     self.logger.debug("本页共 %d 个测试" %weeks.count())
                     for i in range(weeks.count()):
                         test_title=weeks.nth(i).locator("div.week-title").inner_text().strip().replace("\n","")
@@ -863,7 +898,7 @@ class XuexiProcessor():
                             self.logger.debug("答题 %s 已完成，正在跳至下一个" %test_title)
                         else:
                             btn.click()
-                            self.logger.info("正在处理:%s" %test_title)
+                            self.logger.info("正在处理：%s" %test_title)
                             self.finish_test(page=page)
                             wavailable=True
                             break
@@ -883,7 +918,10 @@ class XuexiProcessor():
                 p=1
                 while True:
                     items=page.locator('div.items>div.item')
-                    items.last.wait_for()
+                    @do_until_not_timeout(page,self.reload_if_error)
+                    def wait_items():
+                        items.last.wait_for()
+                    wait_items()
                     savailable=False
                     self.logger.debug("本页找到 %d 个测试" %items.count())
                     for i in range(items.count()):
@@ -892,7 +930,7 @@ class XuexiProcessor():
                         else:
                             test_title=items.nth(i).locator('div[class*="item-title"]').inner_text().replace("...\n","").strip()
                             items.nth(i).locator('button[type="button"]').click()
-                            self.logger.info("正在处理:%s" %test_title)
+                            self.logger.info("正在处理：%s" %test_title)
                             self.finish_test(page=page)
                             savailable=True
                             break
@@ -908,13 +946,12 @@ class XuexiProcessor():
                             self.logger.warning("无可用测试")
                             break
             else:
-                self.logger.error("未知的答题内容:%s" %page_title)
+                self.logger.error("未知的答题内容：%s" %page_title)
         if len(page.context.pages)>=1:
             for page_ in page.context.pages[1:]:
                 page_.close()
         return available
     async def finish_test_async(self,page:AsyncPage):
-        await self.reload_if_error_async(page)
         while True:
             if await page.locator('div[class*="ant-modal-wrap"]').count()!=0:
                 self.logger.error("答题次数超过网页版限制")
@@ -922,9 +959,13 @@ class XuexiProcessor():
             manual=False
             self.logger.debug("正在寻找问题元素")
             question=page.locator('div.detail-body>div.question')
-            await question.scroll_into_view_if_needed()
-            title=(await question.locator("div.q-body").inner_text()).strip().replace("\n"," ")
-            self.logger.debug("已找到标题:%s" %title)
+            @do_until_not_timeout_async(page,self.reload_if_error_async)
+            async def process_question():
+                await question.scroll_into_view_if_needed()
+                title=(await question.locator("div.q-body").inner_text()).strip().replace("\n"," ")
+                return title
+            title=await process_question()
+            self.logger.debug("已找到标题：%s" %title)
             answer_in_db=self.get_answer(title=title)
             if answer_in_db!=[]:
                 tips=answer_in_db
@@ -949,7 +990,7 @@ class XuexiProcessor():
                     self.logger.debug("已关闭提示")
                 tips=[tip for tip in tips if tip.strip()!='']
                 self.logger.debug("已删除提示中的空白字符串")
-            self.logger.debug("找到答案:%s" %tips)
+            self.logger.debug("找到答案：%s" %tips)
             answers_e=question.locator("div.q-answers")
             if await answers_e.count()==0:
                 answers=question.locator("input.blank")
@@ -967,7 +1008,7 @@ class XuexiProcessor():
                 await task
                 title_encoded=title+"\n可用选项:"+"#".join([text.strip() for text in await answers.all_inner_texts()]) if blank==False else title
                 if self.gui==False:
-                    tips=input("多个答案请用 # 连接，请输入 %s 的答案:" %title_encoded).strip().split("#")
+                    tips=input("多个答案请用 # 连接，请输入 %s 的答案：" %title_encoded).strip().split("#")
                 else:
                     if self.mutex is not None and self.wait is not None:
                         self.mutex.lock()
@@ -997,7 +1038,7 @@ class XuexiProcessor():
                     for i in range(await answers.count()):
                         if blank==False:
                             class_of_answer=await answers.nth(i).get_attribute("class")
-                            self.logger.debug("获取答案class:%s" %class_of_answer)
+                            self.logger.debug("获取答案class：%s" %class_of_answer)
                             if class_of_answer is None:
                                 self.logger.debug("不正常的选择项目？")
                                 continue
@@ -1015,7 +1056,7 @@ class XuexiProcessor():
                 r=answers.nth(random.randint(0,await answers.count()))
                 if "chosen" not in str(await r.get_attribute("class")) and blank==False:
                     await r.click()
-                    self.logger.info("随机选择:%s" %(await r.inner_text()).strip())
+                    self.logger.info("随机选择：%s" %(await r.inner_text()).strip())
             while True:
                 action_row=page.locator("div.action-row")
                 btn_next=action_row.locator('button[class*="next-btn"]')
@@ -1032,7 +1073,7 @@ class XuexiProcessor():
                         self.remove_answer(title)
                     self.logger.info("本次答题输入的答案有误，将记录网页的答案")
                     true_answer=[ele.strip() for ele in await solution.locator('font[color="red"]').all_inner_texts()]
-                    self.logger.debug("网页获取的原始答案:%s" %true_answer)
+                    self.logger.debug("网页获取的原始答案：%s" %true_answer)
                     if true_answer!=[]:
                         if len(true_answer)>await answers.count():
                             part=int(len(true_answer)/await answers.count())
@@ -1042,7 +1083,7 @@ class XuexiProcessor():
                             true_answer=[]
                         if blank==True:
                             true_answer=[ans.replace(" ","") for ans in true_answer]
-                        self.logger.debug("记录到的真实答案:%s" %true_answer)
+                        self.logger.debug("记录到的真实答案：%s" %true_answer)
                         #self.record_answer(title,true_answer)
                         # TODO: How to get valid answer because tips may not same to answer
                     else:
@@ -1063,7 +1104,6 @@ class XuexiProcessor():
                 else:
                     self.logger.debug("未完成测试，继续")
     def finish_test(self,page:Page):
-        self.reload_if_error(page)
         while True:
             if page.locator('div[class*="ant-modal-wrap"]').count()!=0:
                 self.logger.error("答题次数超过网页版限制")
@@ -1071,9 +1111,13 @@ class XuexiProcessor():
             manual=False
             self.logger.debug("正在寻找问题元素")
             question=page.locator('div.detail-body>div.question')
-            question.scroll_into_view_if_needed()
-            title=question.locator("div.q-body").inner_text().strip().replace("\n"," ")
-            self.logger.debug("已找到标题:%s" %title)
+            @do_until_not_timeout(page,self.reload_if_error)
+            def proces_question():
+                question.scroll_into_view_if_needed()
+                title=question.locator("div.q-body").inner_text().strip().replace("\n"," ")
+                return title
+            title=proces_question()
+            self.logger.debug("已找到标题：%s" %title)
             answer_in_db=self.get_answer(title=title)
             if answer_in_db!=[]:
                 tips=answer_in_db
@@ -1114,7 +1158,7 @@ class XuexiProcessor():
                 self.get_video(page)
                 title_encoded=title+"\n可用选项:"+"#".join([text.strip() for text in answers.all_inner_texts()]) if blank==False else title
                 if self.gui==False:
-                    tips=input("多个答案请用 # 连接，请输入 %s 的答案:" %title_encoded).strip().split("#")
+                    tips=input("多个答案请用 # 连接，请输入 %s 的答案：" %title_encoded).strip().split("#")
                 else:
                     if self.mutex is not None and self.wait is not None:
                         self.mutex.lock()
@@ -1144,7 +1188,7 @@ class XuexiProcessor():
                     for i in range(answers.count()):
                         if blank==False:
                             class_of_answer=answers.nth(i).get_attribute("class")
-                            self.logger.debug("获取答案class:%s" %class_of_answer)
+                            self.logger.debug("获取答案class：%s" %class_of_answer)
                             if class_of_answer is None:
                                 self.logger.debug("不正常的选择项目？")
                                 continue
@@ -1162,7 +1206,7 @@ class XuexiProcessor():
                 r=answers.nth(random.randint(0,answers.count()))
                 if "chosen" not in str(r.get_attribute("class")) and blank==False:
                     r.click()
-                    self.logger.info("随机选择:%s" %r.inner_text().strip())
+                    self.logger.info("随机选择：%s" %r.inner_text().strip())
             while True:
                 action_row=page.locator("div.action-row")
                 btn_next=action_row.locator('button[class*="next-btn"]')
@@ -1179,7 +1223,7 @@ class XuexiProcessor():
                         self.remove_answer(title)
                     self.logger.info("本次答题输入的答案有误，将记录网页的答案")
                     true_answer=[ele.strip() for ele in solution.locator('font[color="red"]').all_inner_texts()]
-                    self.logger.debug("网页获取的原始答案:%s" %true_answer)
+                    self.logger.debug("网页获取的原始答案：%s" %true_answer)
                     if true_answer!=[]:
                         if len(true_answer)>answers.count():
                             part=int(len(true_answer)/answers.count())
@@ -1251,7 +1295,7 @@ class XuexiProcessor():
             res=self.db.execute("SELECT ANSWER FROM answer WHERE QUESTION=?",(title,)).fetchone()
             if res is not None:
                 result=base64.b64decode(str(res[0])).decode().split("#")
-                self.logger.debug("数据库查询结果:%s" %result)
+                self.logger.debug("数据库查询结果：%s" %result)
             else:
                 self.logger.debug("数据库中无记录")
         return result
@@ -1309,7 +1353,7 @@ class XuexiProcessor():
                 async with page.expect_response(re.compile(r'https://.+.(m3u8|mp4)')) as response:
                     await page.click('div#videoplayer div.outter')
             except AsyncTimeoutError as e:
-                self.logger.error("下载视频失败，原因:%s" %e)
+                self.logger.error("下载视频失败，原因：%s" %e)
             else:
                 value=await response.value
                 self.logger.debug("开始下载 %s MIME类型视频 %s" %((await value.all_headers())["content-type"],value.url))
@@ -1349,7 +1393,7 @@ class XuexiProcessor():
                 with page.expect_response(re.compile(r'https://.+.(m3u8|mp4)')) as response:
                     page.click('div#videoplayer div.outter')
             except TimeoutError as e:
-                self.logger.error("下载视频失败，原因:%s" %e)
+                self.logger.error("下载视频失败，原因：%s" %e)
             else:
                 self.logger.debug("开始下载 %s MIME类型视频 %s" %(response.value.all_headers()["content-type"],response.value.url))
                 if response.value.url.endswith(".mp4"):
@@ -1389,8 +1433,8 @@ class XuexiProcessor():
                     await page.reload()
                 else:
                     self.logger.debug("未找到故障指示元素")
-            except AsyncError as e:
-                self.logger.debug("未找到故障指示元素(%s)" %e)
+            except AsyncError:
+                self.logger.debug("未找到故障指示元素：出现错误")
     def reload_if_error(self,page:Page):
         if page.url=="https://xuexi.cn/notFound.html":
             page.reload()
@@ -1405,8 +1449,8 @@ class XuexiProcessor():
                     page.reload()
                 else:
                     self.logger.debug("未找到故障指示元素")
-            except Error as e:
-                self.logger.debug("未找到故障指示元素(%s)" %e)
+            except Error:
+                self.logger.debug("未找到故障指示元素：出现错误")
     async def test_async(self,context:AsyncBrowserContext):
         # 用于开发时测试脚本功能的函数，在 self.start_async(test=True) 时执行，正常使用时无需此函数
         if self.is_login==False:
@@ -1425,6 +1469,41 @@ class XuexiProcessor():
         # 在这里放置测试内容
         
         page.close()
+
+def do_until_not_timeout(page:Page,func:Callable[[Page],None]):
+    def decorator(callable:Callable[[],Any]):
+        @wraps(callable)
+        def wrap():
+            i=0
+            while True:
+                try:
+                    res=callable()
+                except TimeoutError as e:
+                    func(page)
+                    i+=1
+                    if i>RELOAD_TIMES:
+                        raise e
+                else:
+                    return res
+        return wrap
+    return decorator
+def do_until_not_timeout_async(page:AsyncPage,func:Callable[[AsyncPage],Coroutine[Any,Any,None]]):
+    def decorator(callable:Callable[[],Coroutine[Any,Any,Any]]):
+        @wraps(callable)
+        async def wrap():
+            i=0
+            while True:
+                try:
+                    res=await callable()
+                except AsyncTimeoutError as e:
+                    await func(page)
+                    i+=1
+                    if i>RELOAD_TIMES:
+                        raise e
+                else:
+                    return res
+        return wrap
+    return decorator
 def generate_conf():
     default_conf={
         "async":False,
