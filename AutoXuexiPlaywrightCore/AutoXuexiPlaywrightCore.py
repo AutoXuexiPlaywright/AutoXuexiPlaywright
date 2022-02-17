@@ -14,12 +14,14 @@ from PIL import Image
 from pyzbar import pyzbar
 from functools import wraps
 from urllib.parse import urlparse
-from typing import Any, Callable, Coroutine
+from playwright._impl._sync_base import EventInfo
+from typing import Any, Callable, Coroutine, Union
 from .AutoXuexiPlaywrightDefines import ProcessType, CHECK_ELEMENT_TIMEOUT, RELOAD_TIMES
 from playwright.sync_api import sync_playwright, BrowserContext, Page, TimeoutError, Error
 # async in development
 import asyncio
 from aiohttp import ClientSession
+from playwright._impl._async_base import AsyncEventInfo
 from playwright.async_api import async_playwright, BrowserContext as AsyncBrowserContext, Page as AsyncPage, TimeoutError as AsyncTimeoutError, Error as AsyncError
 
 APPID="AutoXuexiPlaywright"
@@ -502,10 +504,11 @@ class XuexiProcessor():
                     if await divs.count()==0:
                         self.logger.error("未找到有效的视频")
                         raise RuntimeError("未找到有效视频")
-                    self.logger.debug("找到 %d 个视频" %await divs.count())
+                    count=await divs.count()
+                    self.logger.debug("找到 %d 个视频" %count)
                     empty=True
                     page_num=1
-                    for i in range(await divs.count()):
+                    for i in range(count):
                         target_url=await divs.nth(i).get_attribute("data-link-target")
                         target_url="" if target_url is None else target_url
                         target_title=(await divs.nth(i).inner_text()).strip().replace("\n"," ")
@@ -564,9 +567,15 @@ class XuexiProcessor():
                         await page_4.close()
                         break
                     if empty==True:
-                        page_num=page_num+1
-                        self.logger.warning("没有足够的视频，将尝试在第 %d 页寻找新的视频" %page_num)
-                        await page_3.locator('//div/div[contains(text(),">>")]').click()
+                        next_btn=page_3.locator('//div/div[contains(text(),">>")]')
+                        if await next_btn.is_enabled():
+                            page_num=page_num+1
+                            self.logger.warning("没有足够的视频，将尝试在第 %d 页寻找新的视频" %page_num)
+                            await next_btn.click()
+                            await page.locator('div[class*="ant-spin-spinning"]').wait_for(state="hidden")
+                        else:
+                            self.logger.error("无可用视频")
+                            break
                     else:
                         break
             elif handle_type==ProcessType.NEWS:
@@ -624,9 +633,15 @@ class XuexiProcessor():
                         await page_3.close()
                         break
                     if empty==True:
-                        page_num=page_num+1
-                        self.logger.warning("没有足够的文章，将尝试在第 %d 页寻找新的文章" %page_num)
-                        await page_2.locator('//div/div[contains(text(),">>")]').click()
+                        next_btn=page_2.locator('//div/div[contains(text(),">>")]')
+                        if await next_btn.is_enabled():
+                            page_num=page_num+1
+                            self.logger.warning("没有足够的文章，将尝试在第 %d 页寻找新的文章" %page_num)
+                            await next_btn.click()
+                            await page.locator('div[class*="ant-spin-spinning"]').wait_for(state="hidden")
+                        else:
+                            self.logger.error("无可用文章")
+                            break
                     else:
                         break
             self.record_history(record_url=record_url)
@@ -641,14 +656,15 @@ class XuexiProcessor():
                 self.logger.debug("正在处理每周答题")
                 p=1
                 while True:
-                    wavailable=False
+                    available=False
                     weeks=page.locator("div.ant-spin-container div.week")
                     @do_until_not_timeout_async(page,self.reload_if_error_async)
                     async def wait_weeks():
                         await weeks.last.wait_for()
                     await wait_weeks()
-                    self.logger.debug("本页共 %d 个测试" %await weeks.count())
-                    for i in range(await weeks.count()):
+                    count=await weeks.count()
+                    self.logger.debug("本页共 %d 个测试" %count)
+                    for i in range(count):
                         test_title=(await weeks.nth(i).locator("div.week-title").inner_text()).strip().replace("\n","")
                         test_stat=await weeks.nth(i).locator("div.stats>span.stat>div").get_attribute("class")
                         test_stat="" if test_stat is None else test_stat
@@ -659,17 +675,19 @@ class XuexiProcessor():
                             await btn.click()
                             self.logger.info("正在处理：%s" %test_title)
                             await self.finish_test_async(page=page)
-                            wavailable=True
+                            available=True
                             break
-                    if wavailable==True:
+                    if available==True:
                         self.logger.info("已完成测试")
                         break
                     else:
-                        next_btn=page.locator('li.ant-pagination-next')
-                        p+=1
-                        self.logger.warning("本页测试均完成，将在第 %d 页寻找新的未完成测试" %p)
-                        await next_btn.click()
-                        if await next_btn.get_attribute("aria-disabled")=="true":
+                        next_btn=page.locator('li[class*="ant-pagination-next"]')
+                        if await next_btn.is_enabled():
+                            p+=1
+                            self.logger.warning("本页测试均完成，将在第 %d 页寻找新的未完成测试" %p)
+                            await next_btn.click()
+                            await page.locator('div[class*="ant-spin-spinning"]').wait_for(state="hidden")
+                        else:
                             self.logger.warning("无可用测试")
                             break
             elif page_title=="专项答题列表" or page.url=="https://pc.xuexi.cn/points/exam-paper-list.html":
@@ -681,9 +699,10 @@ class XuexiProcessor():
                     async def wait_items():
                         await items.last.wait_for()
                     await wait_items()
-                    savailable=False
-                    self.logger.debug("本页找到 %d 个测试" %await items.count())
-                    for i in range(await items.count()):
+                    available=False
+                    count=await items.count()
+                    self.logger.debug("本页找到 %d 个测试" %count)
+                    for i in range(count):
                         if await items.nth(i).locator("a.solution").count()!=0 or await items.nth(i).locator("span.points").count()!=0:
                             self.logger.debug("答题已完成，正在跳过")
                         else:
@@ -691,17 +710,19 @@ class XuexiProcessor():
                             await items.nth(i).locator('button[type="button"]').click()
                             self.logger.info("正在处理：%s" %test_title)
                             await self.finish_test_async(page=page)
-                            savailable=True
+                            available=True
                             break
-                    if savailable==True:
+                    if available==True:
                         self.logger.info("已完成测试")
                         break
                     else:
-                        next_btn=page.locator('li.ant-pagination-next')
-                        p+=1
-                        self.logger.warning("本页测试均完成，将在第 %d 页寻找新的未完成测试" %p)
-                        await next_btn.click()
-                        if await next_btn.get_attribute("aria-disabled")=="true":
+                        next_btn=page.locator('li[class*="ant-pagination-next"]')
+                        if await next_btn.is_enabled():
+                            p+=1
+                            self.logger.warning("本页测试均完成，将在第 %d 页寻找新的未完成测试" %p)
+                            await next_btn.click()
+                            await page.locator('div[class*="ant-spin-spinning"]').wait_for(state="hidden")
+                        else:
                             self.logger.warning("无可用测试")
                             break
             else:
@@ -743,10 +764,11 @@ class XuexiProcessor():
                     if divs.count()==0:
                         self.logger.error("未找到有效的视频")
                         raise RuntimeError("未找到有效视频")
-                    self.logger.debug("找到 %d 个视频" %divs.count())
+                    count=divs.count()
+                    self.logger.debug("找到 %d 个视频" %count)
                     empty=True
                     page_num=1
-                    for i in range(divs.count()):
+                    for i in range(count):
                         target_url=divs.nth(i).get_attribute("data-link-target")
                         target_url="" if target_url is None else target_url
                         target_title=divs.nth(i).inner_text().strip().replace("\n"," ")
@@ -805,9 +827,15 @@ class XuexiProcessor():
                         page_4.close()
                         break
                     if empty==True:
-                        page_num=page_num+1
-                        self.logger.warning("没有足够的视频，将尝试在第 %d 页寻找新的视频" %page_num)
-                        page_3.locator('//div/div[contains(text(),">>")]').click()
+                        next_btn=page_3.locator('//div/div[contains(text(),">>")]')
+                        if next_btn.is_enabled():
+                            page_num=page_num+1
+                            self.logger.warning("没有足够的视频，将尝试在第 %d 页寻找新的视频" %page_num)
+                            next_btn.click()
+                            page.locator('div[class*="ant-spin-spinning"]').wait_for(state="hidden")
+                        else:
+                            self.logger.error("无可用视频")
+                            break
                     else:
                         break
             elif handle_type==ProcessType.NEWS:
@@ -865,9 +893,15 @@ class XuexiProcessor():
                         page_3.close()
                         break
                     if empty==True:
-                        page_num=page_num+1
-                        self.logger.warning("没有足够的文章，将尝试在第 %d 页寻找新的文章" %page_num)
-                        page_2.locator('//div/div[contains(text(),">>")]').click()
+                        next_btn=page_2.locator('//div/div[contains(text(),">>")]')
+                        if next_btn.is_enabled():
+                            page_num=page_num+1
+                            self.logger.warning("没有足够的文章，将尝试在第 %d 页寻找新的文章" %page_num)
+                            next_btn.click()
+                            page.locator('div[class*="ant-spin-spinning"]').wait_for(state="hidden")
+                        else:
+                            self.logger.error("无可用文章")
+                            break
                     else:
                         break
             self.record_history(record_url=record_url)
@@ -882,14 +916,15 @@ class XuexiProcessor():
                 self.logger.debug("正在处理每周答题")
                 p=1
                 while True:
-                    wavailable=False
+                    available=False
                     weeks=page.locator("div.ant-spin-container div.week")
                     @do_until_not_timeout(page,self.reload_if_error)
                     def wait_weeks():
                         weeks.last.wait_for()
                     wait_weeks()
-                    self.logger.debug("本页共 %d 个测试" %weeks.count())
-                    for i in range(weeks.count()):
+                    count=weeks.count()
+                    self.logger.debug("本页共 %d 个测试" %count)
+                    for i in range(count):
                         test_title=weeks.nth(i).locator("div.week-title").inner_text().strip().replace("\n","")
                         test_stat=weeks.nth(i).locator("div.stats>span.stat>div").get_attribute("class")
                         test_stat="" if test_stat is None else test_stat
@@ -900,17 +935,19 @@ class XuexiProcessor():
                             btn.click()
                             self.logger.info("正在处理：%s" %test_title)
                             self.finish_test(page=page)
-                            wavailable=True
+                            available=True
                             break
-                    if wavailable==True:
+                    if available==True:
                         self.logger.info("已完成测试")
                         break
                     else:
-                        next_btn=page.locator('li.ant-pagination-next')
-                        p+=1
-                        self.logger.warning("本页测试均完成，将在第 %d 页寻找新的未完成测试" %p)
-                        next_btn.click()
-                        if next_btn.get_attribute("aria-disabled")=="true":
+                        next_btn=page.locator('li[class*="ant-pagination-next"]')
+                        if next_btn.is_enabled():
+                            p+=1
+                            self.logger.warning("本页测试均完成，将在第 %d 页寻找新的未完成测试" %p)
+                            next_btn.click()
+                            page.locator('div[class*="ant-spin-spinning"]').wait_for(state="hidden")
+                        else:
                             self.logger.warning("无可用测试")
                             break
             elif page_title=="专项答题列表" or page.url=="https://pc.xuexi.cn/points/exam-paper-list.html":
@@ -922,9 +959,10 @@ class XuexiProcessor():
                     def wait_items():
                         items.last.wait_for()
                     wait_items()
-                    savailable=False
-                    self.logger.debug("本页找到 %d 个测试" %items.count())
-                    for i in range(items.count()):
+                    available=False
+                    count=items.count()
+                    self.logger.debug("本页找到 %d 个测试" %count)
+                    for i in range(count):
                         if items.nth(i).locator("a.solution").count()!=0 or items.nth(i).locator("span.points").count()!=0:
                             self.logger.debug("答题已完成，正在跳过")
                         else:
@@ -932,17 +970,19 @@ class XuexiProcessor():
                             items.nth(i).locator('button[type="button"]').click()
                             self.logger.info("正在处理：%s" %test_title)
                             self.finish_test(page=page)
-                            savailable=True
+                            available=True
                             break
-                    if savailable==True:
+                    if available==True:
                         self.logger.info("已完成测试")
                         break
                     else:
-                        next_btn=page.locator('li.ant-pagination-next')
-                        p+=1
-                        self.logger.warning("本页测试均完成，将在第 %d 页寻找新的未完成测试" %p)
-                        next_btn.click()
-                        if next_btn.get_attribute("aria-disabled")=="true":
+                        next_btn=page.locator('li[class*="ant-pagination-next"]')
+                        if next_btn.is_enabled():
+                            p+=1
+                            self.logger.warning("本页测试均完成，将在第 %d 页寻找新的未完成测试" %p)
+                            next_btn.click()
+                            page.locator('div[class*="ant-spin-spinning"]').wait_for(state="hidden")
+                        else:
                             self.logger.warning("无可用测试")
                             break
             else:
@@ -1471,7 +1511,7 @@ class XuexiProcessor():
         page.close()
 
 def do_until_not_timeout(page:Page,func:Callable[[Page],None]):
-    def decorator(callable:Callable[[],Any]):
+    def decorator(callable:Callable[[],Union[None,str,EventInfo[Page]]]):
         @wraps(callable)
         def wrap():
             i=0
@@ -1488,7 +1528,7 @@ def do_until_not_timeout(page:Page,func:Callable[[Page],None]):
         return wrap
     return decorator
 def do_until_not_timeout_async(page:AsyncPage,func:Callable[[AsyncPage],Coroutine[Any,Any,None]]):
-    def decorator(callable:Callable[[],Coroutine[Any,Any,Any]]):
+    def decorator(callable:Callable[[],Coroutine[Any,Any,Union[str,AsyncEventInfo[AsyncPage],None]]]):
         @wraps(callable)
         async def wrap():
             i=0
