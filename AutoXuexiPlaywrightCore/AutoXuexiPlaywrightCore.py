@@ -73,21 +73,21 @@ class XuexiProcessor():
         if self.conf["async"]==True:
             self.logger.debug("启用异步 API")
             async with async_playwright() as p:
+                common_args={"headless":not self.conf["debug"]}
+                if isinstance(self.conf["proxy"],list):
+                    common_args.update({"proxy":self.conf["proxy"]})
                 if self.conf["browser"]=="chromium":
                     browser=await p.chromium.launch(
-                        channel=self.conf["channel"],
-                        args=["--mute-audio"],headless=not self.conf["debug"],
-                        proxy=self.conf["proxy"],devtools=self.conf["debug"]
+                        channel=self.conf["channel"],args=["--mute-audio"],**common_args,devtools=self.conf["debug"]
                     )
                     self.logger.debug("启用 Chromium 浏览器")
                 elif self.conf["browser"]=="firefox":
                     browser=await p.firefox.launch(
-                        headless=not self.conf["debug"],proxy=self.conf["proxy"],
-                        firefox_user_prefs={"media.volume_scale":"0.0"}
+                        **common_args,firefox_user_prefs={"media.volume_scale":"0.0"}
                     )
                     self.logger.debug("启用 Firefox 浏览器")
                 elif self.conf["browser"]=="webkit":
-                    browser=await p.webkit.launch(headless=not self.conf["debug"],proxy=self.conf["proxy"])
+                    browser=await p.webkit.launch(**common_args)
                     self.logger.debug("启用 Webkit 浏览器")
                 else:
                     self.logger.error("浏览器类型有误")
