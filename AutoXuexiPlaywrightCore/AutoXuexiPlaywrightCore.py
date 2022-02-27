@@ -27,7 +27,7 @@ from playwright.async_api import async_playwright, BrowserContext as AsyncBrowse
 APPID="AutoXuexiPlaywright"
 
 class XuexiProcessor():
-    def __init__(self,gui:bool=False,st:logging.Handler=None,**kwargs):
+    def __init__(self,gui:bool=False,st:Union[logging.Handler,None]=None,**kwargs):
         default_conf=generate_conf()
         self.is_login=False
         self.gui=gui
@@ -108,6 +108,8 @@ class XuexiProcessor():
                 except Exception as e:
                     self.logger.error("处理过程出现错误\n%s" %e)
                 finally:
+                    await context.storage_state(path="cookies.json")
+                    self.logger.debug("已更新 cookie")
                     await context.close()
                     if self.gui==True and self.job_finish_signal is not None:
                         self.job_finish_signal.emit()
@@ -169,6 +171,8 @@ class XuexiProcessor():
                 except Exception as e:
                     self.logger.error("处理过程出现错误\n%s" %e)
                 finally:
+                    context.storage_state(path="cookies.json")
+                    self.logger.debug("已更新 cookie")
                     context.close()
                     if self.gui==True and self.job_finish_signal is not None:
                         self.job_finish_signal.emit()
@@ -191,7 +195,7 @@ class XuexiProcessor():
                     self.logger.error("提交中止信号出错，GUI 线程可能无法正常中止")
         else:
             asyncio.run(self.start_async(test=test),debug=self.conf["debug"])
-    def update_conf(self,new_conf:dict,old_conf:dict=None,write:bool=True):
+    def update_conf(self,new_conf:dict,old_conf:Union[dict,None]=None,write:bool=True):
         need_update=False
         conf=self.conf if old_conf is None else old_conf
         for key in new_conf.keys():
