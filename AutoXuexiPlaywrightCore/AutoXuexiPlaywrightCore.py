@@ -572,7 +572,7 @@ class XuexiProcessor():
                         break
                     if empty==True:
                         next_btn=page_3.locator('//div/div[contains(text(),">>")]')
-                        if await next_btn.is_enabled():
+                        if await next_btn.is_visible():
                             page_num=page_num+1
                             self.logger.warning("没有足够的视频，将尝试在第 %d 页寻找新的视频" %page_num)
                             await next_btn.click()
@@ -638,7 +638,7 @@ class XuexiProcessor():
                         break
                     if empty==True:
                         next_btn=page_2.locator('//div/div[contains(text(),">>")]')
-                        if await next_btn.is_enabled():
+                        if await next_btn.is_visible():
                             page_num=page_num+1
                             self.logger.warning("没有足够的文章，将尝试在第 %d 页寻找新的文章" %page_num)
                             await next_btn.click()
@@ -686,7 +686,7 @@ class XuexiProcessor():
                         break
                     else:
                         next_btn=page.locator('li[class*="ant-pagination-next"]')
-                        if await next_btn.is_enabled():
+                        if await next_btn.get_attribute("aria-disabled")=="false":
                             p+=1
                             self.logger.warning("本页测试均完成，将在第 %d 页寻找新的未完成测试" %p)
                             await next_btn.click()
@@ -721,7 +721,7 @@ class XuexiProcessor():
                         break
                     else:
                         next_btn=page.locator('li[class*="ant-pagination-next"]')
-                        if await next_btn.is_enabled():
+                        if await next_btn.get_attribute("aria-disabled")=="false":
                             p+=1
                             self.logger.warning("本页测试均完成，将在第 %d 页寻找新的未完成测试" %p)
                             await next_btn.click()
@@ -832,7 +832,7 @@ class XuexiProcessor():
                         break
                     if empty==True:
                         next_btn=page_3.locator('//div/div[contains(text(),">>")]')
-                        if next_btn.is_enabled():
+                        if next_btn.is_visible():
                             page_num=page_num+1
                             self.logger.warning("没有足够的视频，将尝试在第 %d 页寻找新的视频" %page_num)
                             next_btn.click()
@@ -898,7 +898,7 @@ class XuexiProcessor():
                         break
                     if empty==True:
                         next_btn=page_2.locator('//div/div[contains(text(),">>")]')
-                        if next_btn.is_enabled():
+                        if next_btn.get_attribute("aria-disabled")=="false":
                             page_num=page_num+1
                             self.logger.warning("没有足够的文章，将尝试在第 %d 页寻找新的文章" %page_num)
                             next_btn.click()
@@ -946,7 +946,7 @@ class XuexiProcessor():
                         break
                     else:
                         next_btn=page.locator('li[class*="ant-pagination-next"]')
-                        if next_btn.is_enabled():
+                        if next_btn.get_attribute("aria-disabled")=="false":
                             p+=1
                             self.logger.warning("本页测试均完成，将在第 %d 页寻找新的未完成测试" %p)
                             next_btn.click()
@@ -981,7 +981,7 @@ class XuexiProcessor():
                         break
                     else:
                         next_btn=page.locator('li[class*="ant-pagination-next"]')
-                        if next_btn.is_enabled():
+                        if next_btn.get_attribute("aria-disabled")=="false":
                             p+=1
                             self.logger.warning("本页测试均完成，将在第 %d 页寻找新的未完成测试" %p)
                             next_btn.click()
