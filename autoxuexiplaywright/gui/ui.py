@@ -203,6 +203,9 @@ class MainWindow(QMainWindow):
             self.kwargs.get("lang", "zh-cn"), "ui-start-btn-tooltip"))
         self.start_btn.setText(lang.get_lang(
             self.kwargs.get("lang", "zh-cn"), "ui-start-btn-tooltip"))
+        for label in self.centralWidget().findChildren(QLabel, ui.ObjNames.QR_LABEL):  # type: ignore
+            if isinstance(label, QLabel):
+                label.close()
 
     def on_score_updated(self, score: tuple[int]):
         if score != (-1, -1):
