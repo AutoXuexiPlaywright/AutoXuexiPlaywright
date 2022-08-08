@@ -27,7 +27,7 @@ qrcode = "^7.3.1"
 requests = "^2.27.1"
 playwright = "^1.21.0"
 QtPy = "^2.0.1"
-pyxdg = "^0.27"
+pyxdg = "^0.28"
 PySide6 = "^6.3.0"
 PySide2 = {version = "^5.15.2", optional = true}
 PyQt6 = {version = "^6.3.0", optional = true}
