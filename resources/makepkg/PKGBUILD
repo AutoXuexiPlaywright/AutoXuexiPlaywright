@@ -1,0 +1,45 @@
+pkgname="python-autoxuexiplaywright"
+pkgver=2
+pkgrel=1
+pkgdesc="Auto finishing something boring."
+arch=("x86_64")
+url="https://github.com/AutoXuexiPlaywright/AutoXuexiPlaywright"
+license=("GPL")
+makedepends=("python-poetry" "python-pip")
+depends=(
+    "python-aiohttp" "python-pillow" "pyzbar" "python-qrcode" 
+    "python-requests" "python-playwright" "python-qtpy")
+source=(
+    "git+${url}"
+    "autoxuexiplaywright.desktop")
+sha256sums=('SKIP'
+            'bc4e858948e8e4f097304aa7070844951bf88d806919761a9722ed6cc8ce0074')
+
+build(){
+    cd "${srcdir}/AutoXuexiPlaywright"
+    poetry build
+}
+package(){
+    _icon="iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAADeUlEQVRIie2WbWhWZRjH/5vnCaIPQSNMocYTjD70MjWWYumYQ2tiG1YoSkzLaVRQiLZyFUQfil6s5UgGg4
+        Fkhhiuxd7SvTrcRDcjpfq4F9CtfGboBN15nnN+fbjceXp8XiYY2YfdcOBwn+u6fv/7uq/7uk+WK6HbMLJvB3QWPAtOGKFz5+X81+DQxs2S78m7BdCcG2GuRKaHkrXgurBhE66Er
+        7thxZqMPgn+9y+Awz9AXz8MDQXzGcF8uhvG/zCnsvU2d/IUXLtG7AbbqATlFXgSMQnK1kNPL7S24SsLStdB/4nMYFaVQfGzxCQ8Cc6dh+XP2Lf6fbDn67htQRHU1sHoKABoPigH
+        3tgBeQXXs3QHjI2DctKDfTmQuxAmJ6FoNeyuhj8vwJmzoAfhyhW8BHvB4hWwcDn8csbEPPYkaH5cXGc3vLglgZME5pPPLU1ffGWrvRABz7PVRCZg1/sJ4MBvxzvw3gf2/uZOuHT
+        Z0l+6Dhoak+yTwW/tgsHT9t7aBnkF4OTFBVz8C1zX9rGyCrqPmcCfjgappaExEMfAYEqhKVItqK3Dnd7f5zdCRxd8/Blsfc3Aq8osaHmFiQk/DpOTRKeLLBaDRYWw+rkgCzOCg5
+        UXlkBXD2x73YK99AoMDcGS4rjN3lrYsAkeWQqjo/F5zbOMHGkHzUsZP6mBOHIU+v6wtGyxvKJCqfW4nKZmKZwrLxxW9ERH3Dj3AWlRvnSyXYpMyJEUKq9QVGN2yS/IV1RjqTtKU
+        AxLV8LmbVaB11XS1GxF9Y+DH6zqvkftCJ0asMx09VgcsC1SGLqPpe0RBu7rt32prEr46El2Hn/7HVpaoaeX6DR4STGMjIDutXO7shSmpuDtd20BV69C25EZwL4P7Z3JnWjZ09ap
+        XBe++RbWvJAyiCfB8DBsrzSB1TVW8fsPzACu3xfvTPlPwdEOU3zpsjWSkrVpA0QlaG6BL/fAxEU4eMji7D+Q1DQyVnVMgrp62PKqBT39cyAqZfXX7IWch2FgEHqPQ3OLzY+N46f
+        xcSWSrlhfUvbWl+VJN/f7OTUldX4nNTZJjiOvqlKhg4ekSESxDG4p73ZfklNdI+XcI82dK911Z9oA/s7tyo7FpOER6eyvmpNXIPm+1PBjZsHpUuFKdln09cNDT6S1cSX48KOU/T
+        jTk+XeZEb/7fH//9mbBd/q+BuapkzTsaP4XQAAAABJRU5ErkJggg=="
+    # from autoxuexiplaywright.defines.ui.UI_ICON
+    
+    cd "${srcdir}/AutoXuexiPlaywright"
+    pip install --isolated --root="${pkgdir}" \
+        --ignore-installed --no-deps --no-warn-script-location \
+        dist/*.whl
+    python -O -m compileall "${pkgdir}"
+    install -Dm644 "${srcdir}/autoxuexiplaywright.desktop" \
+        "${pkgdir}/usr/share/applications/autoxuexiplaywright.desktop"
+    echo ${_icon} | sed 's/ //g' | base64 -d > \
+        "${pkgdir}/usr/share/icons/hicolor/32x32/apps/autoxuexiplaywright.png" 
+    
+}

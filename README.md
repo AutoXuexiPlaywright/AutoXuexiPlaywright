@@ -4,9 +4,31 @@
 
 A script to finish XuexiQiangguo's everyday task automatically.
 
+## Changes since legacy version
+
+This is a completely rewrite, you can see [CHANGELOG.md](./CHANGELOG.md) for more info.
+
 ## How to use?
 
-Install requirements in `requirements.txt`, run `AutoXuexiPlaywrightHeadless.py` or `AutoXuexiPlaywrightGUI.pyw`, the first one doesn't have GUI while the second one has. If you don't have Desktop Environment in Linux, you have to use headless version. If you are using headless version, `PySide6` is not a requirement and you can remove it.
+- Prepare Python
+    We need Python 3.10 and above. Because we use `str|int` instead of `Union[str,int]` in function signature, which is only available on 3.10 and later.
+- Install Poetry  
+    We use `poetry` to manage dependencies. See [here](https://python-poetry.org/docs/) for more info. For Linux users, we strongly recommend using your distribution's package manager to install poetry. For Arch Linux, you can run `# pacman -Sy python-poetry` to achieve that.
+- Install dependencies  
+    Open a terminal, go to where the repository is, and run `poetry install` to install dependencies. Poetry will create virtual environment automatically. We have set mirror site of pypi in China so it should not spend too much time.
+- Build and install the project  
+    Although you can run the program now, it is more convenient to build a wheel package and install the package to system. If you want to run from source, you can skip this step.  
+    Open a terminal, go to where the repository is, run `poetry build`, after command finished, you will find package at `dist` folder of repository. `.whl` package can be installed by `pip install` command.
+- Install browser  
+    Playwright needs the browsers are installed. If you installed the whl package, Playwright's CLI tool `playwright` should also be installed. You can run `playwright install` to install all the browsers needed.  
+    If you choose to run from source, you can run `poetry run playwright install` to finish installing browsers.  
+    Browsers' installing may meet very slow speed, you can see [here](https://playwright.dev/python/docs/browsers#install-behind-a-firewall-or-a-proxy) for possible solution.
+- Run from source without building  
+    You may don't want to build the project and want to run from source instead. You should open a terminal, go to where the repository is, run `poetry run autoxuexiplaywright` to start the program. If you are running program from built package, you should skip this step.
+- Run from built package  
+    If you are running program from built package, you can simply run `autoxuexiplaywright` from terminal.
+
+For Arch Linux users, we provide a [PKGBUILD](./resources/makepkg/PKGBUILD) which may be useful for you. Note: Processing video page has problems on Arch Linux now, this is due to that Playwright can't use ffmpeg5 provided by Arch Linux.
 
 ## About Proxy
 
@@ -14,7 +36,7 @@ Install requirements in `requirements.txt`, run `AutoXuexiPlaywrightHeadless.py`
 proxy sample:
 [
     {
-        "server":"socks5://127.0.0.1:20808,
+        "server":"socks5://127.0.0.1:20808",
         "username":"user",
         "password:"pwd"
     },
@@ -31,7 +53,7 @@ We have added a GUI config editor and it should work as expected. If you are usi
 
 ## About async API
 
-We use Playwright as backend, it provides an async API. We will try to use this instead sync API to improve IO performance. It is in early development phase and has many problems, if you are just a common user, we recommend you keep it disabled.
+This is not available even thouh you have enabled it in the config. Because we have not implement `asyncprocessor`.
 
 ## Notes
 
@@ -40,5 +62,3 @@ We use Playwright as backend, it provides an async API. We will try to use this 
 2. This tool is designed only finishing tasks listed on [website](https://xuexi.cn), your max score in one day is 45 after using this tool correctly because some tasks are only available on mobile app.
 
 3. This tool is just for researching purpose, we don't be responsible for any result by using this tool.
-
-4. This tool is also available on [multiverse](https://github.com/multiverse-vcs/go-multiverse), a decentralized VCS which is also under heavy development, with address `12D3KooWSBwQcHfgKLVMWNc9wLdqpFQmfy7mjAcBznQpdjZNwC9M/AutoXuexiPlaywright`, you can setup a multiverse node and use it to provide mirror service. We don't guarantee the availablity on GitHub.

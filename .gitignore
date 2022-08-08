@@ -1,13 +1,2 @@
-*.log*
-*.json*
-data.db
-*.png
 *cache*
-.vs*
-temp
-*.bak
-*.mp4
-cookies
-*.m3u8
-.multi*
-*.ini
+dist
