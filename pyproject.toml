@@ -21,17 +21,17 @@ default = false
 [tool.poetry.dependencies]
 python = ">=3.10,<3.11"
 aiohttp = "^3.8.1"
-Pillow = "^9.1.0"
 pyzbar = "^0.1.9"
 qrcode = "^7.3.1"
-requests = "^2.27.1"
-playwright = "^1.21.0"
-QtPy = "^2.0.1"
+requests = "^2.28.1"
+playwright = "^1.24.1"
 pyxdg = "^0.28"
-PySide6 = "^6.3.0"
-PySide2 = {version = "^5.15.2", optional = true}
-PyQt6 = {version = "^6.3.0", optional = true}
-PyQt5 = {version = "^5.15.6", optional = true}
+pillow = "^9.2.0"
+qtpy = "^2.1.0"
+pyside6 = "^6.3.1"
+pyside2 = {version = "^5.15.2", optional = true}
+pyqt6 = {version = "^6.3.1", optional = true}
+pyqt5 = {version = "^5.15.7", optional = true}
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"
