@@ -10,7 +10,7 @@ This is a completely rewrite, you can see [CHANGELOG.md](./CHANGELOG.md) for mor
 
 ## How to use?
 
-- Prepare Python
+- Prepare Python  
     We need Python 3.10 and above. Because we use `str|int` instead of `Union[str,int]` in function signature, which is only available on 3.10 and later.
 - Install Poetry  
     We use `poetry` to manage dependencies. See [here](https://python-poetry.org/docs/) for more info. For Linux users, we strongly recommend using your distribution's package manager to install poetry. For Arch Linux, you can run `# pacman -Sy python-poetry` to achieve that.
