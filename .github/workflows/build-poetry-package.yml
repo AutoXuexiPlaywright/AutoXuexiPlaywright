@@ -25,7 +25,7 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
-          files: dists/*
+          files: dist/*
           generate_release_notes: true
           tag_name: 2-${{ steps.short-sha.outputs.sha }}
           
