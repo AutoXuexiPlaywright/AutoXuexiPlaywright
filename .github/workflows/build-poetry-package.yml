@@ -19,11 +19,15 @@ jobs:
         uses: Gr1N/setup-poetry@v7
       - name: Build Packages
         run: poetry build
+      - name: Get Short SHA
+        uses: benjlevesque/short-sha@v1.2
+        id: short-sha
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
           files: dists/*
           generate_release_notes: true
+          tag_name: 2-${{ steps.short-sha.outputs.sha }}
           
           
       
