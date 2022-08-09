@@ -1,0 +1,30 @@
+name: Build Poetry Package
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Python
+        uses: actions/setup-python@v4.2.0
+        with: 
+          python-version: 3.10
+          cache: poetry
+      - name: Setup Poetry
+        uses: Gr1N/setup-poetry@v7
+      - name: Build Packages
+        run: poetry build
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dists/*
+          generate_release_notes: true
+          
+          
+      
