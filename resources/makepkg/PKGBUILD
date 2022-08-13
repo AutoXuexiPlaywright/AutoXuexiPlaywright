@@ -1,8 +1,10 @@
+#Maintainer: Zhang Hua<zhanghua.00 at qq dot com>
+
 pkgname="python-autoxuexiplaywright"
 pkgver=2
 pkgrel=2
 pkgdesc="Auto finishing something boring."
-arch=("x86_64")
+arch=("any")
 url="https://github.com/AutoXuexiPlaywright/AutoXuexiPlaywright"
 license=("GPL")
 makedepends=("python-poetry" "python-installer" "git")
