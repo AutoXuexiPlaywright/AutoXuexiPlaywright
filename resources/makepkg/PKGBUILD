@@ -5,7 +5,7 @@ pkgdesc="Auto finishing something boring."
 arch=("x86_64")
 url="https://github.com/AutoXuexiPlaywright/AutoXuexiPlaywright"
 license=("GPL")
-makedepends=("python-poetry" "python-installer")
+makedepends=("python-poetry" "python-installer" "git")
 depends=(
     "python-aiohttp" "python-pillow" "pyzbar" "python-qrcode" 
     "python-requests" "python-playwright" "python-qtpy")
