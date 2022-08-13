@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "AutoXuexiPlaywright"
+name = "autoxuexiplaywright"
 version = "0.1.0"
 description = "A tool to finish something boring."
 authors = ["Zhang Hua <zhanghua.00@qq.com>"]
