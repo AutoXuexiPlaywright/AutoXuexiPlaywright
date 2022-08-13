@@ -33,6 +33,7 @@ package(){
     # from autoxuexiplaywright.defines.ui.UI_ICON
     
     cd "${srcdir}/AutoXuexiPlaywright"
+    mkdir -p "${pkgdir}/usr/share/icons/hicolor/32x32/apps"
     python -m installer --destdir="${pkgdir}" dist/*.whl
     install -Dm644 "${srcdir}/autoxuexiplaywright.desktop" \
         "${pkgdir}/usr/share/applications/autoxuexiplaywright.desktop"
