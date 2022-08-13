@@ -20,6 +20,7 @@ jobs:
       - name: Build Poetry Package
         run: poetry build
       - name: Build Arch Package
+        id: arch-package
         uses: ouuan/pkgbuild-action@v1.0.0
         with: 
           path: resources/makepkg
@@ -31,7 +32,7 @@ jobs:
         with:
           files: |
             dist/*
-            resources/makepkg/*.pkg.tar.*
+            ${{ steps.arch-package.outputs.pkgfile }}
           generate_release_notes: true
           tag_name: 2-${{ steps.short-sha.outputs.sha }}
 
