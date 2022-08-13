@@ -1,11 +1,11 @@
 pkgname="python-autoxuexiplaywright"
 pkgver=2
-pkgrel=1
+pkgrel=2
 pkgdesc="Auto finishing something boring."
 arch=("x86_64")
 url="https://github.com/AutoXuexiPlaywright/AutoXuexiPlaywright"
 license=("GPL")
-makedepends=("python-poetry" "python-pip")
+makedepends=("python-poetry" "python-installer")
 depends=(
     "python-aiohttp" "python-pillow" "pyzbar" "python-qrcode" 
     "python-requests" "python-playwright" "python-qtpy")
@@ -33,10 +33,7 @@ package(){
     # from autoxuexiplaywright.defines.ui.UI_ICON
     
     cd "${srcdir}/AutoXuexiPlaywright"
-    pip install --isolated --root="${pkgdir}" \
-        --ignore-installed --no-deps --no-warn-script-location \
-        dist/*.whl
-    python -O -m compileall "${pkgdir}"
+    python -m installer --destdir="${pkgdir}" dist/*.whl
     install -Dm644 "${srcdir}/autoxuexiplaywright.desktop" \
         "${pkgdir}/usr/share/applications/autoxuexiplaywright.desktop"
     echo ${_icon} | sed 's/ //g' | base64 -d > \
