@@ -1,4 +1,4 @@
-name: Build Poetry Package
+name: Build Packages
 on:
   push:
     branches: [ "main" ]
@@ -17,15 +17,22 @@ jobs:
           python-version: '3.10'
       - name: Setup Poetry
         uses: Gr1N/setup-poetry@v7
-      - name: Build Packages
+      - name: Build Poetry Package
         run: poetry build
+      - name: Build Arch Package
+        uses: edlanglois/pkgbuild-action@v1.1.7
+        with: 
+          pkgdir: resources/makepkg
+          aurDeps: python-playwright pyzbar
       - name: Get Short SHA
         uses: benjlevesque/short-sha@v1.2
         id: short-sha
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
-          files: dist/*
+          files: |
+            dist/*
+            resources/makepkg/*.pkg.tar.*
           generate_release_notes: true
           tag_name: 2-${{ steps.short-sha.outputs.sha }}
           
