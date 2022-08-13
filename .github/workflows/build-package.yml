@@ -1,4 +1,4 @@
-name: Build Packages
+name: Build Packages and Push to TechXuexi
 on:
   push:
     branches: [ "main" ]
@@ -20,10 +20,9 @@ jobs:
       - name: Build Poetry Package
         run: poetry build
       - name: Build Arch Package
-        uses: edlanglois/pkgbuild-action@v1.1.7
+        uses: ouuan/pkgbuild-action@v1.0.0
         with: 
-          pkgdir: resources/makepkg
-          aurDeps: python-playwright pyzbar
+          path: resources/makepkg
       - name: Get Short SHA
         uses: benjlevesque/short-sha@v1.2
         id: short-sha
@@ -35,6 +34,20 @@ jobs:
             resources/makepkg/*.pkg.tar.*
           generate_release_notes: true
           tag_name: 2-${{ steps.short-sha.outputs.sha }}
-          
+        
+      - name: Create Git user info
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          git config --global user.name 'GitHub' && git config --global user.email 'noreply@github.com'
+
+      - name: Push Code
+        run: |
+          mkdir -p ~/.ssh
+          echo -e "${{ secrets.SSHKEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan github.com > ~/.ssh/known_hosts
+          git push -f "git@github.com:TechXueXi/AutoXuexiPlaywright.git" "main:main" --tags
+
           
       
