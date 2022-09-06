@@ -1,4 +1,4 @@
-name: Build Packages and Push to TechXuexi
+name: Build Packages
 on:
   push:
     branches: [ "main" ]
@@ -29,6 +29,7 @@ jobs:
         id: short-sha
       - name: Release
         uses: softprops/action-gh-release@v1
+        if: ${{ github.event_name != 'pull_request' }}
         with:
           files: |
             dist/*
