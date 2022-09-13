@@ -28,7 +28,7 @@ playwright = "^1.25.2"
 pyxdg = "^0.28"
 pillow = "^9.2.0"
 qtpy = "^2.1.0"
-pyside6 = "^6.3.1"
+pyside6 = "^6.3.2"
 pyside2 = {version = "^5.15.2", optional = true}
 pyqt6 = {version = "^6.3.1", optional = true}
 pyqt5 = {version = "^5.15.7", optional = true}
