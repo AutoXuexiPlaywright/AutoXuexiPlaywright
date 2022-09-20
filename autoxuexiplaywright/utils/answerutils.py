@@ -1,5 +1,4 @@
 import base64
-from inspect import isclass
 import random
 import string
 import logging
