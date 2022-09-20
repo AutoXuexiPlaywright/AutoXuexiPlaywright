@@ -251,5 +251,8 @@ class MainWindow(QMainWindow):
 
     def on_job_finished(self, finish_str: str):
         self.tray.showMessage(lang.get_lang(self.kwargs.get(
-            "lang", "zh-cn"), "ui-tray-notification-title-info"), finish_str, QSystemTrayIcon.MessageIcon.Information, ui.NOTIFY_SECS*1000)
+            "lang", "zh-cn"), "ui-tray-notification-title-info"), finish_str,
+            QSystemTrayIcon.MessageIcon.Information, ui.NOTIFY_SECS*1000
+        )
+        
         self.sub_thread.quit()
