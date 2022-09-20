@@ -1,13 +1,14 @@
 import json
 import typing
+import os.path
 from autoxuexiplaywright.defines import ui, core
-from autoxuexiplaywright.utils import lang, storage
+from autoxuexiplaywright.utils import lang, storage, misc
 from qtpy.QtGui import (
     QMouseEvent, QRegularExpressionValidator, QContextMenuEvent)
 from qtpy.QtCore import (
     Qt, QPointF, QPoint, QRegularExpression)  # type: ignore
 from qtpy.QtWidgets import (QCheckBox, QComboBox, QDialog, QMenu, QTableWidget, QTableWidgetItem, QVBoxLayout,
-                            QLabel, QLineEdit, QPushButton, QHBoxLayout, QWidget)
+                            QLabel, QLineEdit, QPushButton, QHBoxLayout, QWidget, QFileDialog)
 
 __all__ = ["SettingsWindow"]
 
@@ -144,6 +145,12 @@ class SettingsWindow(QDialog):
         browser.addWidget(self.channel_title)
         browser.addWidget(self.channel_selector)
         main_layout.addLayout(browser)
+        executable_path = QHBoxLayout()
+        self.set_executable_input()
+        executable_path.addWidget(self.executable_label)
+        executable_path.addWidget(self.executable_input)
+        executable_path.addWidget(self.executable_btn)
+        main_layout.addLayout(executable_path)
         extra = QHBoxLayout()  # type: ignore
         lang_layout = QHBoxLayout()  # type: ignore
         self.set_extra_items()
@@ -165,6 +172,24 @@ class SettingsWindow(QDialog):
         operate.addWidget(self.cancel_btn, 2)  # type: ignore
         main_layout.addLayout(operate)
         self.setLayout(main_layout)
+
+    def set_executable_input(self):
+        self.executable_label = QLabel(lang.get_lang(self.conf.get(
+            "lang", "zh-cn"), "ui-config-window-executable-label"), self)
+        self.executable_input = QLineEdit(self)
+        self.executable_input.setToolTip(lang.get_lang(self.conf.get(
+            "lang", "zh-cn"), "ui-config-window-executable-tooltip"))
+        self.executable_input.setObjectName(
+            ui.ObjNames.SETTINGS_WINDOW_EXECUTABLE_INPUT)
+        self.executable_input.setText(
+            misc.to_str(self.conf.get("executable_path")))
+        self.executable_input.editingFinished.connect(
+            self.on_executable_input_edit_finished)
+        self.executable_btn = QPushButton(lang.get_lang(self.conf.get(
+            "lang", "zh-cn"), "ui-config-window-executable-browse-text"), self)
+        self.executable_btn.setToolTip(lang.get_lang(self.conf.get(
+            "lang", "zh-cn"), "ui-config-window-executable-browse-tooltip"))
+        self.executable_btn.clicked.connect(self.on_executable_btn_clicked)
 
     def set_browser_selecotr(self):
         self.browser_title = QLabel(lang.get_lang(self.conf.get(
@@ -297,3 +322,19 @@ class SettingsWindow(QDialog):
         with open(storage.get_config_path("config.json"), "w", encoding="utf-8") as writer:
             json.dump(self.conf, writer, sort_keys=True, indent=4)
         self.close()
+
+    def on_executable_btn_clicked(self):
+        result = QFileDialog.getOpenFileName(self, lang.get_lang(
+            self.conf.get("lang", "zh-cn"), "ui-config-window-executable-browse-title"))
+        if result[0] != "":
+            self.executable_input.setText(result[0])
+            self.conf.update({"executable_path": result[0]})
+        elif self.conf.get("executable_path") != "":
+            self.executable_input.setText(result[0])
+            self.conf.update({"executable_path": None})
+
+    def on_executable_input_edit_finished(self):
+        if os.path.isfile(self.executable_input.text()):
+            self.conf.update({"executable_path": self.executable_input.text()})
+        if self.executable_input.text() == "" and self.conf.get("executable_path") != "":
+            self.conf.update({"executable_path": None})

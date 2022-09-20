@@ -23,8 +23,10 @@ def run(*args, **kwargs) -> None:
     answerutils.init_sources(**kwargs)
     start_time = time.time()
     with sync_playwright() as p:
-        browser = p[kwargs.get("browser", "firefox")].launch(headless=not kwargs.get("debug", False), proxy=kwargs.get("proxy"), channel=kwargs.get(  # type: ignore
-            "channel"), args=["--mute-audio"], devtools=not kwargs.get("debug", False), firefox_user_prefs={"media.volume_scale": "0.0"})
+        browser = p[kwargs.get("browser", "firefox")].launch(
+            headless=not kwargs.get("debug", False), proxy=kwargs.get("proxy"),
+            channel=kwargs.get("channel"), args=["--mute-audio"], devtools=not kwargs.get("debug", False),
+            firefox_user_prefs={"media.volume_scale": "0.0"}, executable_path=kwargs.get("executable_path", None))
         if os.path.exists(storage.get_cache_path("cookies.json")):
             context = browser.new_context(
                 storage_state=storage.get_cache_path("cookies.json"))
