@@ -18,7 +18,7 @@ class QHandler(logging.Handler):
 
 
 class SubProcess(QObject):
-    job_finished_signal = Signal()
+    job_finished_signal = Signal(str)
     update_status_signal = Signal(str)
     pause_thread_signal = Signal(str)
     qr_control_signal = Signal(bytes)

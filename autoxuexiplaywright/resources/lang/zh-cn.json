@@ -87,5 +87,6 @@
     "ui-config-window-save": "保存",
     "ui-config-window-save-tooltip": "保存设置，将在下次处理时应用",
     "ui-config-window-cancel": "取消",
-    "ui-config-window-cancel-tooltip": "取消保存设置"
+    "ui-config-window-cancel-tooltip": "取消保存设置",
+    "ui-tray-notification-title-info":"信息："
 }

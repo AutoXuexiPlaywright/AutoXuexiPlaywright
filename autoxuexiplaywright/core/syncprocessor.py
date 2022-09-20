@@ -48,13 +48,14 @@ def run(*args, **kwargs) -> None:
             os.remove(storage.get_cache_path("video.mp4"))
         if os.path.exists(storage.get_cache_path("qr.png")):
             os.remove(storage.get_cache_path("qr.png"))
-    job_finish_signal = kwargs.get("job_finish_signal")
-    if kwargs.get("gui", True) and (job_finish_signal is not None):
-        job_finish_signal.emit()
     delta_mins, delta_secs = divmod(time.time()-start_time, 60)
     delta_hrs, delta_mins = divmod(delta_mins, 60)
-    logging.getLogger(core.APPID).info(lang.get_lang(kwargs.get("lang", "zh-cn"),
-                                                     "core-info-all-finished").format(int(delta_hrs), int(delta_mins), int(delta_secs)))
+    finish_str = lang.get_lang(kwargs.get(
+        "lang", "zh-cn"), "core-info-all-finished").format(int(delta_hrs), int(delta_mins), int(delta_secs))
+    logging.getLogger(core.APPID).info(finish_str)
+    job_finish_signal = kwargs.get("job_finish_signal")
+    if kwargs.get("gui", True) and (job_finish_signal is not None):
+        job_finish_signal.emit(finish_str)
 
 
 def login(page: Page, **kwargs) -> None:

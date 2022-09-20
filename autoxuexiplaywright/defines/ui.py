@@ -58,3 +58,4 @@ SETTING_ITEM_NAMES = {
     "chromium": "Google Chromium", "chromium-beta": "Google Chromium Beta", "chromium-dev": "Google Chromium Dev"
 }
 PROXY_REGEX = r"(https?|socks[45])://[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]"
+NOTIFY_SECS = 5

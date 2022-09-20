@@ -5,7 +5,7 @@ from autoxuexiplaywright.utils import lang, answerutils, storage
 from qtpy.QtGui import (QMouseEvent, QPixmap, QIcon)
 from qtpy.QtCore import (QFile, QPoint, QPointF, Qt,  # type: ignore
                          QSettings, QThread)
-from qtpy.QtWidgets import (QCheckBox, QVBoxLayout, QInputDialog, QLabel,
+from qtpy.QtWidgets import (QCheckBox, QVBoxLayout, QInputDialog, QLabel, QSystemTrayIcon,
                             QLineEdit, QMainWindow, QPlainTextEdit, QPushButton, QHBoxLayout, QWidget)
 __all__ = ["MainWindow"]
 
@@ -19,6 +19,8 @@ class MainWindow(QMainWindow):
         self.kwargs = kwargs
         self.settings = QSettings(
             ui.UI_CONF, QSettings.Format.IniFormat)  # type: ignore
+        self.tray = QSystemTrayIcon(self.icon, self)
+        self.tray.setToolTip(core.APPID)
         self.setWindowIcon(QIcon(self.icon))  # type: ignore
         self.setWindowTitle(core.APPID)
         self.setWindowOpacity(ui.OPACITY)
@@ -29,7 +31,6 @@ class MainWindow(QMainWindow):
         if self.settings.value("UI/ontop", False, bool):  # type: ignore
             self.setWindowFlags(Qt.FramelessWindowHint |  # type: ignore
                                 Qt.WindowStaysOnTopHint)  # type: ignore
-            self.show()
         self.central_widget = QWidget(self)
         self.central_widget.setObjectName(
             ui.ObjNames.CENTRAL_WIDGET)  # type: ignore
@@ -45,6 +46,7 @@ class MainWindow(QMainWindow):
         self.sub_thread = QThread()
         self.jobs = objects.SubProcess(**self.kwargs)
         self.jobs.moveToThread(self.sub_thread)
+        self.tray.setVisible(True)
         self.apply_style()
         self.set_signals()
 
@@ -111,7 +113,7 @@ class MainWindow(QMainWindow):
 
     def set_signals(self) -> None:
         self.jobs.job_finished_signal.connect(  # type: ignore
-            self.sub_thread.quit)
+            self.on_job_finished)
         self.sub_thread.started.connect(self.jobs.start)  # type: ignore
         self.sub_thread.finished.connect(  # type: ignore
             self.on_sub_thread_finished)
@@ -126,13 +128,14 @@ class MainWindow(QMainWindow):
         self.jobs.update_score_signal.connect(  # type: ignore
             self.on_score_updated)
         self.close_btn.clicked.connect(self.close)  # type: ignore
-        self.min_btn.clicked.connect(self.showMinimized)  # type: ignore
+        self.min_btn.clicked.connect(self.on_min_btn_clicked)  # type: ignore
         self.ontop_check.stateChanged.connect(  # type: ignore
             self.on_ontop_state_changed)
         self.start_btn.clicked.connect(  # type: ignore
             self.on_start_btn_clicked)
         self.settings_btn.clicked.connect(  # type: ignore
             self.on_settings_btn_clicked)
+        self.tray.activated.connect(self.on_tray_activated)
 
     def mousePressEvent(self, a0: QMouseEvent) -> None:
         self._start_pos = a0.screenPos()
@@ -213,6 +216,7 @@ class MainWindow(QMainWindow):
                 "lang", "zh-cn"), "ui-score-text") % score)
 
     def close(self) -> None:
+        self.tray.setVisible(False)
         self.settings.setValue("UI/x", self.x())
         self.settings.setValue("UI/y", self.y())
         super().close()
@@ -233,3 +237,19 @@ class MainWindow(QMainWindow):
         setting_window.move(self.x()+round((self.width()-setting_window.width())/2),
                             self.y()+round((self.height()-setting_window.height())/2))
         setting_window.exec_()
+
+    def on_min_btn_clicked(self):
+        if self.tray.isSystemTrayAvailable():
+            self.hide()
+            self.tray.setVisible(True)
+        else:
+            self.showMinimized()
+
+    def on_tray_activated(self, reason: QSystemTrayIcon.ActivationReason):
+        if reason == QSystemTrayIcon.ActivationReason.Trigger:
+            self.setHidden(not self.isHidden())
+
+    def on_job_finished(self, finish_str: str):
+        self.tray.showMessage(lang.get_lang(self.kwargs.get(
+            "lang", "zh-cn"), "ui-tray-notification-title-info"), finish_str, QSystemTrayIcon.MessageIcon.Information, ui.NOTIFY_SECS*1000)
+        self.sub_thread.quit()
