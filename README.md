@@ -28,7 +28,7 @@ This is a completely rewrite, you can see [CHANGELOG.md](./CHANGELOG.md) for mor
 - Run from built package  
     If you are running program from built package, you can simply run `autoxuexiplaywright` from terminal.
 
-For Arch Linux users, we provide a [PKGBUILD](./resources/makepkg/PKGBUILD) which may be useful for you. Note: Processing video page has problems on Arch Linux now, this is due to that Playwright can't use ffmpeg5 provided by Arch Linux.
+For Arch Linux users, we provide a [PKGBUILD](./resources/makepkg/PKGBUILD) which may be useful for you. Note: Processing video page has problems on Arch Linux now, this is due to that Playwright can't use ffmpeg5 provided by Arch Linux. You can try to set custom browser executable file path to browsers provided by distributions to solve this.
 
 ## About Proxy
 
@@ -53,7 +53,7 @@ We have added a GUI config editor and it should work as expected. If you are usi
 
 ## About async API
 
-This is not available even thouh you have enabled it in the config. Because we have not implement `asyncprocessor`.
+We have implemented `asyncprocessor` and it is available now. But it still needs improvements because it is just a simple copy from `syncprocessor`. You can enable it in the settings window or edit `config.json` manually.
 
 ## Notes
 
