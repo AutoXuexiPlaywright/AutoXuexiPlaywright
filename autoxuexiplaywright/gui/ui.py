@@ -19,8 +19,6 @@ class MainWindow(QMainWindow):
         self.kwargs = kwargs
         self.settings = QSettings(
             ui.UI_CONF, QSettings.Format.IniFormat)  # type: ignore
-        self.tray = QSystemTrayIcon(self.icon, self)
-        self.tray.setToolTip(core.APPID)
         self.setWindowIcon(QIcon(self.icon))  # type: ignore
         self.setWindowTitle(core.APPID)
         self.setWindowOpacity(ui.OPACITY)
@@ -31,6 +29,8 @@ class MainWindow(QMainWindow):
         if self.settings.value("UI/ontop", False, bool):  # type: ignore
             self.setWindowFlags(Qt.FramelessWindowHint |  # type: ignore
                                 Qt.WindowStaysOnTopHint)  # type: ignore
+        self.tray = QSystemTrayIcon(self.windowIcon(), self)
+        self.tray.setToolTip(core.APPID)
         self.central_widget = QWidget(self)
         self.central_widget.setObjectName(
             ui.ObjNames.CENTRAL_WIDGET)  # type: ignore
@@ -254,5 +254,5 @@ class MainWindow(QMainWindow):
             "lang", "zh-cn"), "ui-tray-notification-title-info"), finish_str,
             QSystemTrayIcon.MessageIcon.Information, ui.NOTIFY_SECS*1000
         )
-        
+
         self.sub_thread.quit()
