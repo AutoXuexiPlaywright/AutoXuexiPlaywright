@@ -429,9 +429,9 @@ class AsyncQuestionItem():
     __all__ = ["do_answer"]
 
     def __init__(self, page: Page, **kwargs) -> None:
-        asyncio.wait_for(self.__init__(page, **kwargs))
+        asyncio.wait_for(self.__init(page, **kwargs))
 
-    async def __init__(self, page: Page, **kwargs):
+    async def __init(self, page: Page, **kwargs):
         self.page = page
         question = self.page.locator(selectors.QUESTION)
         title_text = await question.locator(
