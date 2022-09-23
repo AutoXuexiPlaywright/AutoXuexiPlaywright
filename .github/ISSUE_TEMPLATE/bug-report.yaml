@@ -28,6 +28,22 @@ body:
           required: true
     validations: 
       required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: |
+        Your OS platform
+        你的操作系统平台
+      description: |
+        Tell us which OS are you running
+        告诉我们你正在使用哪一个操作系统
+      options: 
+        - Linux
+        - macOS
+        - Windows
+        - Other
+    validations:
+      required: true
   - type: textarea
     id: expected-behavior
     attributes: 
