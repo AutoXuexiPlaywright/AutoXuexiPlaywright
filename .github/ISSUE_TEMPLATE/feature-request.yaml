@@ -5,7 +5,7 @@ description: |
   Request for a new feature
   请求一个新功能
 labels: ["new-features-request"]
-title: "[New Feature] "
+title: "[New Feature]: "
 body: 
   - type: markdown
     attributes:
