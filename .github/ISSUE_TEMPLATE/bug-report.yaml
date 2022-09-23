@@ -1,0 +1,73 @@
+name: |
+  🐛Bug Report
+  🐛问题报告
+description: |
+  Create a report about a bug
+  创建一个问题报告
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes: 
+      value: |
+        Thanks for reporting a bug. Please make a complete title and append to existing title.
+        感谢向我们提供 Bug 报告。请在现有标题后补全完整标题。
+  - type: checkboxes
+    id: is-latest-code
+    attributes: 
+      label: |
+        Exists on latest code
+        在最新源代码上仍然存在
+      description: |
+        We will drop support for old versions, please make sure your problem exists on latest code.
+        我们会放弃对旧版本的支持，请确认这个 Bug 在最新的源代码上仍然存在。
+      options: 
+        - label: |
+            I am using latest code
+            我正在使用最新的源代码
+          required: true
+    validations: 
+      required: true
+  - type: textarea
+    id: expected-behavior
+    attributes: 
+      label: |
+        Expected Behavior
+        预期的行为
+      description: |
+        Tell us what does you want to do.
+        告诉我们你想做什么。
+    validations: 
+      required: true
+  - type: textarea
+    id: actual-behavior
+    attributes: 
+      label: |
+        Actual Behavior
+        实际行为
+      description: |
+        Tell us what happens actually.
+        告诉我们实际发生了什么。
+    validations:
+      required: true
+  - type: textarea
+    id: user-operations
+    attributes:
+      label: |
+        What have you done
+        你做了什么操作
+      description: |
+        Tell us what you have done.
+        告诉我们你做了什么。
+  - type: textarea
+    id: log
+    attributes: 
+      label: |
+        Log output
+        程序日志输出
+      description: |
+        Tell us what does the program show.
+        告诉我们程序显示的内容。
+    validations:
+      required: true
+

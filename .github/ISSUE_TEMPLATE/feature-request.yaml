@@ -1,0 +1,19 @@
+name: |
+  Request new feature
+  请求新功能
+description: |
+  Request for a new feature
+  请求一个新功能
+body: 
+  - type: textarea
+    id: request-content
+    attributes: 
+      label: |
+        Your request
+        你的请求
+      description: |
+        Describe your request.
+        描述你的请求内容。
+    validations:
+      required: true
+    
