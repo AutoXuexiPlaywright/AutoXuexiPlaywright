@@ -1,4 +1,4 @@
-#Maintainer: Zhang Hua<zhanghua.00 at qq dot com>
+#Maintainer: Noob Zhang <17194552+zhanghua000 at users dot noreply dot github dot com>
 
 pkgname="python-autoxuexiplaywright"
 pkgver=2
@@ -17,6 +17,10 @@ source=(
 sha256sums=('SKIP'
             'bc4e858948e8e4f097304aa7070844951bf88d806919761a9722ed6cc8ce0074')
 
+pkgver(){
+    cd "${srcdir}/AutoXuexiPlaywright"
+    git describe --tags --long | sed 's/v//;s/-/.r/;s/-/./g'
+}
 build(){
     cd "${srcdir}/AutoXuexiPlaywright"
     poetry build

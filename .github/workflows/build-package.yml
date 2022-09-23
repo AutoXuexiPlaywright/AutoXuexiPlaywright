@@ -24,18 +24,11 @@ jobs:
         uses: ouuan/pkgbuild-action@v1.0.0
         with: 
           path: resources/makepkg
-      - name: Get Short SHA
-        uses: benjlevesque/short-sha@v1.2
-        id: short-sha
       - name: Release
         uses: softprops/action-gh-release@v1
-        if: ${{ github.event_name != 'pull_request' }}
+        if: startsWith( github.ref, 'refs/tags/v')
         with:
           files: |
             dist/*
             ${{ steps.arch-package.outputs.pkgfile }}
           generate_release_notes: true
-          tag_name: 2-${{ steps.short-sha.outputs.sha }}
-
-          
-      

@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "autoxuexiplaywright"
-version = "0.1.0"
+version = "2.1.0"
 description = "A tool to finish something boring."
-authors = ["Zhang Hua <zhanghua.00@qq.com>"]
+authors = ["Noob Zhang <17194552+zhanghua000@users.noreply.github.com>"]
 license = "GPL"
 
 [tool.poetry.scripts]
