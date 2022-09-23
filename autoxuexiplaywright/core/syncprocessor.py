@@ -150,6 +150,10 @@ def check_status_and_finish(page: Page,  **kwargs) -> None:
                 logging.getLogger(core.APPID).info(lang.get_lang(
                     kwargs.get("lang", "zh-cn"), "core-info-card-finished") % title)
                 process_position += 1
+            elif title.strip() in kwargs.get("skipped_items", []):
+                logging.getLogger(core.APPID).info(lang.get_lang(
+                    kwargs.get("lang", "zh-cn"), "core-info-card-skipped") % title)
+                process_position += 1
             else:
                 logging.getLogger(core.APPID).info(lang.get_lang(
                     kwargs.get("lang", "zh-cn"), "core-info-card-processing") % title)

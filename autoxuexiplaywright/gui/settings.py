@@ -131,7 +131,7 @@ class SettingsWindow(QDialog):
         self._start_pos = QPointF(0, 0)
         self.setWindowOpacity(ui.OPACITY)
         with open(storage.get_config_path("config.json"), "r", encoding="utf-8") as reader:
-            self.conf = json.load(reader)
+            self.conf: dict = json.load(reader)
         main_layout = QVBoxLayout()  # type: ignore
         self.title = QLabel(lang.get_lang(self.conf.get(
             "lang", "zh-cn"), "ui-config-window-title"), self)
@@ -151,6 +151,11 @@ class SettingsWindow(QDialog):
         executable_path.addWidget(self.executable_input)
         executable_path.addWidget(self.executable_btn)
         main_layout.addLayout(executable_path)
+        skipped_items = QHBoxLayout()
+        self.set_skipped_items()
+        skipped_items.addWidget(self.skipped_items_label)
+        skipped_items.addWidget(self.skipped_items_input)
+        main_layout.addLayout(skipped_items)
         extra = QHBoxLayout()  # type: ignore
         lang_layout = QHBoxLayout()  # type: ignore
         self.set_extra_items()
@@ -172,6 +177,21 @@ class SettingsWindow(QDialog):
         operate.addWidget(self.cancel_btn, 2)  # type: ignore
         main_layout.addLayout(operate)
         self.setLayout(main_layout)
+
+    def set_skipped_items(self):
+        self.skipped_items_label = QLabel(lang.get_lang(self.conf.get(
+            "lang", "zh-cn"), "ui-config-window-skipped-items-label"), self)
+        self.skipped_items_input = QLineEdit(self)
+        self.skipped_items_input.setToolTip(lang.get_lang(self.conf.get(
+            "lang", "zh-cn"), "ui-config-window-skipped-items-tooltip") % core.ANSWER_CONNECTOR)
+        self.skipped_items_input.setObjectName(
+            ui.ObjNames.SETTINGS_WINDOW_SKIPPED_ITEMS)
+        skipped_items: list = self.conf.get("skipped_items", [])
+        if skipped_items != []:
+            self.skipped_items_input.setText(
+                core.ANSWER_CONNECTOR.join(skipped_items))
+        self.skipped_items_input.editingFinished.connect(
+            self.on_skipped_items_input_edit_finished)
 
     def set_executable_input(self):
         self.executable_label = QLabel(lang.get_lang(self.conf.get(
@@ -338,3 +358,12 @@ class SettingsWindow(QDialog):
             self.conf.update({"executable_path": self.executable_input.text()})
         if self.executable_input.text() == "" and self.conf.get("executable_path") != "":
             self.conf.update({"executable_path": None})
+
+    def on_skipped_items_input_edit_finished(self):
+        input_text = self.skipped_items_input.text()
+        input_items = input_text.split(
+            core.ANSWER_CONNECTOR) if input_text != "" else []
+        for i in range(len(input_items)):
+            input_items[i] = input_items[i].strip()
+        self.conf.update(
+            {"skipped_items": input_items})
