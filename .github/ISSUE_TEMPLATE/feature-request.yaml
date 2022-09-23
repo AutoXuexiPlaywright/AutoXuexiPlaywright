@@ -1,0 +1,26 @@
+name: |
+  🚩Request new feature
+  🚩请求新功能
+description: |
+  Request for a new feature
+  请求一个新功能
+labels: ["new-features-request"]
+title: "[New Feature]: "
+body: 
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for requesting a feature. Please make a complete title and append to existing title.
+        感谢向我们请求一个新功能。请在现有标题后补全完整标题。
+  - type: textarea
+    id: request-content
+    attributes: 
+      label: |
+        Your request
+        你的请求
+      description: |
+        Describe your request.
+        描述你的请求内容。
+    validations:
+      required: true
+    
