@@ -7,8 +7,12 @@ on:
   workflow_dispatch:
 jobs:
   build:
+    name: Build .whl package and .pkg.tar.* package
+    id: build-packages
     runs-on: ubuntu-latest
     steps:
+      - name: Print info
+        run: echo github.ref is ${{ github.ref }}
       - name: Checkout
         uses: actions/checkout@v3
       - name: Setup Python
