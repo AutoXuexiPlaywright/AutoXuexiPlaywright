@@ -71,7 +71,7 @@
     "ui-config-window-executable-browse-tooltip": "浏览文件以选择一个自定义浏览器",
     "ui-config-window-executable-browse-title": "选择浏览器执行文件",
     "ui-config-window-skipped-items-label": "跳过的项目：",
-    "ui-config-window-skipped-items-tooltip": "使用 %s 连接各项目标题并组合成字符串填入，只有一个项目时请直接填入",
+    "ui-config-window-skipped-items-tooltip": "在此处填入你想跳过的项目，多个项目请使用 %s 连接各项目标题并组合成字符串填入",
     "ui-config-window-async": "异步 API",
     "ui-config-window-async-tooltip": "使用 Playwright 的异步 API 完成处理",
     "ui-config-window-debug": "调试模式",
