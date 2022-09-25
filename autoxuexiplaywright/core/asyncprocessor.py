@@ -14,11 +14,11 @@ __all__ = ["start"]
 cache = set[str]()
 
 
-def start(*args, **kwargs) -> None:
-    asyncio.run(run(*args, **kwargs))
+def start(**kwargs) -> None:
+    asyncio.run(run(**kwargs))
 
 
-async def run(*args, **kwargs) -> None:
+async def run(**kwargs) -> None:
     cache.clear()
     answerutils.init_sources(**kwargs)
     start_time = time.time()

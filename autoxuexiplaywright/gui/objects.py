@@ -1,4 +1,3 @@
-import sys
 import logging
 from autoxuexiplaywright.defines import events
 from autoxuexiplaywright.utils import misc, config, eventmanager
@@ -49,7 +48,7 @@ class SubProcess(QObject):
         self.kwargs.update(**config.get_runtime_config())
         self.register_callbacks()
         misc.init_logger(self.st, **self.kwargs)
-        misc.start_backend(*sys.argv, **self.kwargs)
+        misc.start_backend(**self.kwargs)
 
     def on_answer_requested(self, *args):
         self.mutex.lock()

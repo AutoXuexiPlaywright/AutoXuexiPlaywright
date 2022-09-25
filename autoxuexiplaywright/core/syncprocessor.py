@@ -13,11 +13,11 @@ __all__ = ["start"]
 cache = set[str]()
 
 
-def start(*args, **kwargs) -> None:
-    run(*args, **kwargs)
+def start(**kwargs) -> None:
+    run(**kwargs)
 
 
-def run(*args, **kwargs) -> None:
+def run(**kwargs) -> None:
     cache.clear()
     answerutils.init_sources(**kwargs)
     start_time = time.time()
