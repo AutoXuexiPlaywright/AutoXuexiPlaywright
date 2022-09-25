@@ -5,8 +5,8 @@ import logging
 from PIL import Image
 from typing import Union
 from pyzbar import pyzbar
-from autoxuexiplaywright.defines import core
-from autoxuexiplaywright.utils import lang, storage
+from autoxuexiplaywright.defines import core, events
+from autoxuexiplaywright.utils import lang, storage, eventmanager
 
 
 def init_logger(*args, **kwargs) -> None:
@@ -40,9 +40,7 @@ def img2shell(img: bytes, **kwargs) -> None:
     if kwargs.get("gui", True):
         logging.getLogger(core.APPID).info(lang.get_lang(
             kwargs.get("lang", "zh-cn"), "ui-info-failed-to-print-qr"))
-        qr_control_signal = kwargs.get("qr_control_signal")
-        if qr_control_signal is not None:
-            qr_control_signal.emit(img)
+        eventmanager.find_event_by_id(events.EventId.QR_UPDATED).invoke(img)
     else:
         data: pyzbar.Decoded = pyzbar.decode(Image.open(io.BytesIO(img)))[0]
         qr = qrcode.QRCode()

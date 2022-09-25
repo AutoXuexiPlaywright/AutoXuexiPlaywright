@@ -35,7 +35,6 @@
     "core-info-test-not-finish": "未完成整个测试，正在前往下一道题目",
     "core-error-test-download-video-failed": "下载测试页面的视频失败",
     "core-info-test-download-video-success": "下载测试页面的视频成功",
-    "core-error-no-way-to-get-manual-input": "无法获取手动输入的答案",
     "core-debug-raw-answer-list": "来自网页的答案数据：%s",
     "core-debug-final-answer-list": "清理之后的答案数据：%s",
     "core-debug-current-answer-text": "当前答案的文本：%s",
