@@ -19,7 +19,6 @@ def start(*args, **kwargs) -> None:
 
 def run(*args, **kwargs) -> None:
     cache.clear()
-    misc.init_logger(*args, **kwargs)
     answerutils.init_sources(**kwargs)
     start_time = time.time()
     with sync_playwright() as p:

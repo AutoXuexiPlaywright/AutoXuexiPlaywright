@@ -11,6 +11,7 @@ def main():
         from autoxuexiplaywright.gui import api
         api.start(*sys.argv, **runtime_config)
     else:
+        misc.init_logger(**runtime_config)
         misc.start_backend(*sys.argv, **runtime_config)
 
 

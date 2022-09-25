@@ -48,7 +48,8 @@ class SubProcess(QObject):
     def start(self) -> None:
         self.kwargs.update(**config.get_runtime_config())
         self.register_callbacks()
-        misc.start_backend(*sys.argv, st=self.st,**self.kwargs)
+        misc.init_logger(self.st, **self.kwargs)
+        misc.start_backend(*sys.argv, **self.kwargs)
 
     def on_answer_requested(self, *args):
         self.mutex.lock()

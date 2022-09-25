@@ -20,7 +20,6 @@ def start(*args, **kwargs) -> None:
 
 async def run(*args, **kwargs) -> None:
     cache.clear()
-    misc.init_logger(*args, **kwargs)
     answerutils.init_sources(**kwargs)
     start_time = time.time()
     async with async_playwright() as p:
