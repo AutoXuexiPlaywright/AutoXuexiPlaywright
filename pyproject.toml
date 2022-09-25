@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "autoxuexiplaywright"
-version = "2.1.3"
+version = "2.1.4"
 description = "A tool to finish something boring."
 authors = ["Noob Zhang <17194552+zhanghua000@users.noreply.github.com>"]
 license = "GPL"
