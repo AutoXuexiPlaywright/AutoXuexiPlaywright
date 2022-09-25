@@ -1,3 +1,4 @@
+import queue
 import base64
 import random
 import string
@@ -5,8 +6,8 @@ import logging
 import sqlite3
 from enum import Enum
 from importlib import util
-from autoxuexiplaywright.defines import core
-from autoxuexiplaywright.utils import lang, storage
+from autoxuexiplaywright.defines import core, events
+from autoxuexiplaywright.utils import lang, storage, eventmanager
 from autoxuexiplaywright.sdk import AnswerSource, PRIORITY_INF
 
 
@@ -78,25 +79,17 @@ def is_valid_answer(chars: str) -> bool:
 
 def request_answer(tips: str, **kwargs) -> list[str]:
     answer = []
-    mutex = kwargs.get("mutex")
-    wait = kwargs.get("wait")
-    answer_queue = kwargs.get("answer_queue")
-    pause_thread_signal = kwargs.get("pause_thread_signal")
-    if kwargs.get("gui", True) and (mutex is not None) and (wait is not None) and \
-            (answer_queue is not None) and (pause_thread_signal is not None):
+    gui: bool = kwargs.get("gui", True)
+    if gui:
         # gui is ready for getting answer from user input
-        mutex.lock()
-        pause_thread_signal.emit(tips)
-        wait.wait(mutex)
-        answer = answer_queue.get()
-        mutex.unlock()
-    elif not kwargs.get("gui", True):
+        answer_queue = queue.Queue(1)
+        eventmanager.find_event_by_id(
+            events.EventId.ANSWER_REQUESTED).invoke(tips, answer_queue)
+        answer: list[str] = answer_queue.get()
+    else:
         # headless mode
         answer = input(lang.get_lang(kwargs.get("lang", "zh-cn"), "core-manual-enter-answer-required") %
                        (core.ANSWER_CONNECTOR, tips)).strip().split(core.ANSWER_CONNECTOR)
-    else:
-        logging.getLogger(core.APPID).error(lang.get_lang(kwargs.get(
-            "lang", "zh-cn"), "core-error-no-way-to-get-manual-input"))
     return answer
 
 
@@ -122,8 +115,8 @@ def init_sources(**kwargs) -> None:
                             for name in dir(module):
                                 obj = getattr(module, name)
                                 if issubclass(obj, AnswerSource) and not \
-                                    issubclass(obj, AddSupportedAnswerSource) and not \
-                                    obj is AnswerSource:
+                                        issubclass(obj, AddSupportedAnswerSource) and not \
+                                        obj is AnswerSource:
                                     instance = obj()
                                     instance.priority = priority
                                     sources.append(instance)

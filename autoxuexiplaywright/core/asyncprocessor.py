@@ -6,8 +6,8 @@ import aiohttp
 import logging
 import asyncio
 from urllib.parse import urlparse
-from autoxuexiplaywright.defines import core, urls, selectors
-from autoxuexiplaywright.utils import misc, lang,  answerutils, storage
+from autoxuexiplaywright.defines import core, urls, selectors, events
+from autoxuexiplaywright.utils import misc, lang,  answerutils, storage, eventmanager
 from playwright.async_api import Page, TimeoutError, async_playwright
 
 __all__ = ["start"]
@@ -54,16 +54,12 @@ async def run(*args, **kwargs) -> None:
     finish_str = lang.get_lang(kwargs.get(
         "lang", "zh-cn"), "core-info-all-finished").format(int(delta_hrs), int(delta_mins), int(delta_secs))
     logging.getLogger(core.APPID).info(finish_str)
-    job_finish_signal = kwargs.get("job_finish_signal")
-    if kwargs.get("gui", True) and (job_finish_signal is not None):
-        job_finish_signal.emit(finish_str)
+    eventmanager.find_event_by_id(events.EventId.FINISHED).invoke(finish_str)
 
 
 async def login(page: Page, **kwargs) -> None:
-    update_status_signal = kwargs.get("update_status_signal")
-    if kwargs.get("gui", True) and (update_status_signal is not None):
-        update_status_signal.emit(lang.get_lang(
-            kwargs.get("lang", "zh-cn"), "ui-status-loging-in"))
+    eventmanager.find_event_by_id(events.EventId.STATUS_UPDATED).invoke(lang.get_lang(
+        kwargs.get("lang", "zh-cn"), "ui-status-loging-in"))
     await page.bring_to_front()
     await page.goto(urls.LOGIN_PAGE)
     try:
@@ -109,9 +105,8 @@ async def login(page: Page, **kwargs) -> None:
         logging.getLogger(core.APPID).info(lang.get_lang(
             kwargs.get("lang", "zh-cn"), "core-info-cookie-login-success"))
     await page.close()
-    qr_control_signal = kwargs.get("qr_control_signal")
-    if kwargs.get("gui", True) and (qr_control_signal is not None):
-        qr_control_signal.emit("".encode())
+    eventmanager.find_event_by_id(
+        events.EventId.QR_UPDATED).invoke("".encode())
     await page.context.storage_state(
         path=storage.get_cache_path("cookies.json"))
 
@@ -132,9 +127,8 @@ async def check_status_and_finish(page: Page, **kwargs):
         else:
             logging.getLogger(core.APPID).info(lang.get_lang(kwargs.get(
                 "lang", "zh-cn"), "core-info-update-score-success") % points_ints)
-            update_score_signal = kwargs.get("update_score_signal")
-            if kwargs.get("gui", True) and (update_score_signal is not None):
-                update_score_signal.emit(points_ints)
+            eventmanager.find_event_by_id(
+                events.EventId.SCORE_UPDATED).invoke(points_ints)
         cards = page.locator(selectors.POINTS_CARDS)
         await cards.last.wait_for()
         login_task_style = misc.to_str(await cards.nth(0).locator(
@@ -158,9 +152,8 @@ async def check_status_and_finish(page: Page, **kwargs):
             else:
                 logging.getLogger(core.APPID).info(lang.get_lang(
                     kwargs.get("lang", "zh-cn"), "core-info-card-processing") % title)
-                update_status_signal = kwargs.get("update_status_signal")
-                if kwargs.get("gui", True) and (update_status_signal is not None):
-                    update_status_signal.emit(lang.get_lang(kwargs.get(
+                eventmanager.find_event_by_id(events.EventId.STATUS_UPDATED).invoke(
+                    lang.get_lang(kwargs.get(
                         "lang", "zh-cn"), "ui-status-tooltip") % title)
                 try:
                     async with page.context.expect_page(timeout=core.WAIT_NEW_PAGE_SECS*1000) as page_event:
