@@ -3,12 +3,12 @@ import typing
 import os.path
 from autoxuexiplaywright.defines import ui, core
 from autoxuexiplaywright.utils import lang, storage, misc
-from qtpy.QtGui import (
-    QMouseEvent, QRegularExpressionValidator, QContextMenuEvent)
-from qtpy.QtCore import (
-    Qt, QPointF, QPoint, QRegularExpression)  # type: ignore
-from qtpy.QtWidgets import (QCheckBox, QComboBox, QDialog, QMenu, QTableWidget, QTableWidgetItem, QVBoxLayout,
-                            QLabel, QLineEdit, QPushButton, QHBoxLayout, QWidget, QFileDialog)
+from qtpy.QtGui import (QMouseEvent, QRegularExpressionValidator, QContextMenuEvent)
+from qtpy.QtCore import (Qt, QPointF, QPoint, QRegularExpression)
+from qtpy.QtWidgets import (
+    QCheckBox, QComboBox, QDialog, QMenu, QTableWidget, QTableWidgetItem, QVBoxLayout,
+    QLabel, QLineEdit, QPushButton, QHBoxLayout, QWidget, QFileDialog
+)
 
 __all__ = ["SettingsWindow"]
 
@@ -19,15 +19,15 @@ class ProxyTableWidget(QTableWidget):
         self.kwargs = kwargs
         self.menu = QMenu("", self)
         self.menu.addAction(lang.get_lang(
-            self.kwargs.get("lang", "zh-cn"), "ui-config-window-add-proxy"), self.add_new_proxy)  # type: ignore
+            self.kwargs.get("lang", "zh-cn"), "ui-config-window-add-proxy"), self.add_new_proxy)
         self.setObjectName(ui.ObjNames.SETTINGS_WINDOW_PROXY)
         self.horizontalHeader().setObjectName(ui.ObjNames.SETTINGS_WINDOW_PROXY_HEADER)
         self.verticalHeader().hide()
         self.setToolTip(lang.get_lang(self.kwargs.get(
             "lang", "zh-cn"), "ui-config-window-proxy-list-tooltip"))
-        self.setSelectionBehavior(QTableWidget.SelectRows)  # type: ignore
-        self.setEditTriggers(QTableWidget.NoEditTriggers)  # type: ignore
-        self.setFocusPolicy(Qt.NoFocus)  # type: ignore
+        self.setSelectionBehavior(QTableWidget.SelectRows)
+        self.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.setFocusPolicy(Qt.NoFocus)
         self.setHorizontalHeaderLabels([
             lang.get_lang(self.kwargs.get("lang", "zh-cn"),
                           "ui-config-window-proxy-list-headers-0"),
@@ -39,7 +39,7 @@ class ProxyTableWidget(QTableWidget):
         proxy = self.kwargs.get("proxy")
         if proxy is not None:
             self.remove_proxy = self.menu.addAction(lang.get_lang(
-                self.kwargs.get("lang", "zh-cn"), "ui-config-window-remove-proxy"), self.remove_current_proxy)  # type: ignore
+                self.kwargs.get("lang", "zh-cn"), "ui-config-window-remove-proxy"), self.remove_current_proxy)
             for proxy_item in proxy:
                 if isinstance(proxy_item, dict):
                     self.insertRow(self.rowCount())
@@ -54,27 +54,27 @@ class ProxyTableWidget(QTableWidget):
         for i in range(self.columnCount()):
             edit = QLineEdit(self)
             edit.setObjectName(ui.ObjNames.SETTINGS_WINDOW_EDIT)
-            edit.setProperty("col", i)  # type: ignore
-            edit.setProperty("row", self.rowCount()-1)  # type: ignore
+            edit.setProperty("col", i)
+            edit.setProperty("row", self.rowCount()-1)
             if i == 0:
-                edit.setValidator(QRegularExpressionValidator(  # type: ignore
-                    QRegularExpression(ui.PROXY_REGEX)))  # type: ignore
+                edit.setValidator(QRegularExpressionValidator(
+                    QRegularExpression(ui.PROXY_REGEX)))
             elif i == 2:
-                edit.editingFinished.connect(  # type: ignore
+                edit.editingFinished.connect(
                     self.on_edit_finished)
             self.setCellWidget(self.rowCount()-1, i, edit)
         if self.remove_proxy is None:
             self.remove_proxy = self.menu.addAction(lang.get_lang(
-                self.kwargs.get("lang", "zh-cn"), "ui-config-window-remove-proxy"), self.remove_current_proxy)  # type: ignore
+                self.kwargs.get("lang", "zh-cn"), "ui-config-window-remove-proxy"), self.remove_current_proxy)
 
     def on_edit_finished(self):
         for item in self.findChildren(QLineEdit, ui.ObjNames.SETTINGS_WINDOW_EDIT):
             if isinstance(item, QLineEdit):
-                col = int(item.property("col"))  # type: ignore
-                row = int(item.property("row"))  # type: ignore
+                col = int(item.property("col"))
+                row = int(item.property("row"))
                 self.removeCellWidget(row, col)
                 self.setItem(row, col, QTableWidgetItem(
-                    item.text()))  # type: ignore
+                    item.text()))
                 item.clearFocus()
                 item.deleteLater()
         for row in range(self.rowCount()):
@@ -120,25 +120,25 @@ class ProxyTableWidget(QTableWidget):
         return proxy
 
     def contextMenuEvent(self, arg__1: QContextMenuEvent) -> None:
-        self.menu.popup(arg__1.globalPos())  # type: ignore
-        self.menu.exec_()  # type: ignore
-        return super().contextMenuEvent(arg__1)  # type: ignore
+        self.menu.popup(arg__1.globalPos())
+        self.menu.exec_()
+        return super().contextMenuEvent(arg__1)
 
 
 class SettingsWindow(QDialog):
     def __init__(self, parent: QWidget) -> None:
-        super().__init__(parent, Qt.WindowType.FramelessWindowHint)  # type: ignore
+        super().__init__(parent, Qt.WindowType.FramelessWindowHint)
         self._start_pos = QPointF(0, 0)
         self.setWindowOpacity(ui.OPACITY)
         with open(storage.get_config_path("config.json"), "r", encoding="utf-8") as reader:
             self.conf: dict = json.load(reader)
-        main_layout = QVBoxLayout()  # type: ignore
+        main_layout = QVBoxLayout()
         self.title = QLabel(lang.get_lang(self.conf.get(
             "lang", "zh-cn"), "ui-config-window-title"), self)
         self.title.setObjectName(ui.ObjNames.SETTINGS_WINDOW_TITLE)
-        self.title.setAlignment(Qt.AlignCenter)  # type: ignore
+        self.title.setAlignment(Qt.AlignCenter)
         main_layout.addWidget(self.title)
-        browser = QHBoxLayout()  # type: ignore
+        browser = QHBoxLayout()
         self.set_browser_selecotr()
         browser.addWidget(self.browser_title)
         browser.addWidget(self.browser_selector)
@@ -156,8 +156,8 @@ class SettingsWindow(QDialog):
         skipped_items.addWidget(self.skipped_items_label)
         skipped_items.addWidget(self.skipped_items_input)
         main_layout.addLayout(skipped_items)
-        extra = QHBoxLayout()  # type: ignore
-        lang_layout = QHBoxLayout()  # type: ignore
+        extra = QHBoxLayout()
+        lang_layout = QHBoxLayout()
         self.set_extra_items()
         lang_layout.addWidget(self.lang_title)
         lang_layout.addWidget(self.lang_selector)
@@ -166,15 +166,15 @@ class SettingsWindow(QDialog):
         extra.addWidget(self.gui_check)
         extra.addLayout(lang_layout)
         main_layout.addLayout(extra)
-        proxy = QVBoxLayout()  # type: ignore
+        proxy = QVBoxLayout()
         self.set_proxy_widgets()
         proxy.addWidget(self.proxy_label)
         proxy.addWidget(self.proxy_list)
         main_layout.addLayout(proxy)
-        operate = QHBoxLayout()  # type: ignore
+        operate = QHBoxLayout()
         self.set_operate_btns()
-        operate.addWidget(self.save_btn, 8)  # type: ignore
-        operate.addWidget(self.cancel_btn, 2)  # type: ignore
+        operate.addWidget(self.save_btn, 8)
+        operate.addWidget(self.cancel_btn, 2)
         main_layout.addLayout(operate)
         self.setLayout(main_layout)
 
@@ -223,7 +223,7 @@ class SettingsWindow(QDialog):
             self.browser_selector.addItem(item.title(), item)
         self.browser_selector.setCurrentIndex(
             ui.SETTING_BROWSER_ITEMS.index(self.conf.get("browser", "firefox")))
-        self.browser_selector.currentIndexChanged.connect(  # type: ignore
+        self.browser_selector.currentIndexChanged.connect(
             self.on_browser_selector_changed)
         self.channel_title = QLabel(lang.get_lang(self.conf.get(
             "lang", "zh-cn"), "ui-config-window-channel-title"), self)
@@ -240,7 +240,7 @@ class SettingsWindow(QDialog):
                 list(ui.SETTING_ITEM_NAMES.keys()).index(channel))
         self.channel_selector.setEnabled(
             (not bool(self.browser_selector.currentIndex())) or (not (channel is None)))
-        self.channel_selector.currentIndexChanged.connect(  # type: ignore
+        self.channel_selector.currentIndexChanged.connect(
             self.on_channel_selector_changed)
 
     def set_extra_items(self):
@@ -250,7 +250,7 @@ class SettingsWindow(QDialog):
             "lang", "zh-cn"), "ui-config-window-async-tooltip"))
         self.async_check.setObjectName(ui.ObjNames.SETTINGS_WINDOW_ASYNC_CHECK)
         self.async_check.setChecked(self.conf.get("async", False))
-        self.async_check.stateChanged.connect(  # type: ignore
+        self.async_check.stateChanged.connect(
             self.on_async_check_changed)
         self.debug_check = QCheckBox(lang.get_lang(self.conf.get(
             "lang", "zh-cn"), "ui-config-window-debug"), self)
@@ -258,7 +258,7 @@ class SettingsWindow(QDialog):
             "lang", "zh-cn"), "ui-config-window-debug-tooltip"))
         self.debug_check.setObjectName(ui.ObjNames.SETTINGS_WINDOW_DEBUG_CHECK)
         self.debug_check.setChecked(self.conf.get("debug", False))
-        self.debug_check.stateChanged.connect(  # type: ignore
+        self.debug_check.stateChanged.connect(
             self.on_debug_check_changed)
         self.gui_check = QCheckBox(lang.get_lang(self.conf.get(
             "lang", "zh-cn"), "ui-config-window-gui"), self)
@@ -266,7 +266,7 @@ class SettingsWindow(QDialog):
             "lang", "zh-cn"), "ui-config-window-gui-tooltip"))
         self.gui_check.setObjectName(ui.ObjNames.SETTINGS_WINDOW_GUI_CHECK)
         self.gui_check.setChecked(self.conf.get("gui", True))
-        self.gui_check.stateChanged.connect(  # type: ignore
+        self.gui_check.stateChanged.connect(
             self.on_gui_check_changed)
         self.lang_title = QLabel(lang.get_lang(self.conf.get(
             "lang", "zh-cn"), "ui-config-window-lang-title"), self)
@@ -278,7 +278,7 @@ class SettingsWindow(QDialog):
             self.lang_selector.addItem(item, item)
         self.lang_selector.setCurrentIndex(
             core.LANGS.index(self.conf.get("lang", "zh-cn")))
-        self.lang_selector.currentIndexChanged.connect(  # type: ignore
+        self.lang_selector.currentIndexChanged.connect(
             self.on_lang_selector_changed)
 
     def set_proxy_widgets(self):
@@ -292,28 +292,28 @@ class SettingsWindow(QDialog):
         self.save_btn.setToolTip(lang.get_lang(self.conf.get(
             "lang", "zh-cn"), "ui-config-window-save-tooltip"))
         self.save_btn.setObjectName(ui.ObjNames.SETTINGS_WINDOW_SAVE)
-        self.save_btn.clicked.connect(  # type: ignore
+        self.save_btn.clicked.connect(
             self.on_save_btn_clicked)
         self.cancel_btn = QPushButton(lang.get_lang(self.conf.get(
             "lang", "zh-cn"), "ui-config-window-cancel"), self)
         self.cancel_btn.setObjectName(ui.ObjNames.SETTINGS_WINDOW_CANCEL)
-        self.cancel_btn.clicked.connect(self.close)  # type: ignore
+        self.cancel_btn.clicked.connect(self.close)
 
     def mousePressEvent(self, a0: QMouseEvent) -> None:
         self._start_pos = a0.screenPos()
-        self.setCursor(Qt.CursorShape.SizeAllCursor)  # type: ignore
-        return super().mousePressEvent(a0)  # type: ignore
+        self.setCursor(Qt.CursorShape.SizeAllCursor)
+        return super().mousePressEvent(a0)
 
     def mouseReleaseEvent(self, a0: QMouseEvent) -> None:
-        self.setCursor(Qt.CursorShape.ArrowCursor)  # type: ignore
-        return super().mouseReleaseEvent(a0)  # type: ignore
+        self.setCursor(Qt.CursorShape.ArrowCursor)
+        return super().mouseReleaseEvent(a0)
 
     def mouseMoveEvent(self, a0: QMouseEvent) -> None:
         delta = QPoint(round(a0.screenPos().x()-self._start_pos.x()),
                        round(a0.screenPos().y()-self._start_pos.y()))
         self.move(self.x()+delta.x(), self.y()+delta.y())
         self._start_pos = a0.screenPos()
-        return super().mouseMoveEvent(a0)  # type: ignore
+        return super().mouseMoveEvent(a0)
 
     def on_browser_selector_changed(self, idx: int):
         self.conf.update({"browser": self.browser_selector.currentData()})

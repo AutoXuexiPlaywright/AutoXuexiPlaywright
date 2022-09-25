@@ -1,8 +1,8 @@
 import sys
-import queue
 import logging
-from autoxuexiplaywright.utils import misc, config
-from qtpy.QtCore import Signal, SignalInstance, QObject, QWaitCondition, QMutex  # type: ignore
+from autoxuexiplaywright.defines import events
+from autoxuexiplaywright.utils import misc, config, eventmanager
+from qtpy.QtCore import Signal, SignalInstance, QObject, QWaitCondition, QMutex
 
 
 __all__ = ["SubProcess"]
@@ -20,22 +20,38 @@ class QHandler(logging.Handler):
 class SubProcess(QObject):
     job_finished_signal = Signal(str)
     update_status_signal = Signal(str)
-    pause_thread_signal = Signal(str)
+    pause_thread_signal = Signal(tuple)
     qr_control_signal = Signal(bytes)
     update_score_signal = Signal(tuple)
     update_log_signal = Signal(str)
 
     def __init__(self, **kwargs) -> None:
         super().__init__()
-        self.st = QHandler(self.update_log_signal)  # type: ignore
-        self.answer_queue = queue.Queue(1)
+        self.st = QHandler(self.update_log_signal)
         self.wait = QWaitCondition()
-        self.mutex = QMutex() # type: ignore
+        self.mutex = QMutex()
         self.kwargs = kwargs
+
+    def register_callbacks(self):
+        eventmanager.clean_callbacks()
+        eventmanager.find_event_by_id(events.EventId.FINISHED).add_callback(
+            self.job_finished_signal.emit)
+        eventmanager.find_event_by_id(events.EventId.STATUS_UPDATED).add_callback(
+            self.update_status_signal.emit)
+        eventmanager.find_event_by_id(events.EventId.QR_UPDATED).add_callback(
+            self.qr_control_signal.emit)
+        eventmanager.find_event_by_id(events.EventId.SCORE_UPDATED).add_callback(
+            self.update_score_signal.emit)
+        eventmanager.find_event_by_id(events.EventId.ANSWER_REQUESTED).add_callback(
+            self.on_answer_requested)
 
     def start(self) -> None:
         self.kwargs.update(**config.get_runtime_config())
-        misc.start_backend(*sys.argv, wait=self.wait, mutex=self.mutex,
-                           st=self.st, answer_queue=self.answer_queue, job_finish_signal=self.job_finished_signal,
-                           update_status_signal=self.update_status_signal, pause_thread_signal=self.pause_thread_signal,
-                           qr_control_signal=self.qr_control_signal, update_score_signal=self.update_score_signal, **self.kwargs)
+        self.register_callbacks()
+        misc.start_backend(*sys.argv, st=self.st,**self.kwargs)
+
+    def on_answer_requested(self, *args):
+        self.mutex.lock()
+        self.pause_thread_signal.emit(args)
+        self.wait.wait(self.mutex)
+        self.mutex.unlock()
