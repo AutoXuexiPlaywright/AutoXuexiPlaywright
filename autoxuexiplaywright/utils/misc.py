@@ -47,9 +47,9 @@ def img2shell(img: bytes, **kwargs) -> None:
         qr.print_tty()
 
 
-def start_backend(*args, **kwargs) -> None:
+def start_backend(**kwargs) -> None:
     if kwargs.get("async", False):
         from autoxuexiplaywright.core import asyncprocessor as processor
     else:
         from autoxuexiplaywright.core import syncprocessor as processor
-    processor.start(*args, **kwargs)
+    processor.start(**kwargs)
