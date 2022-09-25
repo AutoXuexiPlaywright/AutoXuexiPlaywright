@@ -9,21 +9,20 @@ from autoxuexiplaywright.defines import core, events
 from autoxuexiplaywright.utils import lang, storage, eventmanager
 
 
-def init_logger(*args, **kwargs) -> None:
+def init_logger(st: logging.Handler = logging.StreamHandler(), **kwargs) -> None:
     logger = logging.getLogger(core.APPID)
     fmt = logging.Formatter(fmt=core.LOGGING_FMT,
                             datefmt=core.LOGGING_DATETIME_FMT)
+    level=logging.DEBUG if kwargs.get("debug", False) else logging.INFO
     fh = logging.FileHandler(storage.get_cache_path(
         core.APPID+".log"), "w", "utf-8")
-    fh.setLevel(logging.DEBUG if kwargs.get("debug", False) else logging.INFO)
+    fh.setLevel(level)
     fh.setFormatter(fmt)
-    st = kwargs.get("st", logging.StreamHandler())
-    st.setLevel(logging.DEBUG if kwargs.get("debug", False) else logging.INFO)
+    st.setLevel(level)
     st.setFormatter(fmt)
     if kwargs.get("debug", False):
         os.putenv("DEBUG", "pw:api")
-    logger.setLevel(logging.DEBUG if kwargs.get(
-        "debug", False) else logging.INFO)
+    logger.setLevel(level)
     for handler in logger.handlers:
         logger.removeHandler(handler)
     logger.addHandler(st)
