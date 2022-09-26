@@ -3,7 +3,8 @@ import typing
 import os.path
 from autoxuexiplaywright.defines import ui, core
 from autoxuexiplaywright.utils import lang, storage, misc
-from qtpy.QtGui import (QMouseEvent, QRegularExpressionValidator, QContextMenuEvent)
+from qtpy.QtGui import (
+    QMouseEvent, QRegularExpressionValidator, QContextMenuEvent)
 from qtpy.QtCore import (Qt, QPointF, QPoint, QRegularExpression)
 from qtpy.QtWidgets import (
     QCheckBox, QComboBox, QDialog, QMenu, QTableWidget, QTableWidgetItem, QVBoxLayout,

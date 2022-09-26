@@ -3,9 +3,9 @@ from autoxuexiplaywright.defines import events
 __all__ = ["find_event_by_id", "clean_callbacks"]
 
 event_instances: list[events.Event] = [
-    events.FinishedEvent(), 
-    events.QRUpdatedEvent(), 
-    events.ScoreUpdatedEvent(), 
+    events.FinishedEvent(),
+    events.QRUpdatedEvent(),
+    events.ScoreUpdatedEvent(),
     events.StatusUpdatedEvent(),
     events.AnswerReuestedEvent()
 ]
