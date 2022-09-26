@@ -114,31 +114,21 @@ class MainWindow(QMainWindow):
         self.setStyleSheet(qss.readAll().data().decode())
 
     def set_signals(self) -> None:
-        self.jobs.job_finished_signal.connect(
-            self.on_job_finished)
+        self.jobs.job_finished_signal.connect(self.on_job_finished)
         self.sub_thread.started.connect(self.jobs.start)
-        self.sub_thread.finished.connect(
-            self.on_sub_thread_finished)
-        self.jobs.update_log_signal.connect(
-            self.log_panel.appendPlainText)
-        self.jobs.update_status_signal.connect(
-            self.log_panel.setToolTip)
-        self.jobs.pause_thread_signal.connect(
-            self.on_manual_input_required)
-        self.jobs.qr_control_signal.connect(
-            self.on_qr_bytes_recived)
-        self.jobs.update_score_signal.connect(
-            self.on_score_updated)
+        self.sub_thread.finished.connect(self.on_sub_thread_finished)
+        self.jobs.update_log_signal.connect(self.log_panel.appendPlainText)
+        self.jobs.update_status_signal.connect(self.log_panel.setToolTip)
+        self.jobs.pause_thread_signal.connect(self.on_manual_input_required)
+        self.jobs.qr_control_signal.connect(self.on_qr_bytes_recived)
+        self.jobs.update_score_signal.connect(self.on_score_updated)
         self.close_btn.clicked.connect(self.close)
         self.min_btn.clicked.connect(self.on_min_btn_clicked)
-        self.ontop_check.stateChanged.connect(
-            self.on_ontop_state_changed)
-        self.start_btn.clicked.connect(
-            self.on_start_btn_clicked)
-        self.settings_btn.clicked.connect(
-            self.on_settings_btn_clicked)
+        self.ontop_check.stateChanged.connect(self.on_ontop_state_changed)
+        self.start_btn.clicked.connect(self.on_start_btn_clicked)
+        self.settings_btn.clicked.connect(self.on_settings_btn_clicked)
         self.tray.activated.connect(self.on_tray_activated)
-        
+
     def register_callbacks(self):
         eventmanager.clean_callbacks()
         eventmanager.find_event_by_id(events.EventId.FINISHED).add_callback(
