@@ -13,7 +13,7 @@ def init_logger(st: logging.Handler = logging.StreamHandler(), **kwargs) -> None
     logger = logging.getLogger(core.APPID)
     fmt = logging.Formatter(fmt=core.LOGGING_FMT,
                             datefmt=core.LOGGING_DATETIME_FMT)
-    level=logging.DEBUG if kwargs.get("debug", False) else logging.INFO
+    level = logging.DEBUG if kwargs.get("debug", False) else logging.INFO
     fh = logging.FileHandler(storage.get_cache_path(
         core.APPID+".log"), "w", "utf-8")
     fh.setLevel(level)
