@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -e
+
+echo "Bumping and creating tag for $1"
+poetry version $1
+git tag v$1
