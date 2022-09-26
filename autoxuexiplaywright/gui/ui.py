@@ -1,8 +1,8 @@
 import queue
 import imghdr
-from autoxuexiplaywright.defines import core, ui
+from autoxuexiplaywright.defines import core, ui, events
 from autoxuexiplaywright.gui import settings, objects
-from autoxuexiplaywright.utils import lang, answerutils, storage
+from autoxuexiplaywright.utils import lang, answerutils, storage, eventmanager
 from qtpy.QtGui import (QMouseEvent, QPixmap, QIcon)
 from qtpy.QtCore import (QFile, QPoint, QPointF, Qt, QSettings, QThread)
 from qtpy.QtWidgets import (QCheckBox, QVBoxLayout, QInputDialog, QLabel, QSystemTrayIcon,
@@ -50,6 +50,7 @@ class MainWindow(QMainWindow):
         self.tray.setVisible(True)
         self.apply_style()
         self.set_signals()
+        self.register_callbacks()
 
     def set_title_layout(self) -> None:
         self.title_layout = QHBoxLayout()
@@ -137,6 +138,19 @@ class MainWindow(QMainWindow):
         self.settings_btn.clicked.connect(
             self.on_settings_btn_clicked)
         self.tray.activated.connect(self.on_tray_activated)
+        
+    def register_callbacks(self):
+        eventmanager.clean_callbacks()
+        eventmanager.find_event_by_id(events.EventId.FINISHED).add_callback(
+            self.jobs.job_finished_signal.emit)
+        eventmanager.find_event_by_id(events.EventId.STATUS_UPDATED).add_callback(
+            self.jobs.update_status_signal.emit)
+        eventmanager.find_event_by_id(events.EventId.QR_UPDATED).add_callback(
+            self.jobs.qr_control_signal.emit)
+        eventmanager.find_event_by_id(events.EventId.SCORE_UPDATED).add_callback(
+            self.jobs.update_score_signal.emit)
+        eventmanager.find_event_by_id(events.EventId.ANSWER_REQUESTED).add_callback(
+            self.jobs.pause)
 
     def mousePressEvent(self, a0: QMouseEvent) -> None:
         self._start_pos = a0.screenPos()

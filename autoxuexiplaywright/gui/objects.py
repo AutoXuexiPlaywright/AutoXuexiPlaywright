@@ -1,6 +1,5 @@
 import logging
-from autoxuexiplaywright.defines import events
-from autoxuexiplaywright.utils import misc, config, eventmanager
+from autoxuexiplaywright.utils import misc, config
 from qtpy.QtCore import Signal, SignalInstance, QObject, QWaitCondition, QMutex
 
 
@@ -31,26 +30,12 @@ class SubProcess(QObject):
         self.mutex = QMutex()
         self.kwargs = kwargs
 
-    def register_callbacks(self):
-        eventmanager.clean_callbacks()
-        eventmanager.find_event_by_id(events.EventId.FINISHED).add_callback(
-            self.job_finished_signal.emit)
-        eventmanager.find_event_by_id(events.EventId.STATUS_UPDATED).add_callback(
-            self.update_status_signal.emit)
-        eventmanager.find_event_by_id(events.EventId.QR_UPDATED).add_callback(
-            self.qr_control_signal.emit)
-        eventmanager.find_event_by_id(events.EventId.SCORE_UPDATED).add_callback(
-            self.update_score_signal.emit)
-        eventmanager.find_event_by_id(events.EventId.ANSWER_REQUESTED).add_callback(
-            self.on_answer_requested)
-
     def start(self) -> None:
         self.kwargs.update(**config.get_runtime_config())
-        self.register_callbacks()
         misc.init_logger(self.st, **self.kwargs)
         misc.start_backend(**self.kwargs)
 
-    def on_answer_requested(self, *args):
+    def pause(self, *args):
         self.mutex.lock()
         self.pause_thread_signal.emit(args)
         self.wait.wait(self.mutex)
