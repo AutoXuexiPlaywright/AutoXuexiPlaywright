@@ -19,10 +19,9 @@ def lang_to_locale(lang: str) -> str:
 
 def start(argv: list, **kwargs):
     app = QApplication(argv)
-    lang = lang_to_locale(kwargs.get("lang", "zh-cn"))
     translator = QTranslator()
-    translator.load(
-        "qt_"+lang, QLibraryInfo.location(QLibraryInfo.TranslationsPath))
+    translator.load("qt_"+lang_to_locale(kwargs.get("lang", "zh-cn")),
+                    QLibraryInfo.location(QLibraryInfo.TranslationsPath))
     app.installTranslator(translator)
     main_window = ui.MainWindow(**kwargs)
     main_window.show()
