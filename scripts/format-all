@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+echo 'Formatting project...'
+poetry run autopep8 -i -r $(dirname $(git rev-parse --git-dir))
