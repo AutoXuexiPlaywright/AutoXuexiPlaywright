@@ -352,7 +352,7 @@ reference = "bfsu"
 
 [[package]]
 name = "pyqt6"
-version = "6.3.1"
+version = "6.4.0"
 description = "Python bindings for the Qt cross platform application toolkit"
 category = "main"
 optional = true
@@ -736,7 +736,7 @@ reference = "bfsu"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.10,<3.11"
-content-hash = "b239fc26309b77150ca6b5aeaf069eda29d895770808e24c14e3328a15855912"
+content-hash = "9ff0b40dafb975f59297c8a9db8a8b9fa3a36a63bbcbba2f0c9a4da8caaff4d1"
 
 [metadata.files]
 aiohttp = [
@@ -1162,10 +1162,10 @@ pyqt5-sip = [
     {file = "PyQt5_sip-12.11.0.tar.gz", hash = "sha256:b4710fd85b57edef716cc55fae45bfd5bfac6fc7ba91036f1dcc3f331ca0eb39"},
 ]
 pyqt6 = [
-    {file = "PyQt6-6.3.1-cp37-abi3-macosx_10_14_universal2.whl", hash = "sha256:f7ad13b44959b72c8d40fa1856470015fab3368983dd2c1c781d4061c45d96b3"},
-    {file = "PyQt6-6.3.1-cp37-abi3-manylinux1_x86_64.whl", hash = "sha256:c87c909eeafc44ea911a94490d55055058f51a27ec5ca0e439a9feb943a73fd1"},
-    {file = "PyQt6-6.3.1-cp37-abi3-win_amd64.whl", hash = "sha256:115f809810c236af90352b4df4a9dfc79cbd05b7c0200c05886c8b3035c2847b"},
-    {file = "PyQt6-6.3.1.tar.gz", hash = "sha256:8cc6e21dbaf7047d1fc897e396ccd9710a12f2ef976563dad65f06017d2c9757"},
+    {file = "PyQt6-6.4.0-cp37-abi3-macosx_10_14_universal2.whl", hash = "sha256:8e614cc4b95dec8bec8ba3c3eaf821058b45862e66d69a8c4fb5576123f2be98"},
+    {file = "PyQt6-6.4.0-cp37-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:79d093ce97010eac92e83a4e8efe231328af9ec757ba78c77e46ca1e007eca0d"},
+    {file = "PyQt6-6.4.0-cp37-abi3-win_amd64.whl", hash = "sha256:37e399420866fff5c5bd49f56710dffd3a7a126afc6612b877d666f381bd554f"},
+    {file = "PyQt6-6.4.0.tar.gz", hash = "sha256:91392469be1f491905fa9e78fa4e4059a89ab616ddf2ecfd525bc1d65c26bb93"},
 ]
 pyqt6-sip = [
     {file = "PyQt6_sip-13.4.0-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:3ac7e0800180202dcc0c7035ff88c2a6f4a0f5acb20c4a19f71d807d0f7857b7"},
