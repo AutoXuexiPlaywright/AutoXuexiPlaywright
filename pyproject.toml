@@ -27,7 +27,7 @@ requests = "^2.28.1"
 playwright = "^1.27.0"
 pyxdg = "^0.28"
 pillow = "^9.2.0"
-qtpy = "^2.1.0"
+qtpy = "^2.2.1"
 pyside6 = "^6.3.2"
 pyside2 = {version = "^5.15.2", optional = true}
 pyqt6 = {version = "^6.4.0", optional = true}
