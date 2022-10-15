@@ -180,22 +180,23 @@ def check_status_and_finish(page: Page,  **kwargs) -> None:
 
 def pre_handle(page: Page, close_page: bool, process_type: core.ProcessType,  **kwargs) -> bool:
     skip = True
-    if process_type == core.ProcessType.NEWS:
-        with page.context.expect_page() as page_info:
-            page.locator(selectors.NEWS_TITLE_SPAN).click()
-        skip = handle_news(page_info.value, **kwargs)
-        page_info.value.close()
-    elif process_type == core.ProcessType.VIDEO:
-        page.locator(selectors.VIDEO_ENTRANCE).hover()
-        with page.context.expect_page() as page_info:
-            page.locator(selectors.VIDEO_ENTRANCE).click()
-        with page_info.value.context.expect_page() as page_info_new:
-            page_info.value.locator(selectors.VIDEO_LIBRARY).click()
-        skip = handle_video(page_info_new.value, **kwargs)
-        page_info_new.value.close()
-        page_info.value.close()
-    elif process_type == core.ProcessType.TEST:
-        skip = handle_test(page,  **kwargs)
+    match process_type:
+        case core.ProcessType.NEWS:
+            with page.context.expect_page() as page_info:
+                page.locator(selectors.NEWS_TITLE_SPAN).click()
+            skip = handle_news(page_info.value, **kwargs)
+            page_info.value.close()
+        case core.ProcessType.VIDEO:
+            page.locator(selectors.VIDEO_ENTRANCE).hover()
+            with page.context.expect_page() as page_info:
+                page.locator(selectors.VIDEO_ENTRANCE).click()
+            with page_info.value.context.expect_page() as page_info_new:
+                page_info.value.locator(selectors.VIDEO_LIBRARY).click()
+            skip = handle_video(page_info_new.value, **kwargs)
+            page_info_new.value.close()
+            page_info.value.close()
+        case core.ProcessType.TEST:
+            skip = handle_test(page,  **kwargs)
     if close_page:
         page.close()
     return skip
