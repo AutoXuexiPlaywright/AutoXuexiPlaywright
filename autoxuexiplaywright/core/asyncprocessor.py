@@ -182,25 +182,26 @@ async def check_status_and_finish(page: Page, **kwargs):
 
 async def pre_handle(page: Page, close_page: bool, process_type: core.ProcessType,  **kwargs) -> bool:
     skip = True
-    if process_type == core.ProcessType.NEWS:
-        async with page.context.expect_page() as page_info:
-            await page.locator(selectors.NEWS_TITLE_SPAN).click()
-        value = await page_info.value
-        skip = await handle_news(value, **kwargs)
-        await value.close()
-    elif process_type == core.ProcessType.VIDEO:
-        await page.locator(selectors.VIDEO_ENTRANCE).hover()
-        async with page.context.expect_page() as page_info:
-            await page.locator(selectors.VIDEO_ENTRANCE).click()
-        value = await page_info.value
-        async with value.context.expect_page() as page_info_new:
-            await value.locator(selectors.VIDEO_LIBRARY).click()
-        value_new = await page_info_new.value
-        skip = await handle_video(value_new, **kwargs)
-        await value_new.close()
-        await value.close()
-    elif process_type == core.ProcessType.TEST:
-        skip = await handle_test(page,  **kwargs)
+    match process_type:
+        case core.ProcessType.NEWS:
+            async with page.context.expect_page() as page_info:
+                await page.locator(selectors.NEWS_TITLE_SPAN).click()
+            value = await page_info.value
+            skip = await handle_news(value, **kwargs)
+            await value.close()
+        case core.ProcessType.VIDEO:
+            await page.locator(selectors.VIDEO_ENTRANCE).hover()
+            async with page.context.expect_page() as page_info:
+                await page.locator(selectors.VIDEO_ENTRANCE).click()
+            value = await page_info.value
+            async with value.context.expect_page() as page_info_new:
+                await value.locator(selectors.VIDEO_LIBRARY).click()
+            value_new = await page_info_new.value
+            skip = await handle_video(value_new, **kwargs)
+            await value_new.close()
+            await value.close()
+        case core.ProcessType.TEST:
+            skip = await handle_test(page,  **kwargs)
     if close_page:
         await page.close()
     return skip
