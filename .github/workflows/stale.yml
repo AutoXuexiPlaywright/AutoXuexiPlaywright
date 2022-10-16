@@ -1,0 +1,40 @@
+# This workflow warns and then closes issues and PRs that have had no activity for a specified amount of time.
+#
+# You can adjust the behavior by modifying this file.
+# For more information, see:
+# https://github.com/actions/stale
+name: Mark stale issues and pull requests
+
+on:
+  schedule:
+  - cron: '23 6 * * *'
+
+jobs:
+  stale:
+
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+
+    steps:
+    - uses: actions/stale@v6.0.1
+      with:
+        days-before-stale: 30
+        stale-issue-message: |
+          This Issue is stale now because no activity in 30 days, it is going to be closed in 7 days if no more activity.
+          这个 Issue 因为 30 天无活动而处于陈旧状态，如果没有更多活动，它将在 7 天后被关闭。
+        stale-pr-message: |
+          This Pull Request is stale now because no activity in 30 days, is going to be closed in 7 days if no more activity.
+          这个 Pull Request 因为 30 天无活动而处于陈旧状态，如果没有更多活动，它将在 7 天后被关闭。
+        close-issue-message: |
+          This Issue is closed due to be stale for 7 days, please open a new one if needed.
+          这个 Issue 因为处于陈旧状态 7 天而被关闭，如有必要请重新开启一个新 Issue。
+        close-pr-message: |
+          This Pull Request is closed due to be stale for 7 days, please open a new one if needed.
+          这个 Pull Request 因为处于陈旧状态 7 天而被关闭，如有必要请重新开启一个新 Pull Request。
+        stale-issue-label: 'stale'
+        stale-pr-label: 'stale'
+        close-issue-label: 'closed'
+        close-pr-label: 'closed'
+        
