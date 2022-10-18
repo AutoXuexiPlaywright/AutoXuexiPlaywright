@@ -16,6 +16,8 @@ This is a completely rewrite, you can see [CHANGELOG.md](./CHANGELOG.md) for mor
     We use `poetry` to manage dependencies. See [here](https://python-poetry.org/docs/) for more info. For Linux users, we strongly recommend using your distribution's package manager to install poetry. For Arch Linux, you can run `# pacman -Sy python-poetry` to achieve that.
 - Install dependencies  
     Open a terminal, go to where the repository is, and run `poetry install` to install dependencies. Poetry will create virtual environment automatically. We have set mirror site of pypi in China so it should not spend too much time.
+- Install Qt binding  
+    This is only needed if you want to use GUI, for now we support `pyqt5`, `pyqt6`, `pyside2`, `pyside6`, choose which one you want and install it. You can see `qtpy`'s [document](https://github.com/spyder-ide/qtpy#requirements) about how to switch bindings when you installed more than one. Assuming you are using `pyside6`, you can run `poetry install --with pyside6` in repository directory to install it. You can also run `poetry install --with gui` in repository directory to install all bindings.
 - Build and install the project  
     Although you can run the program now, it is more convenient to build a wheel package and install the package to system. If you want to run from source, you can skip this step.  
     Open a terminal, go to where the repository is, run `poetry build`, after command finished, you will find package at `dist` folder of repository. `.whl` package can be installed by `pip install` command.
