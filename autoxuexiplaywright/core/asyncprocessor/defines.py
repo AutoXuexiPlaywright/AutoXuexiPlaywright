@@ -133,7 +133,7 @@ class AsyncQuestionItem():
             await action_row.locator(selectors.TEST_SUBMIT_BTN).click(delay=random.uniform(
                 core.ANSWER_SLEEP_MIN_SECS, core.ANSWER_SLEEP_MAX_SECS)*1000)
         captcha = self.page.locator(selectors.TEST_CAPTCHA_SWIPER)
-        if captcha.count() > 0:
+        if await captcha.count() > 0:
             logging.getLogger(core.APPID).warning(lang.get_lang(
                 kwargs.get("lang", "zh-cn"), "core-warning-captcha-found"))
             await try_finish_captcha(captcha)
