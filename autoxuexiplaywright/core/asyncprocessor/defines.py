@@ -3,7 +3,7 @@ import asyncio
 import logging
 import aiohttp
 from urllib.parse import urlparse
-from playwright.async_api import Page
+from playwright.async_api import Page, TimeoutError
 from autoxuexiplaywright.defines import selectors, core
 from autoxuexiplaywright.utils import answerutils, lang, misc, storage
 from autoxuexiplaywright.core.asyncprocessor.captchautils import try_finish_captcha
@@ -133,11 +133,11 @@ class AsyncQuestionItem():
             await action_row.locator(selectors.TEST_SUBMIT_BTN).click(delay=random.uniform(
                 core.ANSWER_SLEEP_MIN_SECS, core.ANSWER_SLEEP_MAX_SECS)*1000)
         captcha = self.page.locator(selectors.TEST_CAPTCHA_SWIPER)
-        if await captcha.count() > 0:
+        if await captcha.locator(selectors.TEST_CAPTCHA_TEXT).count() > 0:
             logging.getLogger(core.APPID).warning(lang.get_lang(
                 kwargs.get("lang", "zh-cn"), "core-warning-captcha-found"))
             await try_finish_captcha(captcha)
-        elif await self.page.locator(selectors.TEST_SOLUTION).count() > 0:
+        if await self.page.locator(selectors.TEST_SOLUTION).count() > 0:
             logging.getLogger(core.APPID).error(lang.get_lang(
                 kwargs.get("lang", "zh-cn"), "core-error-answer-is-wrong") % self.title)
             await next_btn.click(delay=random.uniform(

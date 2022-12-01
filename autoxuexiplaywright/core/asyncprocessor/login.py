@@ -1,6 +1,6 @@
 import base64
 import logging
-from playwright.async_api import Page
+from playwright.async_api import Page, TimeoutError
 from autoxuexiplaywright.utils import eventmanager, lang, misc, storage
 from autoxuexiplaywright.defines import core, urls, selectors, events
 

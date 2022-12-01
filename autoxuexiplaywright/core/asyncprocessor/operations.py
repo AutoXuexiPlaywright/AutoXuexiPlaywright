@@ -1,7 +1,7 @@
 import time
 import random
 import logging
-from playwright.async_api import Page
+from playwright.async_api import Page, TimeoutError
 from autoxuexiplaywright.defines import core, selectors
 from autoxuexiplaywright.utils import misc, lang
 from autoxuexiplaywright.core.asyncprocessor.defines import AsyncQuestionItem

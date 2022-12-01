@@ -5,7 +5,7 @@ from urllib.parse import urlparse
 from autoxuexiplaywright.defines import core, selectors
 from autoxuexiplaywright.utils import lang, answerutils, misc, storage
 from autoxuexiplaywright.core.syncprocessor.captchautils import try_finish_captcha
-from playwright.sync_api import Page
+from playwright.sync_api import Page, TimeoutError
 
 
 class SyncQuestionItem():
@@ -128,11 +128,11 @@ class SyncQuestionItem():
             action_row.locator(selectors.TEST_SUBMIT_BTN).click(delay=random.uniform(
                 core.ANSWER_SLEEP_MIN_SECS, core.ANSWER_SLEEP_MAX_SECS)*1000)
         captcha = self.page.locator(selectors.TEST_CAPTCHA_SWIPER)
-        if captcha.count() > 0:
+        if captcha.locator(selectors.TEST_CAPTCHA_TEXT).count() > 0:
             logging.getLogger(core.APPID).warning(lang.get_lang(
                 kwargs.get("lang", "zh-cn"), "core-warning-captcha-found"))
             try_finish_captcha(captcha)
-        elif self.page.locator(selectors.TEST_SOLUTION).count() > 0:
+        if self.page.locator(selectors.TEST_SOLUTION).count() > 0:
             logging.getLogger(core.APPID).error(lang.get_lang(
                 kwargs.get("lang", "zh-cn"), "core-error-answer-is-wrong") % self.title)
             next_btn.click(delay=random.uniform(
