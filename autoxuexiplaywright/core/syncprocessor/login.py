@@ -2,7 +2,7 @@ import base64
 import logging
 from autoxuexiplaywright.defines import selectors, core, events, urls
 from autoxuexiplaywright.utils import eventmanager, lang, misc, storage
-from playwright.sync_api import Page
+from playwright.sync_api import Page, TimeoutError
 
 
 def login(page: Page, **kwargs) -> None:

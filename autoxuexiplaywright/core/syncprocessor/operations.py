@@ -4,7 +4,7 @@ import logging
 from autoxuexiplaywright.defines import core, selectors
 from autoxuexiplaywright.utils import misc, lang
 from autoxuexiplaywright.core.syncprocessor.defines import SyncQuestionItem
-from playwright.sync_api import Page
+from playwright.sync_api import Page, TimeoutError
 
 
 def emulate_read(page: Page, **kwargs) -> None:

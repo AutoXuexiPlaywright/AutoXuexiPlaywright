@@ -47,6 +47,7 @@
     "core-debug-current-modules-num": "当前存在 %d 个模块: %s",
     "core-warning-using-external-modules": "你正在使用来自外部的答案来源，请注意可能的安全风险",
     "core-error-use-random-answer": "无答案数据，将随机回答",
+    "core-warning-captcha-found": "已触发验证",
     "ui-status-loging-in": "当前状态：正在登录",
     "ui-info-failed-to-print-qr": "GUI 模式无法输出二维码到终端，请扫描程序文件夹或者弹出的二维码图片",
     "ui-status-tooltip": "当前状态：正在处理 %s",
