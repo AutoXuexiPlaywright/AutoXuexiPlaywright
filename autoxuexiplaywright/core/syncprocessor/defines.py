@@ -13,29 +13,36 @@ class SyncQuestionItem():
 
     def __init__(self, page: Page, **kwargs) -> None:
         self.page = page
+        self.kwargs = kwargs
+
+    def __enter__(self):
         question = self.page.locator(selectors.QUESTION)
         self.title = question.locator(
             selectors.QUESTION_TITLE).inner_text().strip().replace("\n", " ")
-        logging.getLogger(core.APPID).info(lang.get_lang(kwargs.get(
+        logging.getLogger(core.APPID).info(lang.get_lang(self.kwargs.get(
             "lang", "zh-cn"), "core-info-current-question-title") % self.title)
         self.tips = self.title
         answers = question.locator(selectors.ANSWERS)
         if answers.count() == 1:
             self.answer_items = answers.locator(selectors.ANSWER_ITEM)
             self.question_type = answerutils.QuestionType.CHOICE
-            self.tips += "\n"+lang.get_lang(kwargs.get("lang", "zh-cn"), "core-available-answers") + \
+            self.tips += "\n"+lang.get_lang(self.kwargs.get("lang", "zh-cn"), "core-available-answers") + \
                 core.ANSWER_CONNECTOR.join(
                     [item.strip() for item in self.answer_items.all_inner_texts()])
-            logging.getLogger(core.APPID).debug(lang.get_lang(kwargs.get(
+            logging.getLogger(core.APPID).debug(lang.get_lang(self.kwargs.get(
                 "lang", "zh-cn"), "core-debug-current-question-type-choice"))
         elif answers.count() == 0:
             self.answer_items = question.locator(selectors.BLANK)
             self.question_type = answerutils.QuestionType.BLANK
-            logging.getLogger(core.APPID).debug(lang.get_lang(kwargs.get(
+            logging.getLogger(core.APPID).debug(lang.get_lang(self.kwargs.get(
                 "lang", "zh-cn"), "core-debug-current-question-type-blank"))
         else:
             self.answer_items = None
             self.question_type = answerutils.QuestionType.UNKNOWN
+        return self
+
+    def __exit__(self, *args):
+        pass
 
     def do_answer(self, **kwargs) -> None:
         if self.answer_items is None:

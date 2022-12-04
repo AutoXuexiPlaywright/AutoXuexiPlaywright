@@ -49,7 +49,7 @@ def img2shell(img: bytes, **kwargs) -> None:
 
 def start_backend(**kwargs) -> None:
     if kwargs.get("async", False):
-        from autoxuexiplaywright.core.asyncprocessor import asyncprocessor as processor
+        from autoxuexiplaywright.core.asyncprocessor import start
     else:
-        from autoxuexiplaywright.core.syncprocessor import syncprocessor as processor
-    processor.start(**kwargs)
+        from autoxuexiplaywright.core.syncprocessor import start
+    start(**kwargs)
