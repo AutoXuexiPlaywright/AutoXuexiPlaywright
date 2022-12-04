@@ -47,7 +47,8 @@ async def emulate_read(page: Page, **kwargs) -> None:
 
 async def emulate_answer(page: Page,  **kwargs) -> None:
     while True:
-        await AsyncQuestionItem(page, **kwargs).do_answer(**kwargs)
+        async with AsyncQuestionItem(page, **kwargs) as qi:
+            await qi.do_answer(**kwargs)
         result = page.locator(selectors.TEST_RESULT)
         try:
             await result.wait_for(timeout=core.WAIT_RESULT_SECS*1000)

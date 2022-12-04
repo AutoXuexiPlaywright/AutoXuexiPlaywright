@@ -8,38 +8,43 @@ from autoxuexiplaywright.defines import selectors, core
 from autoxuexiplaywright.utils import answerutils, lang, misc, storage
 from autoxuexiplaywright.core.asyncprocessor.captchautils import try_finish_captcha
 
+
 class AsyncQuestionItem():
     __all__ = ["do_answer"]
 
     def __init__(self, page: Page, **kwargs) -> None:
-        asyncio.wait_for(self.__init(page, **kwargs))
-
-    async def __init(self, page: Page, **kwargs):
         self.page = page
+        self.kwargs = kwargs
+
+    async def __aenter__(self):
         question = self.page.locator(selectors.QUESTION)
         title_text = await question.locator(
             selectors.QUESTION_TITLE).inner_text()
         self.title = title_text.strip().replace("\n", " ")
-        logging.getLogger(core.APPID).info(lang.get_lang(kwargs.get(
+        logging.getLogger(core.APPID).info(lang.get_lang(self.kwargs.get(
             "lang", "zh-cn"), "core-info-current-question-title") % self.title)
         self.tips = self.title
         answers = question.locator(selectors.ANSWERS)
         if await answers.count() == 1:
             self.answer_items = answers.locator(selectors.ANSWER_ITEM)
             self.question_type = answerutils.QuestionType.CHOICE
-            self.tips += "\n"+lang.get_lang(kwargs.get("lang", "zh-cn"), "core-available-answers") + \
+            self.tips += "\n"+lang.get_lang(self.kwargs.get("lang", "zh-cn"), "core-available-answers") + \
                 core.ANSWER_CONNECTOR.join(
                     [item.strip() for item in await self.answer_items.all_inner_texts()])
-            logging.getLogger(core.APPID).debug(lang.get_lang(kwargs.get(
+            logging.getLogger(core.APPID).debug(lang.get_lang(self.kwargs.get(
                 "lang", "zh-cn"), "core-debug-current-question-type-choice"))
         elif await answers.count() == 0:
             self.answer_items = question.locator(selectors.BLANK)
             self.question_type = answerutils.QuestionType.BLANK
-            logging.getLogger(core.APPID).debug(lang.get_lang(kwargs.get(
+            logging.getLogger(core.APPID).debug(lang.get_lang(self.kwargs.get(
                 "lang", "zh-cn"), "core-debug-current-question-type-blank"))
         else:
             self.answer_items = None
             self.question_type = answerutils.QuestionType.UNKNOWN
+        return self
+
+    async def __aexit__(self, *args):
+        pass
 
     async def do_answer(self, **kwargs) -> None:
         if self.answer_items is None:
