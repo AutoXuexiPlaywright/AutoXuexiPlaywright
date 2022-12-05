@@ -36,7 +36,7 @@ def get_data_path(file_name: str) -> str:
     linux_system_shared = "/usr/share/autoxuexiplaywright/"+file_name
     if exists(user_override):
         return user_override
-    elif system() == "Linux" and exists(linux_system_shared):
+    elif (system() == "Linux") and exists(linux_system_shared):
         return linux_system_shared
     raise FileNotFoundError
 
