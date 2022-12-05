@@ -57,31 +57,31 @@ def get_modules_paths() -> list[str]:
     return modules_paths
 
 
-system = system()
-if system == "Linux":
-    from xdg import BaseDirectory
-    DATA_DIR = BaseDirectory.save_data_path(APPID)
-    CONF_DIR = BaseDirectory.save_config_path(APPID)
-    CACHE_DIR = BaseDirectory.save_cache_path(APPID)
-elif system == "Windows":
-    DATA_DIR = join(expanduser(
-        "~"), "AppData", "Local", APPID)
-    CONF_DIR = join(expanduser(
-        "~"), "AppData", "Local", APPID)
-    CACHE_DIR = join(expanduser("~"),
-                     "AppData", "Local", APPID)
-elif system == "Darwin":
-    DATA_DIR = join(expanduser(
-        "~"), "Library", "Application Support", APPID)
-    CONF_DIR = join(expanduser(
-        "~"), "Library", "Preferences", APPID)
-    CACHE_DIR = join(expanduser("~"),
-                     "Library", "Caches", APPID)
-else:
-    DATA_DIR = join(expanduser(
-        "~"), ".local", "share", APPID)
-    CONF_DIR = join(expanduser("~"), ".config", APPID)
-    CACHE_DIR = join(expanduser("~"), ".cache", APPID)
+match system():
+    case "Linux":
+        from xdg import BaseDirectory
+        DATA_DIR = BaseDirectory.save_data_path(APPID)
+        CONF_DIR = BaseDirectory.save_config_path(APPID)
+        CACHE_DIR = BaseDirectory.save_cache_path(APPID)
+    case "Windows":
+        DATA_DIR = join(expanduser(
+            "~"), "AppData", "Local", APPID)
+        CONF_DIR = join(expanduser(
+            "~"), "AppData", "Local", APPID)
+        CACHE_DIR = join(expanduser("~"),
+                        "AppData", "Local", APPID)
+    case "Darwin":
+        DATA_DIR = join(expanduser(
+            "~"), "Library", "Application Support", APPID)
+        CONF_DIR = join(expanduser(
+            "~"), "Library", "Preferences", APPID)
+        CACHE_DIR = join(expanduser("~"),
+                        "Library", "Caches", APPID)
+    case default:
+        DATA_DIR = join(expanduser(
+            "~"), ".local", "share", APPID)
+        CONF_DIR = join(expanduser("~"), ".config", APPID)
+        CACHE_DIR = join(expanduser("~"), ".cache", APPID)
 makedirs(DATA_DIR, exist_ok=True)
 makedirs(CONF_DIR, exist_ok=True)
 makedirs(CACHE_DIR, exist_ok=True)
