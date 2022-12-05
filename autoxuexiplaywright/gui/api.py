@@ -20,7 +20,7 @@ def start(argv: list, **kwargs):
     app = QApplication(argv)
     translator = QTranslator()
     translator.load("qt_"+lang_to_locale(kwargs.get("lang", "zh-cn")),
-                    QLibraryInfo.location(QLibraryInfo.LibraryPath.TranslationsPath))
+                    QLibraryInfo.location(QLibraryInfo.LibrariesPath.TranslationsPath))
     app.installTranslator(translator)
     main_window = MainWindow(**kwargs)
     main_window.show()

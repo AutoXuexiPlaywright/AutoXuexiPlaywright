@@ -3,6 +3,8 @@ from os.path import split, realpath
 from sys import argv
 from argparse import ArgumentParser
 
+from autoxuexiplaywright.utils.config import get_runtime_config
+
 
 def main():
     # entrance
@@ -18,7 +20,6 @@ def main():
         from autoxuexiplaywright.gui.api import start
         start(argv, **runtime_config)
     else:
-        from autoxuexiplaywright.utils.config import get_runtime_config
         from autoxuexiplaywright.utils.misc import init_logger, start_backend
         init_logger(**runtime_config)
         start_backend(**runtime_config)
