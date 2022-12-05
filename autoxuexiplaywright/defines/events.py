@@ -1,9 +1,9 @@
-import typing
+from typing import Callable, List
 from enum import Enum
 
 __all__ = ["EventId"]
 
-EventCallbackType = typing.Callable[..., None]
+EventCallbackType = Callable[..., None]
 
 
 class EventId(Enum):
@@ -17,7 +17,7 @@ class EventId(Enum):
 
 class Event():
     def __init__(self) -> None:
-        self.callbacks: typing.List[EventCallbackType] = []
+        self.callbacks: List[EventCallbackType] = []
         self.id: EventId = EventId.NONE
 
     def add_callback(self, callback: EventCallbackType) -> None:

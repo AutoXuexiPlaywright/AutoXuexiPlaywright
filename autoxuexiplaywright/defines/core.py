@@ -1,4 +1,4 @@
-import re
+from re import compile
 from enum import Enum
 
 
@@ -23,7 +23,7 @@ WAIT_NEW_PAGE_SECS = 5
 WAIT_PAGE_SECS = 300
 WAIT_RESULT_SECS = 5
 CHECK_ELEMENT_TIMEOUT_SECS = 5
-VIDEO_REQUEST_REGEX = re.compile(r"https://.+.(m3u8|mp4)")
+VIDEO_REQUEST_REGEX = compile(r"https://.+.(m3u8|mp4)")
 LOGGING_FMT = "%(asctime)s-%(levelname)s-%(message)s"
 LOGGING_DATETIME_FMT = "%Y-%m-%d %H:%M:%S"
 LANGS = ["zh-cn"]

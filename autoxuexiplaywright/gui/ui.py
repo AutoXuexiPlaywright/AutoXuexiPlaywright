@@ -1,5 +1,5 @@
-import queue
-import imghdr
+from queue import Queue
+from imghdr import what
 from autoxuexiplaywright.defines import core, ui, events
 from autoxuexiplaywright.gui import settings, objects
 from autoxuexiplaywright.utils import lang, answerutils, storage, eventmanager
@@ -7,7 +7,6 @@ from qtpy.QtGui import (QMouseEvent, QPixmap, QIcon)
 from qtpy.QtCore import (QFile, QPoint, QPointF, Qt, QSettings, QThread)
 from qtpy.QtWidgets import (QCheckBox, QVBoxLayout, QInputDialog, QLabel, QSystemTrayIcon,
                             QLineEdit, QMainWindow, QPlainTextEdit, QPushButton, QHBoxLayout, QWidget)
-__all__ = ["MainWindow"]
 
 
 class MainWindow(QMainWindow):
@@ -160,7 +159,7 @@ class MainWindow(QMainWindow):
 
     def on_manual_input_required(self, obj: tuple) -> None:
         title: str = obj[0]
-        answer_queue: queue.Queue = obj[1]
+        answer_queue: Queue = obj[1]
         head_title = lang.get_lang(self.kwargs.get(
             "lang", "zh-cn"), "ui-manual-input-required") % core.ANSWER_CONNECTOR
         parsed_title = title.split("\n")
@@ -183,7 +182,7 @@ class MainWindow(QMainWindow):
         for label in self.centralWidget().findChildren(QLabel, ui.ObjNames.QR_LABEL):
             if isinstance(label, QLabel):
                 label.close()
-        if qr != "".encode() and imghdr.what(file="", h=qr) is not None:
+        if qr != "".encode() and what(file="", h=qr) is not None:
             label = QLabel(self.centralWidget())
             label.setObjectName(ui.ObjNames.QR_LABEL)
             label.setWindowModality(Qt.WindowModal)
@@ -263,3 +262,6 @@ class MainWindow(QMainWindow):
         )
 
         self.sub_thread.quit()
+
+
+__all__ = ["MainWindow"]
