@@ -1,17 +1,16 @@
-import logging
-from autoxuexiplaywright.utils import misc, config
+from logging import Handler, LogRecord
 from qtpy.QtCore import Signal, SignalInstance, QObject, QWaitCondition, QMutex
 
+from autoxuexiplaywright.utils.misc import init_logger, start_backend
+from autoxuexiplaywright.utils.config import get_runtime_config
 
-__all__ = ["SubProcess"]
 
-
-class QHandler(logging.Handler):
+class QHandler(Handler):
     def __init__(self, signal: SignalInstance, **kwargs) -> None:
         super().__init__(**kwargs)
         self.signal = signal
 
-    def emit(self, record: logging.LogRecord) -> None:
+    def emit(self, record: LogRecord) -> None:
         self.signal.emit(self.format(record))
 
 
@@ -31,12 +30,15 @@ class SubProcess(QObject):
         self.kwargs = kwargs
 
     def start(self) -> None:
-        self.kwargs.update(**config.get_runtime_config())
-        misc.init_logger(self.st, **self.kwargs)
-        misc.start_backend(**self.kwargs)
+        self.kwargs.update(**get_runtime_config())
+        init_logger(self.st, **self.kwargs)
+        start_backend(**self.kwargs)
 
     def pause(self, *args):
         self.mutex.lock()
         self.pause_thread_signal.emit(args)
         self.wait.wait(self.mutex)
         self.mutex.unlock()
+
+
+__all__ = ["SubProcess"]
