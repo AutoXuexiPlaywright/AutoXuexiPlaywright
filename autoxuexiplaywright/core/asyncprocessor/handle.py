@@ -26,9 +26,8 @@ async def pre_handle(page: Page, close_page: bool, process_type: ProcessType,  *
             skip = await handle_news(value, **kwargs)
             await value.close()
         case ProcessType.VIDEO:
-            await page.locator(VIDEO_ENTRANCE).hover()
             async with page.context.expect_page() as page_info:
-                await page.locator(VIDEO_ENTRANCE).click()
+                await page.locator(VIDEO_ENTRANCE).first.click()
             value = await page_info.value
             async with value.context.expect_page() as page_info_new:
                 await value.locator(VIDEO_LIBRARY).click()
