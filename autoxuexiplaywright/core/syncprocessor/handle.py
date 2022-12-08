@@ -26,9 +26,8 @@ def pre_handle(page: Page, close_page: bool, process_type: ProcessType,  **kwarg
             skip = handle_news(page_info.value, **kwargs)
             page_info.value.close()
         case ProcessType.VIDEO:
-            page.locator(VIDEO_ENTRANCE).hover()
             with page.context.expect_page() as page_info:
-                page.locator(VIDEO_ENTRANCE).click()
+                page.locator(VIDEO_ENTRANCE).first.click()
             with page_info.value.context.expect_page() as page_info_new:
                 page_info.value.locator(VIDEO_LIBRARY).click()
             skip = handle_video(page_info_new.value, **kwargs)
