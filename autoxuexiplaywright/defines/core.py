@@ -38,6 +38,9 @@ class ProcessType(Enum):
     VIDEO = 2
     TEST = 3
 
+    def __missing__(self, value: object):
+        return ProcessType.UNKNOWN
+
 
 PROCESS_SLEEP_MIN = 0.0
 PROCESS_SLEEP_MAX = 5.0

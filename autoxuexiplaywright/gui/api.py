@@ -1,9 +1,10 @@
 from platform import system
 from qtpy.QtWidgets import QApplication
-from qtpy.QtCore import QTranslator, QLibraryInfo
+from qtpy.QtCore import QTranslator
 
 from autoxuexiplaywright.gui.ui import MainWindow
 from autoxuexiplaywright.defines.core import APPID
+from autoxuexiplaywright.utils.config import Config
 
 if system() == "Windows":
     import ctypes
@@ -16,13 +17,12 @@ def lang_to_locale(lang: str) -> str:
     return parts[0]+extra
 
 
-def start(argv: list, **kwargs):
+def start(argv: list[str]):
     app = QApplication(argv)
     translator = QTranslator()
-    translator.load("qt_"+lang_to_locale(kwargs.get("lang", "zh-cn")),
-                    QLibraryInfo.location(QLibraryInfo.LibrariesPath.TranslationsPath))
+    translator.load("qt_"+lang_to_locale(Config.get_instance().lang))
     app.installTranslator(translator)
-    main_window = MainWindow(**kwargs)
+    main_window = MainWindow()
     main_window.show()
     app.exec_()
 

@@ -48,8 +48,10 @@ class ObjNames:
     SETTINGS_WINDOW_SAVE = "save"
     SETTINGS_WINDOW_CANCEL = "cancel"
     SETTINGS_WINDOW_EDIT = "edit"
-    SETTINGS_WINDOW_PROXY = "proxy"
-    SETTINGS_WINDOW_PROXY_HEADER = "header"
+    SETTINGS_WINDOW_PROXY_ADDR = "proxy_addr"
+    SETTINGS_WINDOW_PROXY_USERNAME = "proxy_username"
+    SETTINGS_WINDOW_PROXY_PASSWORD = "proxy_password"
+    SETTINGS_WINDOW_PROXY_BYPASS = "proxy_bypass"
 
 
 SPLIT_TITLE_SIZE = 30

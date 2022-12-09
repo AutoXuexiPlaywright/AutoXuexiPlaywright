@@ -17,19 +17,21 @@ from autoxuexiplaywright.utils.lang import get_lang
 from autoxuexiplaywright.utils.answerutils import init_sources, close_sources
 from autoxuexiplaywright.utils.storage import get_cache_path
 from autoxuexiplaywright.utils.eventmanager import find_event_by_id
+from autoxuexiplaywright.utils.config import Config
 from autoxuexiplaywright.core.syncprocessor.login import login
 from autoxuexiplaywright.core.syncprocessor.handle import cache, pre_handle
 
 
-def run(**kwargs) -> None:
+def start(conf_path: str | None = None) -> None:
     cache.clear()
-    init_sources(**kwargs)
+    init_sources()
+    config = Config.get_instance(conf_path)
     start_time = time()
     with sync_playwright() as p:
-        browser = p[kwargs.get("browser", "firefox")].launch(
-            headless=not kwargs.get("debug", False), proxy=kwargs.get("proxy"),
-            channel=kwargs.get("channel"), args=["--mute-audio"], devtools=not kwargs.get("debug", False),
-            firefox_user_prefs={"media.volume_scale": "0.0"}, executable_path=kwargs.get("executable_path", None))
+        browser = p[config.browser_id].launch(
+            headless=not config.debug, proxy=config.proxy,
+            channel=config.channel, args=["--mute-audio"], devtools=not config.debug,
+            firefox_user_prefs={"media.volume_scale": "0.0"}, executable_path=config.executable_path)
         if exists(get_cache_path("cookies.json")):
             context = browser.new_context(
                 storage_state=get_cache_path("cookies.json"))
@@ -37,29 +39,30 @@ def run(**kwargs) -> None:
             context = browser.new_context()
         context.set_default_timeout(WAIT_PAGE_SECS*1000)
         try:
-            login(context.new_page(), **kwargs)
+            login(context.new_page())
             check_status_and_finish(
-                context.new_page(),  **kwargs)
+                context.new_page())
         except Exception as e:
             getLogger(APPID).error(get_lang(
-                kwargs.get("lang", "zh-cn"), "core-err-process-exception") % e)
+                config.lang, "core-err-process-exception") % e)
         context.close()
         browser.close()
     close_sources()
-    if not kwargs.get("debug", False):
+    if not config.debug:
         if exists(get_cache_path("video.mp4")):
             remove(get_cache_path("video.mp4"))
         if exists(get_cache_path("qr.png")):
             remove(get_cache_path("qr.png"))
     delta_mins, delta_secs = divmod(time()-start_time, 60)
     delta_hrs, delta_mins = divmod(delta_mins, 60)
-    finish_str = get_lang(kwargs.get(
-        "lang", "zh-cn"), "core-info-all-finished").format(int(delta_hrs), int(delta_mins), int(delta_secs))
+    finish_str = get_lang(config.lang, "core-info-all-finished").format(
+        int(delta_hrs), int(delta_mins), int(delta_secs))
     getLogger(APPID).info(finish_str)
     find_event_by_id(EventId.FINISHED).invoke(finish_str)
 
 
-def check_status_and_finish(page: Page,  **kwargs) -> None:
+def check_status_and_finish(page: Page) -> None:
+    config = Config.get_instance()
     process_position = 1  # login must be finished on app
     while True:
         page.goto(POINTS_PAGE)
@@ -71,10 +74,10 @@ def check_status_and_finish(page: Page,  **kwargs) -> None:
                                 for point in points.all_inner_texts()])
         except:
             getLogger(APPID).error(get_lang(
-                kwargs.get("lang", "zh-cn"), "core-error-update-score-failed"))
+                config.lang, "core-error-update-score-failed"))
         else:
-            getLogger(APPID).info(get_lang(kwargs.get(
-                "lang", "zh-cn"), "core-info-update-score-success") % points_ints)
+            getLogger(APPID).info(
+                get_lang(config.lang, "core-info-update-score-success") % points_ints)
             find_event_by_id(
                 EventId.SCORE_UPDATED).invoke(points_ints)
         cards = page.locator(POINTS_CARDS)
@@ -82,8 +85,8 @@ def check_status_and_finish(page: Page,  **kwargs) -> None:
         login_task_style = to_str(cards.nth(0).locator(
             CARD_BUTTON).first.get_attribute("style"))
         if "not-allowed" not in login_task_style:
-            getLogger(APPID).warning(get_lang(kwargs.get(
-                "lang", "zh-cn"), "core-warning-login-task-not-completed"))
+            getLogger(APPID).warning(
+                get_lang(config.lang, "core-warning-login-task-not-completed"))
         if process_position < cards.count():
             card = cards.nth(process_position)
             title = card.locator(CARD_TITLE).first.inner_text()
@@ -91,17 +94,17 @@ def check_status_and_finish(page: Page,  **kwargs) -> None:
             style = to_str(button.get_attribute("style"))
             if "not-allowed" in style:
                 getLogger(APPID).info(get_lang(
-                    kwargs.get("lang", "zh-cn"), "core-info-card-finished") % title)
+                    config.lang, "core-info-card-finished") % title)
                 process_position += 1
-            elif title.strip() in kwargs.get("skipped_items", []):
+            elif title.strip() in config.skipped:
                 getLogger(APPID).info(get_lang(
-                    kwargs.get("lang", "zh-cn"), "core-info-card-skipped") % title)
+                    config.lang, "core-info-card-skipped") % title)
                 process_position += 1
             else:
                 getLogger(APPID).info(get_lang(
-                    kwargs.get("lang", "zh-cn"), "core-info-card-processing") % title)
-                find_event_by_id(EventId.STATUS_UPDATED).invoke(get_lang(kwargs.get(
-                    "lang", "zh-cn"), "ui-status-tooltip") % title)
+                    config.lang, "core-info-card-processing") % title)
+                find_event_by_id(EventId.STATUS_UPDATED).invoke(
+                    get_lang(config.lang, "ui-status-tooltip") % title)
                 try:
                     with page.context.expect_page(timeout=WAIT_NEW_PAGE_SECS*1000) as page_event:
                         button.click()
@@ -119,7 +122,7 @@ def check_status_and_finish(page: Page,  **kwargs) -> None:
                     process_type = ProcessType.TEST
                 else:
                     process_type = ProcessType.UNKNOWN
-                if pre_handle(target_page, close_page, process_type,  **kwargs):
+                if pre_handle(target_page, close_page, process_type):
                     process_position += 1
                 page.context.storage_state(
                     path=get_cache_path("cookies.json"))
@@ -127,7 +130,5 @@ def check_status_and_finish(page: Page,  **kwargs) -> None:
             break
     page.close()
 
-
-start = run
 
 __all__ = ["start"]
