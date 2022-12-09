@@ -23,7 +23,7 @@ class Event():
     def add_callback(self, callback: EventCallbackType) -> None:
         self.callbacks.append(callback)
 
-    def invoke(self, *args) -> None:
+    def invoke(self, *args: ...) -> None:
         for callback in self.callbacks:
             callback(*args)
 

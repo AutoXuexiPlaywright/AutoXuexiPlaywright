@@ -6,9 +6,13 @@ from logging import getLogger
 from sqlite3 import connect
 from enum import Enum
 from importlib import util
-from autoxuexiplaywright.defines import core, events
-from autoxuexiplaywright.utils import lang, storage, eventmanager
-from autoxuexiplaywright.sdk import AnswerSource, PRIORITY_INF
+from autoxuexiplaywright.defines.core import APPID, ANSWER_CONNECTOR, EXTRA_ANSWER_SOURCES_NAMESPACE, MOD_EXT
+from autoxuexiplaywright.defines.events import EventId
+from autoxuexiplaywright.utils.lang import get_lang
+from autoxuexiplaywright.utils.storage import get_config_path, get_modules_paths
+from autoxuexiplaywright.utils.eventmanager import find_event_by_id
+from autoxuexiplaywright.utils.config import Config
+from autoxuexiplaywright.sdk import AnswerSource
 
 
 sources: list[AnswerSource] = []
@@ -28,9 +32,9 @@ class AddSupportedAnswerSource(AnswerSource):
 class DatabaseSource(AddSupportedAnswerSource):
     def __init__(self) -> None:
         self.name = "DatabaseSource"
-        self.author = core.APPID
+        self.author = APPID
         self.priority = 0
-        self.conn = connect(storage.get_config_path("data.db"))
+        self.conn = connect(get_config_path("data.db"))
         self.conn.execute(
             "CREATE TABLE IF NOT EXISTS 'answer' ('QUESTION' TEXT NOT NULL UNIQUE,'ANSWER' TEXT NOT NULL)")
         self.conn.commit()
@@ -40,7 +44,7 @@ class DatabaseSource(AddSupportedAnswerSource):
         self.conn.close()
 
     def add_answer(self, title: str, answer: list[str]) -> None:
-        answer_str = core.ANSWER_CONNECTOR.join(answer)
+        answer_str = ANSWER_CONNECTOR.join(answer)
         title_encooded = b64encode(title.encode()).decode()
         answer_str_encoded = b64encode(answer_str.encode()).decode()
         self.conn.execute("INSERT OR REPLACE INTO 'answer' ('QUESTION', 'ANSWER') VALUES (?, ?)",
@@ -55,7 +59,7 @@ class DatabaseSource(AddSupportedAnswerSource):
         if answer_str_encoded is not None:
             answer_str_encoded = str(answer_str_encoded[0])
             answer_str = b64decode(answer_str_encoded).decode()
-            answer = answer_str.split(core.ANSWER_CONNECTOR)
+            answer = answer_str.split(ANSWER_CONNECTOR)
         return answer
 
 
@@ -75,35 +79,36 @@ def is_valid_answer(chars: str) -> bool:
     return (has_chinese_char(chars) or has_alpha_or_num(chars))
 
 
-def request_answer(tips: str, **kwargs) -> list[str]:
-    answer = []
-    gui: bool = kwargs.get("gui", True)
-    if gui:
+def request_answer(tips: str) -> list[str]:
+    answer: list[str] = []
+    config = Config()
+    if config.gui:
         # gui is ready for getting answer from user input
-        answer_queue = Queue(1)
-        eventmanager.find_event_by_id(
-            events.EventId.ANSWER_REQUESTED).invoke(tips, answer_queue)
-        answer: list[str] = answer_queue.get()
+        answer_queue: Queue[list[str]] = Queue(1)
+        find_event_by_id(
+            EventId.ANSWER_REQUESTED).invoke(tips, answer_queue)
+        answer = answer_queue.get()
     else:
         # headless mode
-        answer = input(lang.get_lang(kwargs.get("lang", "zh-cn"), "core-manual-enter-answer-required") %
-                       (core.ANSWER_CONNECTOR, tips)).strip().split(core.ANSWER_CONNECTOR)
+        answer = input(get_lang(config.lang, "core-manual-enter-answer-required") %
+                       (ANSWER_CONNECTOR, tips)).strip().split(ANSWER_CONNECTOR)
     return answer
 
 
-def init_sources(**kwargs) -> None:
+def init_sources() -> None:
+    config = Config()
     sources.clear()
     sources.append(DatabaseSource())
-    modules = storage.get_modules_paths()
+    modules = get_modules_paths()
     if len(modules) > 0:
-        getLogger(core.APPID).warning(lang.get_lang(
-            kwargs.get("lang", "zh-cn"), "core-warning-using-external-modules"))
+        getLogger(APPID).warning(get_lang(
+            config.lang, "core-warning-using-external-modules"))
         priority = 1
         for file in modules:
-            if file.endswith(core.MOD_EXT):
+            if file.endswith(MOD_EXT):
                 try:
                     spec = util.spec_from_file_location(
-                        core.EXTRA_ANSWER_SOURCES_NAMESPACE +
+                        EXTRA_ANSWER_SOURCES_NAMESPACE +
                         ".external_" + str(priority), file)
                     if spec is not None:
                         module = util.module_from_spec(spec)
@@ -123,11 +128,10 @@ def init_sources(**kwargs) -> None:
                     pass
 
     if len(sources) > 1:
-        sources.sort(key=lambda o: o.priority if isinstance(
-            o, AnswerSource) else PRIORITY_INF)
+        sources.sort(key=lambda o: o.priority)
     if len(sources) > 0:
-        getLogger(core.APPID).debug(lang.get_lang(kwargs.get(
-            "lang", "zh-cn"), "core-debug-current-modules-num") % (len(sources), [src.name for src in sources]))
+        getLogger(APPID).debug(get_lang(config.lang, "core-debug-current-modules-num") %
+                               (len(sources), [src.name for src in sources]))
 
 
 def close_sources() -> None:
@@ -139,13 +143,13 @@ def close_sources() -> None:
         sources.remove(source)
 
 
-def get_answer_from_sources(title: str, **kwargs) -> list[str]:
+def get_answer_from_sources(title: str) -> list[str]:
     for source in sources:
         try:
             result = source.get_answer(title)
         except Exception as e:
-            getLogger(core.APPID).debug(lang.get_lang(kwargs.get(
-                "lang", "zh-cn"), "core-debug-answer-source-failed") % (source.author, source.name, e))
+            getLogger(APPID).debug(get_lang(
+                Config().lang, "core-debug-answer-source-failed") % (source.author, source.name, e))
         else:
             if len(result) > 0:
                 return result

@@ -6,13 +6,8 @@ from importlib import resources
 from autoxuexiplaywright.defines.core import MOD_EXT, APPID
 
 
-global CACHE_DIR
-global CONF_DIR
-global DATA_DIR
-
-
 def get_resource_path(file_name: str) -> str:
-    user_override = join(DATA_DIR, "resources", file_name)
+    user_override = join(data_dir, "resources", file_name)
     with resources.path("autoxuexiplaywright", "resources") as path:
         system_default = str(path/file_name)
     if exists(user_override):
@@ -24,15 +19,15 @@ def get_resource_path(file_name: str) -> str:
 
 
 def get_cache_path(file_name: str) -> str:
-    return join(CACHE_DIR, file_name)
+    return join(cache_dir, file_name)
 
 
 def get_config_path(file_name: str) -> str:
-    return join(CONF_DIR, file_name)
+    return join(conf_dir, file_name)
 
 
 def get_data_path(file_name: str) -> str:
-    user_override = join(DATA_DIR, file_name)
+    user_override = join(data_dir, file_name)
     linux_system_shared = "/usr/share/autoxuexiplaywright/"+file_name
     if exists(user_override):
         return user_override
@@ -42,8 +37,8 @@ def get_data_path(file_name: str) -> str:
 
 
 def get_modules_paths() -> list[str]:
-    modules_paths = []
-    user_override = join(DATA_DIR, "modules")
+    modules_paths: list[str] = []
+    user_override = join(data_dir, "modules")
     linux_system_shared = "/usr/share/autoxuexiplaywright/modules"
     user_module_files = [file for file in listdir(
         user_override) if file.endswith(MOD_EXT)] if isdir(user_override) else []
@@ -59,32 +54,32 @@ def get_modules_paths() -> list[str]:
 
 match system():
     case "Linux":
-        from xdg import BaseDirectory
-        DATA_DIR = BaseDirectory.save_data_path(APPID)
-        CONF_DIR = BaseDirectory.save_config_path(APPID)
-        CACHE_DIR = BaseDirectory.save_cache_path(APPID)
+        from xdg import BaseDirectory  # type: ignore
+        data_dir = BaseDirectory.save_data_path(APPID)  # type: ignore
+        conf_dir = BaseDirectory.save_config_path(APPID)  # type: ignore
+        cache_dir = BaseDirectory.save_cache_path(APPID)  # type: ignore
     case "Windows":
-        DATA_DIR = join(expanduser(
+        data_dir = join(expanduser(
             "~"), "AppData", "Local", APPID)
-        CONF_DIR = join(expanduser(
+        conf_dir = join(expanduser(
             "~"), "AppData", "Local", APPID)
-        CACHE_DIR = join(expanduser("~"),
-                        "AppData", "Local", APPID)
+        cache_dir = join(expanduser("~"),
+                         "AppData", "Local", APPID)
     case "Darwin":
-        DATA_DIR = join(expanduser(
+        data_dir = join(expanduser(
             "~"), "Library", "Application Support", APPID)
-        CONF_DIR = join(expanduser(
+        conf_dir = join(expanduser(
             "~"), "Library", "Preferences", APPID)
-        CACHE_DIR = join(expanduser("~"),
-                        "Library", "Caches", APPID)
+        cache_dir = join(expanduser("~"),
+                         "Library", "Caches", APPID)
     case default:
-        DATA_DIR = join(expanduser(
+        data_dir = join(expanduser(
             "~"), ".local", "share", APPID)
-        CONF_DIR = join(expanduser("~"), ".config", APPID)
-        CACHE_DIR = join(expanduser("~"), ".cache", APPID)
-makedirs(DATA_DIR, exist_ok=True)
-makedirs(CONF_DIR, exist_ok=True)
-makedirs(CACHE_DIR, exist_ok=True)
+        conf_dir = join(expanduser("~"), ".config", APPID)
+        cache_dir = join(expanduser("~"), ".cache", APPID)
+makedirs(data_dir, exist_ok=True)
+makedirs(conf_dir, exist_ok=True)
+makedirs(cache_dir, exist_ok=True)
 
 __all__ = ["get_resource_path", "get_cache_path",
            "get_config_path", "get_modules_paths"]

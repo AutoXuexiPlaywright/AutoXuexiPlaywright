@@ -10,10 +10,11 @@ from autoxuexiplaywright.defines.selectors import (
 )
 from autoxuexiplaywright.utils.misc import to_str
 from autoxuexiplaywright.utils.lang import get_lang
+from autoxuexiplaywright.utils.config import Config
 from autoxuexiplaywright.core.asyncprocessor.defines import AsyncQuestionItem
 
 
-async def emulate_read(page: Page, **kwargs) -> None:
+async def emulate_read(page: Page) -> None:
     read_all_paragraphs = True
     scroll_video_subtitle = True
     start_time = time()
@@ -51,15 +52,15 @@ async def emulate_read(page: Page, **kwargs) -> None:
             pass
 
 
-async def emulate_answer(page: Page,  **kwargs) -> None:
+async def emulate_answer(page: Page) -> None:
     while True:
-        async with AsyncQuestionItem(page, **kwargs) as qi:
-            await qi.do_answer(**kwargs)
+        async with AsyncQuestionItem(page) as qi:
+            await qi.do_answer()
         result = page.locator(TEST_RESULT)
         try:
             await result.wait_for(timeout=WAIT_RESULT_SECS*1000)
         except TimeoutError:
             getLogger(APPID).info(get_lang(
-                kwargs.get("lang", "zh-cn"), "core-info-test-not-finish"))
+                Config.get_instance().lang, "core-info-test-not-finish"))
         else:
             break

@@ -1,5 +1,5 @@
 /* 主窗口、设置窗口 */
-QMainWindow#main,QDialog#config_main{
+QWidget#central,QDialog#config_main{
     border:none;
     border-radius:5px;
     background-color:#c5cae9;
@@ -114,7 +114,7 @@ QCheckBox#ontop::indicator{
 QLabel#config_title{
     border:none;
     border-radius:5px;
-    font-size:15px;
+    font-size:20px;
 }
 /* 下拉框 */
 QComboBox{
@@ -156,27 +156,6 @@ QLineEdit{
 }
 QLineEdit:hover{
     border: 1px solid black;
-}
-/* 代理列表框 */
-QTableWidget{
-    border:none;
-    border-radius:5px;
-    background-color:#8791d1;
-}
-QHeaderView{
-    border:none;
-    border-top-left-radius:5px;
-    border-top-right-radius:5px;
-    border-bottom: 1px solid black;
-    background-color:#8791d1;
-}
-QTableWidget::item:selected{
-    background-color:#b5bce3;
-}
-QHeaderView::section{
-    border:none;
-    border-right:1px solid black;
-    background-color:transparent;
 }
 QLineEdit#edit{
     border:none;
