@@ -19,7 +19,7 @@ url = "https://pypi.tuna.tsinghua.edu.cn/simple"
 default = false
 
 [tool.poetry.dependencies]
-python = ">=3.10,<3.11"
+python = ">=3.10,<3.12"
 aiohttp = "^3.8.3"
 pyzbar = "^0.1.9"
 qrcode = "^7.3.1"
@@ -34,7 +34,6 @@ optional = true
 
 [tool.poetry.group.gui.dependencies]
 pyside6 = "^6.4.0"
-pyside2 = "^5.15.2.1"
 pyqt6 = "^6.4.0"
 pyqt5 = "^5.15.7"
 
@@ -43,12 +42,6 @@ optional = true
 
 [tool.poetry.group.pyside6.dependencies]
 pyside6 = "^6.4.0"
-
-[tool.poetry.group.pyside2]
-optional = true
-
-[tool.poetry.group.pyside2.dependencies]
-pyside2 = "^5.15.2.1"
 
 [tool.poetry.group.pyqt6]
 optional = true
