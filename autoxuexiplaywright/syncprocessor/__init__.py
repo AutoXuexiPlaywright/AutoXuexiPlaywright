@@ -18,8 +18,8 @@ from autoxuexiplaywright.utils.answerutils import init_sources, close_sources
 from autoxuexiplaywright.utils.storage import get_cache_path
 from autoxuexiplaywright.utils.eventmanager import find_event_by_id
 from autoxuexiplaywright.utils.config import Config
-from autoxuexiplaywright.core.syncprocessor.login import login
-from autoxuexiplaywright.core.syncprocessor.handle import cache, pre_handle
+from autoxuexiplaywright.syncprocessor.login import login
+from autoxuexiplaywright.syncprocessor.handle import cache, pre_handle
 
 
 def start(conf_path: str | None = None) -> None:

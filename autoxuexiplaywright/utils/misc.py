@@ -60,9 +60,9 @@ def img2shell(img: bytes, ) -> None:
 
 def start_backend() -> None:
     if Config.get_instance().async_mode:
-        from autoxuexiplaywright.core.asyncprocessor import start
+        from autoxuexiplaywright.asyncprocessor import start
     else:
-        from autoxuexiplaywright.core.syncprocessor import start
+        from autoxuexiplaywright.syncprocessor import start
     start()
 
 
