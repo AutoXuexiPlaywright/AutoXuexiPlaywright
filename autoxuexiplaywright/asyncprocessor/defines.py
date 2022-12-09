@@ -1,51 +1,51 @@
-from logging import getLogger
 from random import uniform
-from requests import get
+from asyncio import gather
+from logging import getLogger
+from aiohttp import ClientSession
 from urllib.parse import urlparse
-from playwright.sync_api import Page, TimeoutError
+from playwright.async_api import Page, TimeoutError
 
 from autoxuexiplaywright.defines.core import (
-    APPID, ANSWER_CONNECTOR, ANSWER_SLEEP_MIN_SECS, ANSWER_SLEEP_MAX_SECS, VIDEO_REQUEST_REGEX
-)
+    APPID, ANSWER_CONNECTOR, ANSWER_SLEEP_MIN_SECS,
+    ANSWER_SLEEP_MAX_SECS, VIDEO_REQUEST_REGEX)
 from autoxuexiplaywright.defines.selectors import (
     QUESTION, QUESTION_TITLE, ANSWERS, ANSWER_ITEM, BLANK, TEST_ACTION_ROW, TEST_NEXT_QUESTION_BTN,
-    TEST_SUBMIT_BTN, TEST_CAPTCHA_SWIPER, TEST_CAPTCHA_TEXT, TEST_SOLUTION, TIPS, POPOVER, ANSWER_FONT,
-    TEST_VIDEO_PLAYER, TEST_VIDEO_PLAY_BTN
-)
-from autoxuexiplaywright.utils.lang import get_lang
+    TEST_SUBMIT_BTN, TEST_CAPTCHA_SWIPER, TEST_CAPTCHA_TEXT, TEST_SOLUTION, TIPS, POPOVER,
+    ANSWER_FONT, TEST_VIDEO_PLAYER, TEST_VIDEO_PLAY_BTN)
 from autoxuexiplaywright.utils.answerutils import (
-    QuestionType, get_answer_from_sources, is_valid_answer, request_answer, add_answer, gen_random_str
-)
+    QuestionType, get_answer_from_sources, request_answer, add_answer, gen_random_str, is_valid_answer)
+from autoxuexiplaywright.utils.lang import get_lang
 from autoxuexiplaywright.utils.misc import to_str
 from autoxuexiplaywright.utils.storage import get_cache_path
 from autoxuexiplaywright.utils.config import Config
-from autoxuexiplaywright.core.syncprocessor.captchautils import try_finish_captcha
+from autoxuexiplaywright.asyncprocessor.captchautils import try_finish_captcha
 
 
-class SyncQuestionItem():
+class AsyncQuestionItem():
     __all__ = ["do_answer"]
 
     def __init__(self, page: Page) -> None:
         self.page = page
-        self.config=Config.get_instance()
+        self.config = Config.get_instance()
 
-    def __enter__(self):
+    async def __aenter__(self):
         question = self.page.locator(QUESTION)
-        self.title = question.locator(
-            QUESTION_TITLE).inner_text().strip().replace("\n", " ")
+        title_text = await question.locator(
+            QUESTION_TITLE).inner_text()
+        self.title = title_text.strip().replace("\n", " ")
         getLogger(APPID).info(
             get_lang(self.config.lang, "core-info-current-question-title") % self.title)
         self.tips = self.title
         answers = question.locator(ANSWERS)
-        if answers.count() == 1:
+        if await answers.count() == 1:
             self.answer_items = answers.locator(ANSWER_ITEM)
             self.question_type = QuestionType.CHOICE
             self.tips += "\n"+get_lang(self.config.lang, "core-available-answers") + \
                 ANSWER_CONNECTOR.join(
-                    [item.strip() for item in self.answer_items.all_inner_texts()])
+                    [item.strip() for item in await self.answer_items.all_inner_texts()])
             getLogger(APPID).debug(
                 get_lang(self.config.lang, "core-debug-current-question-type-choice"))
-        elif answers.count() == 0:
+        elif await answers.count() == 0:
             self.answer_items = question.locator(BLANK)
             self.question_type = QuestionType.BLANK
             getLogger(APPID).debug(
@@ -55,22 +55,22 @@ class SyncQuestionItem():
             self.question_type = QuestionType.UNKNOWN
         return self
 
-    def __exit__(self, *args: ...):
+    async def __aexit__(self, *args: ...):
         pass
 
-    def do_answer(self) -> None:
+    async def do_answer(self) -> None:
         if self.answer_items is None:
             return
         manual_input = False
         answer = get_answer_from_sources(self.title)
         if answer == []:
-            answer = self.try_find_answer_from_page()
+            answer = await self.try_find_answer_from_page()
         answer = [answer_item.strip(
         ) for answer_item in answer if is_valid_answer(answer_item.strip())]
-        getLogger(APPID).debug(
-            get_lang(self.config.lang, "core-debug-final-answer-list") % answer)
+        getLogger(APPID).debug(get_lang(self.config.lang,
+                                        "core-debug-final-answer-list") % answer)
         if answer == []:
-            self.try_get_video()
+            await self.try_get_video()
             getLogger(APPID).error(get_lang(
                 self.config.lang, "core-error-no-answer-found"))
             answer = request_answer(self.tips)
@@ -79,11 +79,11 @@ class SyncQuestionItem():
                 self.config.lang, "core-error-no-answer-even-tried-manual-input"))
         else:
             manual_input = True
-        answer_items_count = self.answer_items.count(
+        answer_items_count = await self.answer_items.count(
         ) if self.answer_items is not None else 0
         answer_count = len(answer)
-        getLogger(APPID).debug(get_lang(
-            self.config.lang, "core-debug-answer-items-count-and-answers-count") % (answer_items_count, answer_count))
+        getLogger(APPID).debug(get_lang(self.config.lang,
+                                        "core-debug-answer-items-count-and-answers-count") % (answer_items_count, answer_count))
         if answer_count > 0:
             if answer_count < answer_items_count:
                 # normal status
@@ -98,18 +98,19 @@ class SyncQuestionItem():
                                 if self.question_type == QuestionType.CHOICE:
                                     current_choice = self.answer_items.nth(j)
                                     class_str = to_str(
-                                        current_choice.get_attribute("class"))
-                                    text_str = current_choice.inner_text().strip()
+                                        await current_choice.get_attribute("class"))
+                                    text = await current_choice.inner_text()
+                                    text_str = text.strip()
                                     getLogger(APPID).debug(
                                         get_lang(self.config.lang, "core-debug-current-choice-class") % class_str)
                                     getLogger(APPID).debug(
                                         get_lang(self.config.lang, "core-debug-current-choice-text") % text_str)
                                     if (answer_str in text_str) and ("chosen" not in class_str):
-                                        current_choice.click(delay=uniform(
+                                        await current_choice.click(delay=uniform(
                                             ANSWER_SLEEP_MIN_SECS, ANSWER_SLEEP_MAX_SECS)*1000)
                                         operated = True
                                 elif self.question_type == QuestionType.BLANK:
-                                    self.answer_items.nth(j).type(answer_str, delay=uniform(
+                                    await self.answer_items.nth(j).type(answer_str, delay=uniform(
                                         ANSWER_SLEEP_MIN_SECS, ANSWER_SLEEP_MAX_SECS)*1000)
                                     operated = True
                                 if operated:
@@ -120,7 +121,7 @@ class SyncQuestionItem():
                             answer = request_answer(
                                 self.tips)
                             if answer == []:
-                                self.random_finish()
+                                await self.random_finish()
                                 operated = True
                             else:
                                 manual_input = True
@@ -132,105 +133,110 @@ class SyncQuestionItem():
                 for i in range(answer_items_count):
                     match self.question_type:
                         case QuestionType.CHOICE:
-                            self.answer_items.nth(i).click(delay=uniform(
+                            await self.answer_items.nth(i).click(delay=uniform(
                                 ANSWER_SLEEP_MIN_SECS, ANSWER_SLEEP_MAX_SECS)*1000)
                         case QuestionType.BLANK:
-                            self.answer_items.nth(i).type(answer[i], delay=uniform(
+                            await self.answer_items.nth(i).type(answer[i], delay=uniform(
                                 ANSWER_SLEEP_MIN_SECS, ANSWER_SLEEP_MAX_SECS)*1000)
                         case QuestionType.UNKNOWN:
-                            getLogger(APPID).error(get_lang(self.config.lang,"core-error-unknown-answer-type"))
+                            getLogger(APPID).error(
+                                get_lang(self.config.lang, "core-error-unknown-answer-type"))
         else:
             # no answer, random finish
-            self.random_finish()
+            await self.random_finish()
         # submit answer or finish test
         action_row = self.page.locator(TEST_ACTION_ROW)
         next_btn = action_row.locator(TEST_NEXT_QUESTION_BTN)
-        if next_btn.is_enabled():
-            next_btn.click(delay=uniform(
+        if await next_btn.is_enabled():
+            await next_btn.click(delay=uniform(
                 ANSWER_SLEEP_MIN_SECS, ANSWER_SLEEP_MAX_SECS)*1000)
         else:
-            action_row.locator(TEST_SUBMIT_BTN).click(delay=uniform(
+            await action_row.locator(TEST_SUBMIT_BTN).click(delay=uniform(
                 ANSWER_SLEEP_MIN_SECS, ANSWER_SLEEP_MAX_SECS)*1000)
         captcha = self.page.locator(TEST_CAPTCHA_SWIPER)
-        if captcha.locator(TEST_CAPTCHA_TEXT).count() > 0:
+        if await captcha.locator(TEST_CAPTCHA_TEXT).count() > 0:
             getLogger(APPID).warning(get_lang(
                 self.config.lang, "core-warning-captcha-found"))
-            try_finish_captcha(captcha)
-        if self.page.locator(TEST_SOLUTION).count() > 0:
+            await try_finish_captcha(captcha)
+        if await self.page.locator(TEST_SOLUTION).count() > 0:
             getLogger(APPID).error(get_lang(
                 self.config.lang, "core-error-answer-is-wrong") % self.title)
-            next_btn.click(delay=uniform(
+            await next_btn.click(delay=uniform(
                 ANSWER_SLEEP_MIN_SECS, ANSWER_SLEEP_MAX_SECS)*1000)
         elif (answer != []) and manual_input:
             add_answer(self.title, answer)
 
-    def try_find_answer_from_page(self) -> list[str]:
-        config = Config.get_instance()
+    async def try_find_answer_from_page(self) -> list[str]:
         answer = []
         tips = self.page.locator(
             QUESTION).locator(TIPS)
-        if "ant-popover-open" not in to_str(tips.get_attribute("class")):
-            tips.click()
+        if "ant-popover-open" not in to_str(await tips.get_attribute("class")):
+            await tips.click()
         popover = self.page.locator(POPOVER)
-        if "ant-popover-hidden" not in to_str(popover.get_attribute("class")):
+        if "ant-popover-hidden" not in to_str(await popover.get_attribute("class")):
             font = popover.locator(ANSWER_FONT)
-            if font.count() > 0:
-                font.last.wait_for()
-                answer = [text.strip() for text in font.all_inner_texts()]
+            if await font.count() > 0:
+                await font.last.wait_for()
+                answer = [text.strip() for text in await font.all_inner_texts()]
                 self.tips += "\n" + \
-                    get_lang(config.lang, "core-available-tips") + \
+                    get_lang(self.config.lang, "core-available-tips") + \
                     ANSWER_CONNECTOR.join(answer)
-                getLogger(APPID).debug(
-                    get_lang(config.lang, "core-debug-raw-answer-list") % answer)
-        if "ant-popover-open" in to_str(tips.get_attribute("class")):
-            tips.click()
+                getLogger(APPID).debug(get_lang(self.config.lang,
+                                                "core-debug-raw-answer-list") % answer)
+        if "ant-popover-open" in to_str(await tips.get_attribute("class")):
+            await tips.click()
         return answer
 
-    def try_get_video(self) -> None:
-        config = Config.get_instance()
+    async def try_get_video(self) -> None:
+        async def get_video_by_address(address: str, headers: dict[str, str] | None = None) -> bytes:
+            async with ClientSession(headers=headers) as session:
+                async with session.get(address) as response:
+                    return await response.content.read()
         video_player = self.page.locator(TEST_VIDEO_PLAYER)
-        if video_player.count() > 0:
-            for i in range(video_player.count()):
-                video_player.nth(i).hover()
+        if await video_player.count() > 0:
+            for i in range(await video_player.count()):
+                await video_player.nth(i).hover()
                 try:
-                    with self.page.expect_response(VIDEO_REQUEST_REGEX) as response_info:
-                        video_player.nth(i).locator(
+                    async with self.page.expect_response(VIDEO_REQUEST_REGEX) as response_info:
+                        await video_player.nth(i).locator(
                             TEST_VIDEO_PLAY_BTN).click()
                 except TimeoutError:
-                    getLogger(APPID).error(
-                        get_lang(config.lang, "core-error-test-download-video-failed"))
+                    getLogger(APPID).error(get_lang(self.config.lang,
+                                                    "core-error-test-download-video-failed"))
                 else:
                     try:
-                        if response_info.value.url.endswith(".mp4"):
+                        value = await response_info.value
+                        if value.url.endswith(".mp4"):
                             with open(get_cache_path("video.mp4"), "wb") as writer:
-                                writer.write(response_info.value.body())
-                        elif response_info.value.url.endswith(".m3u8"):
-                            url = urlparse(response_info.value.url)
+                                writer.write(await value.body())
+                        elif value.url.endswith(".m3u8"):
+                            url = urlparse(value.url)
                             prefix = "%s://%s/" % (url.scheme, url.netloc +
                                                    "/".join(url.path.split("/")[:-1]))
-                            for line in response_info.value.text().split("\n"):
+                            value_text = await value.text()
+                            jobs: list[str] = []
+                            for line in value_text.split("\n"):
                                 if not line.startswith("#"):
-                                    with open(get_cache_path("video.mp4"), "ab") as writer:
-                                        writer.write(get(
-                                            url=prefix+line, headers=response_info.value.request.all_headers()).content)
+                                    jobs.append(prefix+line)
+                            cors = [get_video_by_address(line, await value.request.all_headers()) for line in jobs]
+                            results = bytes().join(await gather(*cors))
+                            with open("video.mp4", "wb") as writer:
+                                writer.write(results)
                     except:
                         getLogger(APPID).error(
-                            get_lang(config.lang, "core-error-test-download-video-failed"))
+                            get_lang(self.config.lang, "core-error-test-download-video-failed"))
                     else:
                         getLogger(APPID).info(
-                            get_lang(config.lang, "core-info-test-download-video-success"))
+                            get_lang(self.config.lang, "core-info-test-download-video-success"))
 
-    def random_finish(self) -> None:
+    async def random_finish(self) -> None:
         getLogger(APPID).error(get_lang(
-            Config.get_instance().lang, "core-error-use-random-answer"))
+            self.config.lang, "core-error-use-random-answer"))
         if self.answer_items is not None:
-            for i in range(self.answer_items.count()):
+            for i in range(await self.answer_items.count()):
                 if self.question_type == QuestionType.CHOICE:
-                    self.answer_items.nth(i).click(delay=uniform(
+                    await self.answer_items.nth(i).click(delay=uniform(
                         ANSWER_SLEEP_MIN_SECS, ANSWER_SLEEP_MAX_SECS)*1000)
                 elif self.question_type == QuestionType.BLANK:
-                    self.answer_items.nth(i).type(gen_random_str(), delay=uniform(
+                    await self.answer_items.nth(i).type(gen_random_str(), delay=uniform(
                         ANSWER_SLEEP_MIN_SECS, ANSWER_SLEEP_MAX_SECS)*1000)
-
-
-__all__ = ["SyncQuestionItem"]

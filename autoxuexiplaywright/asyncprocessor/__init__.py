@@ -17,8 +17,8 @@ from autoxuexiplaywright.utils.misc import to_str
 from autoxuexiplaywright.utils.lang import get_lang
 from autoxuexiplaywright.utils.answerutils import init_sources, close_sources
 from autoxuexiplaywright.utils.config import Config
-from autoxuexiplaywright.core.asyncprocessor.handle import cache, pre_handle
-from autoxuexiplaywright.core.asyncprocessor.login import login
+from autoxuexiplaywright.asyncprocessor.handle import cache, pre_handle
+from autoxuexiplaywright.asyncprocessor.login import login
 
 
 def start(conf_path: str | None = None) -> None:
