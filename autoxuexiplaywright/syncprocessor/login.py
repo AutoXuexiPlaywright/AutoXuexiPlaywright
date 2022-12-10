@@ -3,7 +3,7 @@ from logging import getLogger
 from playwright.sync_api import Page, TimeoutError
 
 from autoxuexiplaywright.defines.core import CHECK_ELEMENT_TIMEOUT_SECS, APPID, LOGIN_RETRY_TIMES
-from autoxuexiplaywright.defines.selectors import LOGIN_CHECK, LOGIN_QGLOGIN, LOGIN_IFRAME, LOGIN_IMAGE
+from autoxuexiplaywright.defines.selectors import LoginSelectors
 from autoxuexiplaywright.defines.events import EventId
 from autoxuexiplaywright.defines.urls import LOGIN_PAGE
 from autoxuexiplaywright.utils.eventmanager import find_event_by_id
@@ -20,14 +20,14 @@ def login(page: Page) -> None:
     page.bring_to_front()
     page.goto(LOGIN_PAGE)
     try:
-        page.locator(LOGIN_CHECK).wait_for(
+        page.locator(LoginSelectors.LOGIN_CHECK).wait_for(
             timeout=CHECK_ELEMENT_TIMEOUT_SECS*1000)
     except TimeoutError:
         getLogger(APPID).info(get_lang(
             config.lang, "core-info-cookie-login-failed"))
         failed_num = 0
         while True:
-            qglogin = page.locator(LOGIN_QGLOGIN)
+            qglogin = page.locator(LoginSelectors.LOGIN_QGLOGIN)
             try:
                 qglogin.scroll_into_view_if_needed()
             except TimeoutError:
@@ -35,7 +35,7 @@ def login(page: Page) -> None:
                     config.lang, "core-err-load-qr-failed"))
                 raise RuntimeError()
             locator = qglogin.frame_locator(
-                LOGIN_IFRAME).locator(LOGIN_IMAGE)
+                LoginSelectors.LOGIN_IFRAME).locator(LoginSelectors.LOGIN_IMAGE)
             img = b64decode(to_str(
                 locator.get_attribute("src")).split(",")[1])
             with open(get_cache_path("qr.png"), "wb") as writer:
@@ -43,7 +43,7 @@ def login(page: Page) -> None:
             getLogger(APPID).info(get_lang(
                 config.lang, "core-info-scan-required"))
             img2shell(img)
-            locator = page.locator(LOGIN_CHECK)
+            locator = page.locator(LoginSelectors.LOGIN_CHECK)
             try:
                 locator.wait_for()
             except TimeoutError as e:

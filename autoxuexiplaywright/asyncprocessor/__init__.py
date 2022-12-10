@@ -7,8 +7,7 @@ from playwright.async_api import Page, TimeoutError, async_playwright
 
 from autoxuexiplaywright.defines.core import (
     ProcessType, WAIT_PAGE_SECS, APPID, WAIT_NEW_PAGE_SECS, NEWS_RANGE, VIDEO_RANGE, TEST_RANGE)
-from autoxuexiplaywright.defines.selectors import (
-    POINTS_SPAN, POINTS_CARDS, CARD_BUTTON, CARD_TITLE)
+from autoxuexiplaywright.defines.selectors import PointsSelectors
 from autoxuexiplaywright.defines.urls import POINTS_PAGE
 from autoxuexiplaywright.defines.events import EventId
 from autoxuexiplaywright.utils.eventmanager import find_event_by_id
@@ -69,7 +68,7 @@ async def check_status_and_finish(page: Page):
     while True:
         await page.goto(POINTS_PAGE)
         try:
-            points = page.locator(POINTS_SPAN)
+            points = page.locator(PointsSelectors.POINTS_SPAN)
             for i in range(2):
                 await points.nth(i).wait_for()
             points_ints = tuple([int(point.strip())
@@ -81,16 +80,16 @@ async def check_status_and_finish(page: Page):
             getLogger(APPID).info(get_lang(config.lang, "core-info-update-score-success") % points_ints)
             find_event_by_id(
                 EventId.SCORE_UPDATED).invoke(points_ints)
-        cards = page.locator(POINTS_CARDS)
+        cards = page.locator(PointsSelectors.POINTS_CARDS)
         await cards.last.wait_for()
         login_task_style = to_str(await cards.nth(0).locator(
-            CARD_BUTTON).first.get_attribute("style"))
+            PointsSelectors.CARD_BUTTON).first.get_attribute("style"))
         if "not-allowed" not in login_task_style:
             getLogger(APPID).warning(get_lang(config.lang, "core-warning-login-task-not-completed"))
         if process_position < await cards.count():
             card = cards.nth(process_position)
-            title = await card.locator(CARD_TITLE).first.inner_text()
-            button = card.locator(CARD_BUTTON).first
+            title = await card.locator(PointsSelectors.CARD_TITLE).first.inner_text()
+            button = card.locator(PointsSelectors.CARD_BUTTON).first
             style = to_str(await button.get_attribute("style"))
             if "not-allowed" in style:
                 getLogger(APPID).info(get_lang(

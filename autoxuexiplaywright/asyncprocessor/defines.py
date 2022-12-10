@@ -8,10 +8,7 @@ from playwright.async_api import Page, TimeoutError
 from autoxuexiplaywright.defines.core import (
     APPID, ANSWER_CONNECTOR, ANSWER_SLEEP_MIN_SECS,
     ANSWER_SLEEP_MAX_SECS, VIDEO_REQUEST_REGEX)
-from autoxuexiplaywright.defines.selectors import (
-    QUESTION, QUESTION_TITLE, ANSWERS, ANSWER_ITEM, BLANK, TEST_ACTION_ROW, TEST_NEXT_QUESTION_BTN,
-    TEST_SUBMIT_BTN, TEST_CAPTCHA_SWIPER, TEST_CAPTCHA_TEXT, TEST_SOLUTION, TIPS, POPOVER,
-    ANSWER_FONT, TEST_VIDEO_PLAYER, TEST_VIDEO_PLAY_BTN)
+from autoxuexiplaywright.defines.selectors import AnswerSelectors
 from autoxuexiplaywright.utils.answerutils import (
     QuestionType, get_answer_from_sources, request_answer, add_answer, gen_random_str, is_valid_answer)
 from autoxuexiplaywright.utils.lang import get_lang
@@ -29,16 +26,16 @@ class AsyncQuestionItem():
         self.config = Config.get_instance()
 
     async def __aenter__(self):
-        question = self.page.locator(QUESTION)
+        question = self.page.locator(AnswerSelectors.QUESTION)
         title_text = await question.locator(
-            QUESTION_TITLE).inner_text()
+            AnswerSelectors.QUESTION_TITLE).inner_text()
         self.title = title_text.strip().replace("\n", " ")
         getLogger(APPID).info(
             get_lang(self.config.lang, "core-info-current-question-title") % self.title)
         self.tips = self.title
-        answers = question.locator(ANSWERS)
+        answers = question.locator(AnswerSelectors.ANSWERS)
         if await answers.count() == 1:
-            self.answer_items = answers.locator(ANSWER_ITEM)
+            self.answer_items = answers.locator(AnswerSelectors.ANSWER_ITEM)
             self.question_type = QuestionType.CHOICE
             self.tips += "\n"+get_lang(self.config.lang, "core-available-answers") + \
                 ANSWER_CONNECTOR.join(
@@ -46,7 +43,7 @@ class AsyncQuestionItem():
             getLogger(APPID).debug(
                 get_lang(self.config.lang, "core-debug-current-question-type-choice"))
         elif await answers.count() == 0:
-            self.answer_items = question.locator(BLANK)
+            self.answer_items = question.locator(AnswerSelectors.BLANK)
             self.question_type = QuestionType.BLANK
             getLogger(APPID).debug(
                 get_lang(self.config.lang, "core-debug-current-question-type-blank"))
@@ -145,20 +142,20 @@ class AsyncQuestionItem():
             # no answer, random finish
             await self.random_finish()
         # submit answer or finish test
-        action_row = self.page.locator(TEST_ACTION_ROW)
-        next_btn = action_row.locator(TEST_NEXT_QUESTION_BTN)
+        action_row = self.page.locator(AnswerSelectors.TEST_ACTION_ROW)
+        next_btn = action_row.locator(AnswerSelectors.TEST_NEXT_QUESTION_BTN)
         if await next_btn.is_enabled():
             await next_btn.click(delay=uniform(
                 ANSWER_SLEEP_MIN_SECS, ANSWER_SLEEP_MAX_SECS)*1000)
         else:
-            await action_row.locator(TEST_SUBMIT_BTN).click(delay=uniform(
+            await action_row.locator(AnswerSelectors.TEST_SUBMIT_BTN).click(delay=uniform(
                 ANSWER_SLEEP_MIN_SECS, ANSWER_SLEEP_MAX_SECS)*1000)
-        captcha = self.page.locator(TEST_CAPTCHA_SWIPER)
-        if await captcha.locator(TEST_CAPTCHA_TEXT).count() > 0:
+        captcha = self.page.locator(AnswerSelectors.TEST_CAPTCHA_SWIPER)
+        if await captcha.locator(AnswerSelectors.TEST_CAPTCHA_TEXT).count() > 0:
             getLogger(APPID).warning(get_lang(
                 self.config.lang, "core-warning-captcha-found"))
             await try_finish_captcha(captcha)
-        if await self.page.locator(TEST_SOLUTION).count() > 0:
+        if await self.page.locator(AnswerSelectors.TEST_SOLUTION).count() > 0:
             getLogger(APPID).error(get_lang(
                 self.config.lang, "core-error-answer-is-wrong") % self.title)
             await next_btn.click(delay=uniform(
@@ -169,12 +166,12 @@ class AsyncQuestionItem():
     async def try_find_answer_from_page(self) -> list[str]:
         answer = []
         tips = self.page.locator(
-            QUESTION).locator(TIPS)
+            AnswerSelectors.QUESTION).locator(AnswerSelectors.TIPS)
         if "ant-popover-open" not in to_str(await tips.get_attribute("class")):
             await tips.click()
-        popover = self.page.locator(POPOVER)
+        popover = self.page.locator(AnswerSelectors.POPOVER)
         if "ant-popover-hidden" not in to_str(await popover.get_attribute("class")):
-            font = popover.locator(ANSWER_FONT)
+            font = popover.locator(AnswerSelectors.ANSWER_FONT)
             if await font.count() > 0:
                 await font.last.wait_for()
                 answer = [text.strip() for text in await font.all_inner_texts()]
@@ -192,14 +189,14 @@ class AsyncQuestionItem():
             async with ClientSession(headers=headers) as session:
                 async with session.get(address) as response:
                     return await response.content.read()
-        video_player = self.page.locator(TEST_VIDEO_PLAYER)
+        video_player = self.page.locator(AnswerSelectors.TEST_VIDEO_PLAYER)
         if await video_player.count() > 0:
             for i in range(await video_player.count()):
                 await video_player.nth(i).hover()
                 try:
                     async with self.page.expect_response(VIDEO_REQUEST_REGEX) as response_info:
                         await video_player.nth(i).locator(
-                            TEST_VIDEO_PLAY_BTN).click()
+                            AnswerSelectors.TEST_VIDEO_PLAY_BTN).click()
                 except TimeoutError:
                     getLogger(APPID).error(get_lang(self.config.lang,
                                                     "core-error-test-download-video-failed"))

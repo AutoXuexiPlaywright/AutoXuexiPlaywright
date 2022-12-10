@@ -6,9 +6,7 @@ from playwright.sync_api import Page, TimeoutError
 from autoxuexiplaywright.defines.core import (
     READ_TIME_SECS, PROCESS_SLEEP_MIN, PROCESS_SLEEP_MAX, WAIT_RESULT_SECS, APPID
 )
-from autoxuexiplaywright.defines.selectors import (
-    VIDEO_PLAYER, PLAY_BTN, VIDEO_SUBTITLE, PAGE_PARAGRAPHS, TEST_RESULT
-)
+from autoxuexiplaywright.defines.selectors import ReadSelectors, AnswerSelectors
 from autoxuexiplaywright.utils.misc import to_str
 from autoxuexiplaywright.utils.lang import get_lang
 from autoxuexiplaywright.utils.config import Config
@@ -25,20 +23,20 @@ def emulate_read(page: Page) -> None:
         page.wait_for_timeout(uniform(
             PROCESS_SLEEP_MIN, PROCESS_SLEEP_MAX)*1000)
         try:
-            player = page.locator(VIDEO_PLAYER)
+            player = page.locator(ReadSelectors.VIDEO_PLAYER)
             if player.count() > 0:
                 player.last.wait_for(timeout=READ_TIME_SECS*1000)
-                play_btn = player.locator(PLAY_BTN)
+                play_btn = player.locator(ReadSelectors.PLAY_BTN)
                 if "playing" not in to_str(play_btn.get_attribute("class")):
                     play_btn.click(timeout=READ_TIME_SECS*1000)
         except:
             pass
         try:
-            video_subtitle = page.locator(VIDEO_SUBTITLE)
+            video_subtitle = page.locator(ReadSelectors.VIDEO_SUBTITLE)
             if video_subtitle.count() > 0 and scroll_video_subtitle:
                 video_subtitle.first.scroll_into_view_if_needed()
                 scroll_video_subtitle = False
-            ps = page.locator(PAGE_PARAGRAPHS)
+            ps = page.locator(ReadSelectors.PAGE_PARAGRAPHS)
             if ps.count() > 0:
                 if read_all_paragraphs:
                     for i in range(ps.count()):
@@ -57,7 +55,7 @@ def emulate_answer(page: Page) -> None:
     while True:
         with SyncQuestionItem(page) as qi:
             qi.do_answer()
-        result = page.locator(TEST_RESULT)
+        result = page.locator(AnswerSelectors.TEST_RESULT)
         try:
             result.wait_for(timeout=WAIT_RESULT_SECS*1000)
         except TimeoutError:
