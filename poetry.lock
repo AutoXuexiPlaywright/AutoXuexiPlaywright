@@ -658,6 +658,7 @@ python-versions = ">=3.6"
 
 [package.dependencies]
 colorama = {version = "*", markers = "platform_system == \"Windows\""}
+pillow = {version = "*", optional = true, markers = "extra == \"pil\""}
 
 [package.extras]
 all = ["pillow", "pytest", "pytest", "pytest-cov", "tox", "zest.releaser[recommended]"]
@@ -829,7 +830,7 @@ reference = "bfsu"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.10,<3.12"
-content-hash = "e36c6f8b2a7155a3440b19fc39e82aee4d099f142c29c9fe283498d24f403d6b"
+content-hash = "552a97a55adae84a1ac3223437e2f29b07897e3cd42c898baf42e12daab383df"
 
 [metadata.files]
 aiohttp = [

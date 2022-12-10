@@ -45,16 +45,16 @@ def to_str(obj: Union[str, None]) -> str:
     return obj
 
 
-def img2shell(img: bytes, ) -> None:
+def img2shell(img: bytes) -> None:
     config = Config.get_instance()
     if config.gui:
         getLogger(APPID).info(get_lang(
             config.lang, "ui-info-failed-to-print-qr"))
         find_event_by_id(EventId.QR_UPDATED).invoke(img)
     else:
-        datas: list[Decoded] = decode(Image.open(BytesIO(img)))[0]
-        qr = QRCode()
-        qr.add_data(datas[0].data) # type: ignore
+        data: Decoded = decode(Image.open(BytesIO(img)))[0]
+        qr = QRCode(box_size=4)
+        qr.add_data(data.data) # type: ignore
         qr.print_tty() # type: ignore
 
 
