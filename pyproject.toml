@@ -26,34 +26,12 @@ qrcode = {extras = ["pil"], version = "^7.3.1"}
 requests = "^2.28.1"
 playwright = "^1.28.0"
 pyxdg = "^0.28"
-qtpy = "^2.2.1"
 
 [tool.poetry.group.gui]
 optional = true
 
 [tool.poetry.group.gui.dependencies]
 pyside6 = "^6.4.0"
-pyqt6 = "^6.4.0"
-pyqt5 = "^5.15.7"
-
-[tool.poetry.group.pyside6]
-optional = true
-
-[tool.poetry.group.pyside6.dependencies]
-pyside6 = "^6.4.0"
-
-[tool.poetry.group.pyqt6]
-optional = true
-
-[tool.poetry.group.pyqt6.dependencies]
-pyqt6 = "^6.4.0"
-
-[tool.poetry.group.pyqt5]
-optional = true
-
-[tool.poetry.group.pyqt5.dependencies]
-pyqt5 = "^5.15.7"
-
 
 [tool.poetry.group.dev.dependencies]
 pytest-asyncio = "^0.20.2"

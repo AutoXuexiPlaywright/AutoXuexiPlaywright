@@ -1,8 +1,8 @@
 from queue import Queue
 from imghdr import what
-from qtpy.QtGui import (QMouseEvent, QPixmap, QIcon)
-from qtpy.QtCore import (QFile, QPoint, QPointF, Qt, QSettings, QThread)
-from qtpy.QtWidgets import (QCheckBox, QVBoxLayout, QInputDialog, QLabel, QSystemTrayIcon,
+from PySide6.QtGui import (QMouseEvent, QPixmap, QIcon)
+from PySide6.QtCore import (QFile, QPoint, QPointF, Qt, QSettings, QThread)
+from PySide6.QtWidgets import (QCheckBox, QVBoxLayout, QInputDialog, QLabel, QSystemTrayIcon,
                             QLineEdit, QMainWindow, QPlainTextEdit, QPushButton, QHBoxLayout, QWidget)
 
 from autoxuexiplaywright.defines.core import APPID, ANSWER_CONNECTOR

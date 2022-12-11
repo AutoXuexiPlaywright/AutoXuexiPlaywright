@@ -1,13 +1,13 @@
 from json import dump
 from os.path import isfile
 from typing import Literal
-from qtpy.QtGui import (
+from PySide6.QtGui import (
     QMouseEvent, QRegularExpressionValidator
 )
-from qtpy.QtCore import (
+from PySide6.QtCore import (
     Qt, QPointF, QPoint, QRegularExpression
 )
-from qtpy.QtWidgets import (
+from PySide6.QtWidgets import (
     QCheckBox, QComboBox, QDialog, QVBoxLayout, QLabel, QLineEdit,
     QPushButton, QHBoxLayout, QWidget, QFileDialog
 )
