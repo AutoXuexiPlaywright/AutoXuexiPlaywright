@@ -17,7 +17,7 @@ This is a completely rewrite, you can see [CHANGELOG.md](./CHANGELOG.md) for mor
 - Install dependencies  
     Open a terminal, go to where the repository is, and run `poetry install` to install dependencies. Poetry will create virtual environment automatically. We have set mirror site of pypi in China so it should not spend too much time.
 - Install Qt binding  
-    This is only needed if you want to use GUI, for now we support `pyqt5`, `pyqt6`, `pyside2`, `pyside6`, choose which one you want and install it. You can see `qtpy`'s [document](https://github.com/spyder-ide/qtpy#requirements) about how to switch bindings when you installed more than one. Assuming you are using `pyside6`, you can run `poetry install --with pyside6` in repository directory to install it. You can also run `poetry install --with gui` in repository directory to install all bindings.
+    This is only needed if you want to use GUI, you can run `poetry install --with=gui` in repository directory to install it.
 - Build and install the project  
     Although you can run the program now, it is more convenient to build a wheel package and install the package to system. If you want to run from source, you can skip this step.  
     Open a terminal, go to where the repository is, run `poetry build`, after command finished, you will find package at `dist` folder of repository. `.whl` package can be installed by `pip install` command.
@@ -30,28 +30,24 @@ This is a completely rewrite, you can see [CHANGELOG.md](./CHANGELOG.md) for mor
 - Run from built package  
     If you are running program from built package, you can simply run `autoxuexiplaywright` from terminal.
 
-For Arch Linux users, we provide a [PKGBUILD](./resources/makepkg/PKGBUILD) which may be useful for you. Note: Processing video page has problems on Arch Linux now, this is due to that Playwright can't use ffmpeg5 provided by Arch Linux. You can try to set custom browser executable file path to browsers provided by distributions to solve this.
+For Arch Linux users, we provide a [PKGBUILD](./resources/makepkg/PKGBUILD) which may be useful for you. Note: Processing video page has problems on Arch Linux now, this is due to that Playwright can't use ffmpeg5 provided by Arch Linux. You can try to set custom browser executable file path to browsers provided by distributions to solve this. Update: You can also update playwright's firefox build to latest version and use firefox to solve this.
 
 ## About Proxy
 
 ``` text
 proxy sample:
-[
-    {
-        "server":"socks5://127.0.0.1:20808",
-        "username":"user",
-        "password:"pwd"
-    },
-    ......
-]
+"proxy": {
+    "server":"socks5://127.0.0.1:20808",
+    "username":"user",
+    "password:"pwd",
+    "bypass":"localhost"
+}
 
 OR
 
 None
 ```
-
-~~We will add a GUI config editor soon.~~  
-We have added a GUI config editor and it should work as expected. If you are using headless version, please check config format before saving file.
+Only server is needed if you want to use proxy, others are all optional. We have added a GUI config editor and it should work as expected. If you are using headless version, please check config format before saving file.
 
 ## About async API
 
