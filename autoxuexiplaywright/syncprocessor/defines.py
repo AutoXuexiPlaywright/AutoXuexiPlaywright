@@ -25,7 +25,7 @@ class SyncQuestionItem():
 
     def __init__(self, page: Page) -> None:
         self.page = page
-        self.config=Config.get_instance()
+        self.config = Config.get_instance()
 
     def __enter__(self):
         question = self.page.locator(AnswerSelectors.QUESTION)
@@ -136,7 +136,8 @@ class SyncQuestionItem():
                             self.answer_items.nth(i).type(answer[i], delay=uniform(
                                 ANSWER_SLEEP_MIN_SECS, ANSWER_SLEEP_MAX_SECS)*1000)
                         case QuestionType.UNKNOWN:
-                            getLogger(appid).error(get_lang(self.config.lang,"core-error-unknown-answer-type"))
+                            getLogger(appid).error(
+                                get_lang(self.config.lang, "core-error-unknown-answer-type"))
         else:
             # no answer, random finish
             self.random_finish()
