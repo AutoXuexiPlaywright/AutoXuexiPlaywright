@@ -3,7 +3,6 @@ from io import BytesIO
 from qrcode import QRCode  # type: ignore
 from logging import Handler
 from PIL import Image
-from typing import Union
 from pyzbar.pyzbar import Decoded, decode  # type: ignore
 
 from autoxuexiplaywright.defines.events import EventId
@@ -13,10 +12,8 @@ from autoxuexiplaywright.utils.config import Config
 from autoxuexiplaywright.utils.logger import init_logger, logger
 
 
-def to_str(obj: Union[str, None]) -> str:
-    if obj is None:
-        return ""
-    return obj
+def to_str(obj: str | None) -> str:
+    return "" if obj is None else obj
 
 
 def img2shell(img: bytes) -> None:
@@ -32,17 +29,10 @@ def img2shell(img: bytes) -> None:
         qr.print_tty()  # type: ignore
 
 
-def start_backend() -> None:
+def start(st: Handler | None = None) -> None:
+    init_logger(st)
     if Config.get_instance().async_mode:
         from autoxuexiplaywright.asyncprocessor import start
     else:
         from autoxuexiplaywright.syncprocessor import start
     start()
-
-
-def start(st: Handler | None = None) -> None:
-    if st is not None:
-        init_logger(st)
-    else:
-        init_logger()
-    start_backend()
