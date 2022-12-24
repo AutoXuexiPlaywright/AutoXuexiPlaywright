@@ -1,5 +1,4 @@
 from base64 import b64decode
-from logging import getLogger
 from playwright.async_api import Page, TimeoutError
 
 from autoxuexiplaywright.utils.eventmanager import find_event_by_id
@@ -13,8 +12,7 @@ from autoxuexiplaywright.defines.core import (
 from autoxuexiplaywright.defines.urls import LOGIN_PAGE
 from autoxuexiplaywright.defines.selectors import LoginSelectors
 from autoxuexiplaywright.defines.events import EventId
-
-from autoxuexiplaywright import appid
+from autoxuexiplaywright.utils.logger import logger
 
 
 async def login(page: Page) -> None:
@@ -27,7 +25,7 @@ async def login(page: Page) -> None:
         await page.locator(LoginSelectors.LOGIN_CHECK).wait_for(
             timeout=CHECK_ELEMENT_TIMEOUT_SECS*1000)
     except TimeoutError:
-        getLogger(appid).info(get_lang(
+        logger.info(get_lang(
             config.lang, "core-info-cookie-login-failed"))
         failed_num = 0
         while True:
@@ -35,7 +33,7 @@ async def login(page: Page) -> None:
             try:
                 await qglogin.scroll_into_view_if_needed()
             except TimeoutError:
-                getLogger(appid).error(get_lang(
+                logger.error(get_lang(
                     config.lang, "core-err-load-qr-failed"))
                 raise RuntimeError()
             locator = qglogin.frame_locator(
@@ -44,7 +42,7 @@ async def login(page: Page) -> None:
                 await locator.get_attribute("src")).split(",")[1])
             with open(get_cache_path("qr.png"), "wb") as writer:
                 writer.write(img)
-            getLogger(appid).info(get_lang(
+            logger.info(get_lang(
                 config.lang, "core-info-scan-required"))
             img2shell(img)
             locator = page.locator(LoginSelectors.LOGIN_CHECK)
@@ -52,18 +50,18 @@ async def login(page: Page) -> None:
                 await locator.wait_for()
             except TimeoutError as e:
                 if failed_num > LOGIN_RETRY_TIMES:
-                    getLogger(appid).error(
+                    logger.error(
                         get_lang(config.lang, "core-err-login-failed-too-many-times"))
                     raise e
                 else:
                     failed_num += 1
                     await page.reload()
             else:
-                getLogger(appid).info(get_lang(
+                logger.info(get_lang(
                     config.lang, "core-info-qr-login-success"))
                 break
     else:
-        getLogger(appid).info(get_lang(
+        logger.info(get_lang(
             config.lang, "core-info-cookie-login-success"))
     await page.close()
     find_event_by_id(

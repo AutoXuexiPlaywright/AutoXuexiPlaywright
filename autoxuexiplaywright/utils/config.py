@@ -22,7 +22,7 @@ class Config:
         json: ConfigType = {}
         if isfile(path):
             with open(path, "r", encoding="utf-8") as reader:
-                json.update(load(reader))
+                json.update(**load(reader))
         else:
             json.update(DEFAULT_CONF)
             with open(path, "w", encoding="utf-8") as writer:

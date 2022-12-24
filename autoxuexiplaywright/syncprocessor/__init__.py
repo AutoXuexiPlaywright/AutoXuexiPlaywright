@@ -1,7 +1,6 @@
 from os import remove
 from os.path import exists
 from time import time
-from logging import getLogger
 from playwright.sync_api import Page, TimeoutError, sync_playwright
 
 from autoxuexiplaywright.defines.urls import POINTS_PAGE
@@ -16,10 +15,9 @@ from autoxuexiplaywright.utils.answerutils import init_sources, close_sources
 from autoxuexiplaywright.utils.storage import get_cache_path
 from autoxuexiplaywright.utils.eventmanager import find_event_by_id
 from autoxuexiplaywright.utils.config import Config
+from autoxuexiplaywright.utils.logger import logger
 from autoxuexiplaywright.syncprocessor.login import login
 from autoxuexiplaywright.syncprocessor.handle import cache, pre_handle
-
-from autoxuexiplaywright import appid
 
 
 def start(conf_path: str | None = None) -> None:
@@ -43,7 +41,7 @@ def start(conf_path: str | None = None) -> None:
             check_status_and_finish(
                 context.new_page())
         except Exception as e:
-            getLogger(appid).error(get_lang(
+            logger.error(get_lang(
                 config.lang, "core-err-process-exception") % e)
         context.close()
         browser.close()
@@ -57,7 +55,7 @@ def start(conf_path: str | None = None) -> None:
     delta_hrs, delta_mins = divmod(delta_mins, 60)
     finish_str = get_lang(config.lang, "core-info-all-finished").format(
         int(delta_hrs), int(delta_mins), int(delta_secs))
-    getLogger(appid).info(finish_str)
+    logger.info(finish_str)
     find_event_by_id(EventId.FINISHED).invoke(finish_str)
 
 
@@ -73,10 +71,10 @@ def check_status_and_finish(page: Page) -> None:
             points_ints = tuple([int(point.strip())
                                 for point in points.all_inner_texts()])
         except:
-            getLogger(appid).error(get_lang(
+            logger.error(get_lang(
                 config.lang, "core-error-update-score-failed"))
         else:
-            getLogger(appid).info(
+            logger.info(
                 get_lang(config.lang, "core-info-update-score-success") % points_ints)
             find_event_by_id(
                 EventId.SCORE_UPDATED).invoke(points_ints)
@@ -85,7 +83,7 @@ def check_status_and_finish(page: Page) -> None:
         login_task_style = to_str(cards.nth(0).locator(
             PointsSelectors.CARD_BUTTON).first.get_attribute("style"))
         if "not-allowed" not in login_task_style:
-            getLogger(appid).warning(
+            logger.warning(
                 get_lang(config.lang, "core-warning-login-task-not-completed"))
         if process_position < cards.count():
             card = cards.nth(process_position)
@@ -93,15 +91,15 @@ def check_status_and_finish(page: Page) -> None:
             button = card.locator(PointsSelectors.CARD_BUTTON).first
             style = to_str(button.get_attribute("style"))
             if "not-allowed" in style:
-                getLogger(appid).info(get_lang(
+                logger.info(get_lang(
                     config.lang, "core-info-card-finished") % title)
                 process_position += 1
             elif title.strip() in config.skipped:
-                getLogger(appid).info(get_lang(
+                logger.info(get_lang(
                     config.lang, "core-info-card-skipped") % title)
                 process_position += 1
             else:
-                getLogger(appid).info(get_lang(
+                logger.info(get_lang(
                     config.lang, "core-info-card-processing") % title)
                 find_event_by_id(EventId.STATUS_UPDATED).invoke(
                     get_lang(config.lang, "ui-status-tooltip") % title)
