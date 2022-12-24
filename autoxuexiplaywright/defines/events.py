@@ -1,9 +1,8 @@
-from typing import Callable, List
 from enum import Enum
 
-__all__ = ["EventId"]
+from autoxuexiplaywright.defines.types import EventCallbackType
 
-EventCallbackType = Callable[..., None]
+__all__ = ["EventId"]
 
 
 class EventId(Enum):
@@ -17,7 +16,7 @@ class EventId(Enum):
 
 class Event():
     def __init__(self) -> None:
-        self.callbacks: List[EventCallbackType] = []
+        self.callbacks: list[EventCallbackType] = []
         self.id: EventId = EventId.NONE
 
     def add_callback(self, callback: EventCallbackType) -> None:

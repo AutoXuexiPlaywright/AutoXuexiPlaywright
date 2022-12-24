@@ -1,6 +1,5 @@
 from time import time
 from random import uniform, randint
-from logging import getLogger
 from playwright.sync_api import Page, TimeoutError
 
 from autoxuexiplaywright.defines.core import (
@@ -11,8 +10,7 @@ from autoxuexiplaywright.utils.misc import to_str
 from autoxuexiplaywright.utils.lang import get_lang
 from autoxuexiplaywright.utils.config import Config
 from autoxuexiplaywright.syncprocessor.defines import SyncQuestionItem
-
-from autoxuexiplaywright import appid
+from autoxuexiplaywright.utils.logger import logger
 
 
 def emulate_read(page: Page) -> None:
@@ -61,7 +59,7 @@ def emulate_answer(page: Page) -> None:
         try:
             result.wait_for(timeout=WAIT_RESULT_SECS*1000)
         except TimeoutError:
-            getLogger(appid).info(get_lang(
+            logger.info(get_lang(
                 Config.get_instance().lang, "core-info-test-not-finish"))
         else:
             break

@@ -1,4 +1,3 @@
-from logging import getLogger
 from playwright.sync_api import Page
 
 from autoxuexiplaywright.defines.core import ProcessType
@@ -8,8 +7,7 @@ from autoxuexiplaywright.utils.lang import get_lang
 from autoxuexiplaywright.utils .misc import to_str
 from autoxuexiplaywright.utils.config import Config
 from autoxuexiplaywright.syncprocessor.operations import emulate_answer, emulate_read
-
-from autoxuexiplaywright import appid
+from autoxuexiplaywright.utils.logger import logger
 
 
 cache = set[str]()
@@ -34,7 +32,7 @@ def pre_handle(page: Page, close_page: bool, process_type: ProcessType) -> bool:
         case ProcessType.TEST:
             skip = handle_test(page)
         case ProcessType.UNKNOWN:
-            getLogger(appid).error(
+            logger.error(
                 get_lang(Config.get_instance().lang, "core-error-unknown-process-type"))
     if close_page:
         page.close()
@@ -51,8 +49,8 @@ def handle_news(page: Page) -> bool:
         for i in range(news_list.count()):
             title = news_list.nth(i).locator(ReadSelectors.NEWS_TITLE_TEXT)
             if title.inner_text() not in cache:
-                getLogger(appid).info(get_lang(config.lang, "core-info-processing-news") %
-                                      title.inner_text().strip().replace("\n", " "))
+                logger.info(get_lang(config.lang, "core-info-processing-news") %
+                            title.inner_text().strip().replace("\n", " "))
                 with page.context.expect_page() as page_info:
                     title.click()
                 emulate_read(page_info.value)
@@ -62,10 +60,10 @@ def handle_news(page: Page) -> bool:
                 break
         if not handled_page:
             next_btn = page.locator(ReadSelectors.NEXT_PAGE)
-            getLogger(appid).warning(get_lang(
+            logger.warning(get_lang(
                 config.lang, "core-warning-no-news-on-current-page"))
             if next_btn.count() == 0:
-                getLogger(appid).error(get_lang(
+                logger.error(get_lang(
                     config.lang, "core-error-no-available-news"))
                 skip = True
                 break
@@ -87,7 +85,7 @@ def handle_video(page: Page) -> bool:
         for i in range(text_wrappers.count()):
             text_wrapper = text_wrappers.nth(i)
             if text_wrapper.inner_text() not in cache:
-                getLogger(appid).info(get_lang(
+                logger.info(get_lang(
                     config.lang, "core-info-processing-video") % text_wrapper.inner_text())
                 with page.context.expect_page() as page_info_video:
                     text_wrapper.click()
@@ -98,10 +96,10 @@ def handle_video(page: Page) -> bool:
                 break
         if not handled_page:
             next_btn = page.locator(ReadSelectors.NEXT_PAGE)
-            getLogger(appid).warning(get_lang(
+            logger.warning(get_lang(
                 config.lang, "core-warning-no-videos-on-current-page"))
             if next_btn.count() == 0:
-                getLogger(appid).error(get_lang(
+                logger.error(get_lang(
                     config.lang, "core-error-no-available-videos"))
                 skip = True
                 break
@@ -118,7 +116,7 @@ def handle_test(page: Page) -> bool:
     config = Config.get_instance()
     match page.url:
         case ExamEntranceUrls.DAILY_EXAM_PAGE:
-            getLogger(appid).info(get_lang(
+            logger.info(get_lang(
                 config.lang, "core-info-processing-daily-test"))
             emulate_answer(page)
         case ExamEntranceUrls.WEEKLY_EXAM_PAGE:
@@ -134,7 +132,7 @@ def handle_test(page: Page) -> bool:
                     stat = to_str(week.locator(
                         AnswerSelectors.TEST_WEEK_STAT).get_attribute("class"))
                     if "done" not in stat:
-                        getLogger(appid).info(
+                        logger.info(
                             get_lang(config.lang, "core-info-processing-weekly-test") % title)
                         button.click()
                         emulate_answer(page)
@@ -142,10 +140,10 @@ def handle_test(page: Page) -> bool:
                         break
                 if not handled_page:
                     next_btn = page.locator(AnswerSelectors.TEST_NEXT_PAGE)
-                    getLogger(appid).warning(get_lang(
+                    logger.warning(get_lang(
                         config.lang, "core-warning-no-test-on-current-page"))
                     if next_btn.get_attribute("aria-disabled") == "true":
-                        getLogger(appid).error(get_lang(
+                        logger.error(get_lang(
                             config.lang, "core-error-no-available-test"))
                         skip = True
                         break
@@ -174,7 +172,7 @@ def handle_test(page: Page) -> bool:
                     title = title_element.inner_text().replace(
                         before, "").replace(after, "").strip().replace("\n", " ")
                     if points.count() == 0:
-                        getLogger(appid).info(
+                        logger.info(
                             get_lang(config.lang, "core-info-processing-special-test") % title)
                         button.click()
                         emulate_answer(page)
@@ -182,10 +180,10 @@ def handle_test(page: Page) -> bool:
                         break
                 if not handled_page:
                     next_btn = page.locator(AnswerSelectors.TEST_NEXT_PAGE)
-                    getLogger(appid).warning(get_lang(
+                    logger.warning(get_lang(
                         config.lang, "core-warning-no-test-on-current-page"))
                     if next_btn.get_attribute("aria-disabled") == "true":
-                        getLogger(appid).error(get_lang(
+                        logger.error(get_lang(
                             config.lang, "core-error-no-available-test"))
                         skip = True
                         break
@@ -197,7 +195,7 @@ def handle_test(page: Page) -> bool:
                 else:
                     break
         case url:
-            getLogger(appid).error(get_lang(
+            logger.error(get_lang(
                 config.lang, "core-error-unknown-test") % url)
             skip = True
     return skip
