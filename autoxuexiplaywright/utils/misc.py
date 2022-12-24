@@ -1,12 +1,12 @@
 from os import putenv
 from io import BytesIO
-from qrcode import QRCode # type: ignore
+from qrcode import QRCode  # type: ignore
 from logging import (
     Handler, Formatter, StreamHandler, FileHandler, getLogger, INFO, DEBUG
 )
 from PIL import Image
 from typing import Union
-from pyzbar.pyzbar import Decoded, decode # type: ignore
+from pyzbar.pyzbar import Decoded, decode  # type: ignore
 
 from autoxuexiplaywright.defines.core import (
     LOGGING_FMT, LOGGING_DATETIME_FMT
@@ -56,8 +56,8 @@ def img2shell(img: bytes) -> None:
     else:
         data: Decoded = decode(Image.open(BytesIO(img)))[0]
         qr = QRCode(box_size=4)
-        qr.add_data(data.data) # type: ignore
-        qr.print_tty() # type: ignore
+        qr.add_data(data.data)  # type: ignore
+        qr.print_tty()  # type: ignore
 
 
 def start_backend() -> None:

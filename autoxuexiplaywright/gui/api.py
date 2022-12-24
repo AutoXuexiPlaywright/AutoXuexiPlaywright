@@ -18,7 +18,7 @@ def start(argv: list[str]):
     match system():
         case "Windows":
             import ctypes
-            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID( # type: ignore
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(  # type: ignore
                 appid)
         case "Linux":
             QApplication.setDesktopFileName(desktop_file_id)

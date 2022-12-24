@@ -3,7 +3,7 @@ from imghdr import what
 from PySide6.QtGui import (QMouseEvent, QPixmap, QIcon)
 from PySide6.QtCore import (QFile, QPoint, QPointF, Qt, QSettings, QThread)
 from PySide6.QtWidgets import (QCheckBox, QVBoxLayout, QInputDialog, QLabel, QSystemTrayIcon,
-                            QLineEdit, QMainWindow, QPlainTextEdit, QPushButton, QHBoxLayout, QWidget)
+                               QLineEdit, QMainWindow, QPlainTextEdit, QPushButton, QHBoxLayout, QWidget)
 
 from autoxuexiplaywright.defines.core import ANSWER_CONNECTOR
 from autoxuexiplaywright.defines.ui import ObjNames, UI_ICON, UI_CONF, OPACITY, UI_WIDTH, UI_HEIGHT, NOTIFY_SECS, SPLIT_TITLE_SIZE

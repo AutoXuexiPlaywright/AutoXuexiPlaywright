@@ -21,6 +21,7 @@ from autoxuexiplaywright.syncprocessor.handle import cache, pre_handle
 
 from autoxuexiplaywright import appid
 
+
 def start(conf_path: str | None = None) -> None:
     cache.clear()
     init_sources()

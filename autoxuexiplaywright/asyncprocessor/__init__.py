@@ -59,7 +59,8 @@ async def run(conf_path: str | None) -> None:
             remove(get_cache_path("qr.png"))
     delta_mins, delta_secs = divmod(time()-start_time, 60)
     delta_hrs, delta_mins = divmod(delta_mins, 60)
-    finish_str = get_lang(config.lang, "core-info-all-finished").format(int(delta_hrs), int(delta_mins), int(delta_secs))
+    finish_str = get_lang(config.lang, "core-info-all-finished").format(
+        int(delta_hrs), int(delta_mins), int(delta_secs))
     getLogger(appid).info(finish_str)
     find_event_by_id(EventId.FINISHED).invoke(finish_str)
 
@@ -79,7 +80,8 @@ async def check_status_and_finish(page: Page):
             getLogger(appid).error(get_lang(
                 config.lang, "core-error-update-score-failed"))
         else:
-            getLogger(appid).info(get_lang(config.lang, "core-info-update-score-success") % points_ints)
+            getLogger(appid).info(
+                get_lang(config.lang, "core-info-update-score-success") % points_ints)
             find_event_by_id(
                 EventId.SCORE_UPDATED).invoke(points_ints)
         cards = page.locator(PointsSelectors.POINTS_CARDS)
@@ -87,7 +89,8 @@ async def check_status_and_finish(page: Page):
         login_task_style = to_str(await cards.nth(0).locator(
             PointsSelectors.CARD_BUTTON).first.get_attribute("style"))
         if "not-allowed" not in login_task_style:
-            getLogger(appid).warning(get_lang(config.lang, "core-warning-login-task-not-completed"))
+            getLogger(appid).warning(
+                get_lang(config.lang, "core-warning-login-task-not-completed"))
         if process_position < await cards.count():
             card = cards.nth(process_position)
             title = await card.locator(PointsSelectors.CARD_TITLE).first.inner_text()
