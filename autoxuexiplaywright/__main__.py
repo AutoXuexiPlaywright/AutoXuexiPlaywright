@@ -22,7 +22,7 @@ def main():
         from autoxuexiplaywright.gui.api import start
         start(argv)
     else:
-        from autoxuexiplaywright.utils.misc import start
+        from autoxuexiplaywright.utils.start import start
         start()
 
 

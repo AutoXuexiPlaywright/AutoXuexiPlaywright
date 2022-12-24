@@ -1,7 +1,6 @@
 
 from io import BytesIO
 from qrcode import QRCode  # type: ignore
-from logging import Handler
 from PIL import Image
 from pyzbar.pyzbar import Decoded, decode  # type: ignore
 
@@ -9,7 +8,7 @@ from autoxuexiplaywright.defines.events import EventId
 from autoxuexiplaywright.utils.lang import get_lang
 from autoxuexiplaywright.utils.eventmanager import find_event_by_id
 from autoxuexiplaywright.utils.config import Config
-from autoxuexiplaywright.utils.logger import init_logger, logger
+from autoxuexiplaywright.utils.logger import logger
 
 
 def to_str(obj: str | None) -> str:
@@ -27,12 +26,3 @@ def img2shell(img: bytes) -> None:
         qr = QRCode(box_size=4)
         qr.add_data(data.data)  # type: ignore
         qr.print_tty()  # type: ignore
-
-
-def start(st: Handler | None = None) -> None:
-    init_logger(st)
-    if Config.get_instance().async_mode:
-        from autoxuexiplaywright.asyncprocessor import start
-    else:
-        from autoxuexiplaywright.syncprocessor import start
-    start()

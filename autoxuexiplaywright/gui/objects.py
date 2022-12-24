@@ -1,7 +1,7 @@
 from logging import Handler, LogRecord
 from PySide6.QtCore import Signal, SignalInstance, QObject, QWaitCondition, QMutex  # type: ignore
 
-from autoxuexiplaywright.utils.misc import start
+from autoxuexiplaywright.utils.start import start
 
 
 class QHandler(Handler):
