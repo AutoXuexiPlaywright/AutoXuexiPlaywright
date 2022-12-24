@@ -6,7 +6,7 @@ from asyncio import run as asynciorun
 from playwright.async_api import Page, TimeoutError, async_playwright
 
 from autoxuexiplaywright.defines.core import (
-    ProcessType, WAIT_PAGE_SECS, APPID, WAIT_NEW_PAGE_SECS, NEWS_RANGE, VIDEO_RANGE, TEST_RANGE)
+    ProcessType, WAIT_PAGE_SECS, WAIT_NEW_PAGE_SECS, NEWS_RANGE, VIDEO_RANGE, TEST_RANGE)
 from autoxuexiplaywright.defines.selectors import PointsSelectors
 from autoxuexiplaywright.defines.urls import POINTS_PAGE
 from autoxuexiplaywright.defines.events import EventId
@@ -18,6 +18,8 @@ from autoxuexiplaywright.utils.answerutils import init_sources, close_sources
 from autoxuexiplaywright.utils.config import Config
 from autoxuexiplaywright.asyncprocessor.handle import cache, pre_handle
 from autoxuexiplaywright.asyncprocessor.login import login
+
+from autoxuexiplaywright import appid
 
 
 def start(conf_path: str | None = None) -> None:
@@ -45,7 +47,7 @@ async def run(conf_path: str | None) -> None:
             await check_status_and_finish(
                 await context.new_page())
         except Exception as e:
-            getLogger(APPID).error(get_lang(
+            getLogger(appid).error(get_lang(
                 config.lang, "core-err-process-exception") % e)
         await context.close()
         await browser.close()
@@ -58,7 +60,7 @@ async def run(conf_path: str | None) -> None:
     delta_mins, delta_secs = divmod(time()-start_time, 60)
     delta_hrs, delta_mins = divmod(delta_mins, 60)
     finish_str = get_lang(config.lang, "core-info-all-finished").format(int(delta_hrs), int(delta_mins), int(delta_secs))
-    getLogger(APPID).info(finish_str)
+    getLogger(appid).info(finish_str)
     find_event_by_id(EventId.FINISHED).invoke(finish_str)
 
 
@@ -74,10 +76,10 @@ async def check_status_and_finish(page: Page):
             points_ints = tuple([int(point.strip())
                                 for point in await points.all_inner_texts()])
         except:
-            getLogger(APPID).error(get_lang(
+            getLogger(appid).error(get_lang(
                 config.lang, "core-error-update-score-failed"))
         else:
-            getLogger(APPID).info(get_lang(config.lang, "core-info-update-score-success") % points_ints)
+            getLogger(appid).info(get_lang(config.lang, "core-info-update-score-success") % points_ints)
             find_event_by_id(
                 EventId.SCORE_UPDATED).invoke(points_ints)
         cards = page.locator(PointsSelectors.POINTS_CARDS)
@@ -85,22 +87,22 @@ async def check_status_and_finish(page: Page):
         login_task_style = to_str(await cards.nth(0).locator(
             PointsSelectors.CARD_BUTTON).first.get_attribute("style"))
         if "not-allowed" not in login_task_style:
-            getLogger(APPID).warning(get_lang(config.lang, "core-warning-login-task-not-completed"))
+            getLogger(appid).warning(get_lang(config.lang, "core-warning-login-task-not-completed"))
         if process_position < await cards.count():
             card = cards.nth(process_position)
             title = await card.locator(PointsSelectors.CARD_TITLE).first.inner_text()
             button = card.locator(PointsSelectors.CARD_BUTTON).first
             style = to_str(await button.get_attribute("style"))
             if "not-allowed" in style:
-                getLogger(APPID).info(get_lang(
+                getLogger(appid).info(get_lang(
                     config.lang, "core-info-card-finished") % title)
                 process_position += 1
             elif title.strip() in config.skipped:
-                getLogger(APPID).info(get_lang(
+                getLogger(appid).info(get_lang(
                     config.lang, "core-info-card-skipped") % title)
                 process_position += 1
             else:
-                getLogger(APPID).info(get_lang(
+                getLogger(appid).info(get_lang(
                     config.lang, "core-info-card-processing") % title)
                 find_event_by_id(EventId.STATUS_UPDATED).invoke(
                     get_lang(config.lang, "ui-status-tooltip") % title)

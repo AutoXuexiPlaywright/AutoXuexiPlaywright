@@ -3,7 +3,9 @@ from os.path import join, exists, isdir, expanduser
 from platform import system
 from importlib import resources
 
-from autoxuexiplaywright.defines.core import MOD_EXT, APPID
+from autoxuexiplaywright.defines.core import MOD_EXT
+
+from autoxuexiplaywright import appid
 
 
 def get_resource_path(file_name: str) -> str:
@@ -55,28 +57,28 @@ def get_modules_paths() -> list[str]:
 match system():
     case "Linux":
         from xdg import BaseDirectory  # type: ignore
-        data_dir = BaseDirectory.save_data_path(APPID)  # type: ignore
-        conf_dir = BaseDirectory.save_config_path(APPID)  # type: ignore
-        cache_dir = BaseDirectory.save_cache_path(APPID)  # type: ignore
+        data_dir = BaseDirectory.save_data_path(appid)  # type: ignore
+        conf_dir = BaseDirectory.save_config_path(appid)  # type: ignore
+        cache_dir = BaseDirectory.save_cache_path(appid)  # type: ignore
     case "Windows":
         data_dir = join(expanduser(
-            "~"), "AppData", "Local", APPID)
+            "~"), "AppData", "Local", appid)
         conf_dir = join(expanduser(
-            "~"), "AppData", "Local", APPID)
+            "~"), "AppData", "Local", appid)
         cache_dir = join(expanduser("~"),
-                         "AppData", "Local", APPID)
+                         "AppData", "Local", appid)
     case "Darwin":
         data_dir = join(expanduser(
-            "~"), "Library", "Application Support", APPID)
+            "~"), "Library", "Application Support", appid)
         conf_dir = join(expanduser(
-            "~"), "Library", "Preferences", APPID)
+            "~"), "Library", "Preferences", appid)
         cache_dir = join(expanduser("~"),
-                         "Library", "Caches", APPID)
+                         "Library", "Caches", appid)
     case default:
         data_dir = join(expanduser(
-            "~"), ".local", "share", APPID)
-        conf_dir = join(expanduser("~"), ".config", APPID)
-        cache_dir = join(expanduser("~"), ".cache", APPID)
+            "~"), ".local", "share", appid)
+        conf_dir = join(expanduser("~"), ".config", appid)
+        cache_dir = join(expanduser("~"), ".cache", appid)
 makedirs(data_dir, exist_ok=True)
 makedirs(conf_dir, exist_ok=True)
 makedirs(cache_dir, exist_ok=True)

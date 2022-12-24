@@ -6,13 +6,15 @@ from logging import getLogger
 from sqlite3 import connect
 from enum import Enum
 from importlib import util
-from autoxuexiplaywright.defines.core import APPID, ANSWER_CONNECTOR, EXTRA_ANSWER_SOURCES_NAMESPACE, MOD_EXT
+from autoxuexiplaywright.defines.core import ANSWER_CONNECTOR, EXTRA_ANSWER_SOURCES_NAMESPACE, MOD_EXT
 from autoxuexiplaywright.defines.events import EventId
 from autoxuexiplaywright.utils.lang import get_lang
 from autoxuexiplaywright.utils.storage import get_config_path, get_modules_paths
 from autoxuexiplaywright.utils.eventmanager import find_event_by_id
 from autoxuexiplaywright.utils.config import Config
 from autoxuexiplaywright.sdk import AnswerSource
+
+from autoxuexiplaywright import appid
 
 
 sources: list[AnswerSource] = []
@@ -32,7 +34,7 @@ class AddSupportedAnswerSource(AnswerSource):
 class DatabaseSource(AddSupportedAnswerSource):
     def __init__(self) -> None:
         self.name = "DatabaseSource"
-        self.author = APPID
+        self.author = appid
         self.priority = 0
         self.conn = connect(get_config_path("data.db"))
         self.conn.execute(
@@ -101,7 +103,7 @@ def init_sources() -> None:
     sources.append(DatabaseSource())
     modules = get_modules_paths()
     if len(modules) > 0:
-        getLogger(APPID).warning(get_lang(
+        getLogger(appid).warning(get_lang(
             config.lang, "core-warning-using-external-modules"))
         priority = 1
         for file in modules:
@@ -130,7 +132,7 @@ def init_sources() -> None:
     if len(sources) > 1:
         sources.sort(key=lambda o: o.priority)
     if len(sources) > 0:
-        getLogger(APPID).debug(get_lang(config.lang, "core-debug-current-modules-num") %
+        getLogger(appid).debug(get_lang(config.lang, "core-debug-current-modules-num") %
                                (len(sources), [src.name for src in sources]))
 
 
@@ -148,7 +150,7 @@ def get_answer_from_sources(title: str) -> list[str]:
         try:
             result = source.get_answer(title)
         except Exception as e:
-            getLogger(APPID).debug(get_lang(
+            getLogger(appid).debug(get_lang(
                 Config().lang, "core-debug-answer-source-failed") % (source.author, source.name, e))
         else:
             if len(result) > 0:

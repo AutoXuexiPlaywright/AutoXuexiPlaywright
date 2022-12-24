@@ -1,13 +1,15 @@
 from logging import getLogger
 from playwright.async_api import Page
 
-from autoxuexiplaywright.defines.core import ProcessType, APPID
+from autoxuexiplaywright.defines.core import ProcessType
 from autoxuexiplaywright.defines.selectors import ReadSelectors, AnswerSelectors, LOADING
 from autoxuexiplaywright.defines.urls import ExamEntranceUrls
 from autoxuexiplaywright.utils.misc import to_str
 from autoxuexiplaywright.utils.lang import get_lang
 from autoxuexiplaywright.utils.config import Config
 from autoxuexiplaywright.asyncprocessor.operations import emulate_answer, emulate_read
+
+from autoxuexiplaywright import appid
 
 
 cache = set[str]()
@@ -35,7 +37,7 @@ async def pre_handle(page: Page, close_page: bool, process_type: ProcessType) ->
         case ProcessType.TEST:
             skip = await handle_test(page)
         case ProcessType.UNKNOWN:
-            getLogger(APPID).error(
+            getLogger(appid).error(
                 get_lang(Config.get_instance().lang, "core-error-unknown-process-type"))
     if close_page:
         await page.close()
@@ -53,7 +55,7 @@ async def handle_news(page: Page) -> bool:
             title = news_list.nth(i).locator(ReadSelectors.NEWS_TITLE_TEXT)
             title_text = await title.inner_text()
             if title_text not in cache:
-                getLogger(APPID).info(get_lang(
+                getLogger(appid).info(get_lang(
                     config.lang, "core-info-processing-news") % title_text.strip().replace("\n", " "))
                 async with page.context.expect_page() as page_info:
                     await title.click()
@@ -65,10 +67,10 @@ async def handle_news(page: Page) -> bool:
                 break
         if not handled_page:
             next_btn = page.locator(ReadSelectors.NEXT_PAGE)
-            getLogger(APPID).warning(get_lang(
+            getLogger(appid).warning(get_lang(
                 config.lang, "core-warning-no-news-on-current-page"))
             if await next_btn.count() == 0:
-                getLogger(APPID).error(get_lang(
+                getLogger(appid).error(get_lang(
                     config.lang, "core-error-no-available-news"))
                 skip = True
                 break
@@ -91,7 +93,7 @@ async def handle_video(page: Page) -> bool:
             text_wrapper = text_wrappers.nth(i)
             text_wrapper_text = await text_wrapper.inner_text()
             if text_wrapper_text not in cache:
-                getLogger(APPID).info(
+                getLogger(appid).info(
                     get_lang(config.lang, "core-info-processing-video") % text_wrapper_text)
                 async with page.context.expect_page() as page_info_video:
                     await text_wrapper.click()
@@ -103,10 +105,10 @@ async def handle_video(page: Page) -> bool:
                 break
         if not handled_page:
             next_btn = page.locator(ReadSelectors.NEXT_PAGE)
-            getLogger(APPID).warning(get_lang(
+            getLogger(appid).warning(get_lang(
                 config.lang, "core-warning-no-videos-on-current-page"))
             if await next_btn.count() == 0:
-                getLogger(APPID).error(get_lang(
+                getLogger(appid).error(get_lang(
                     config.lang, "core-error-no-available-videos"))
                 skip = True
                 break
@@ -123,7 +125,7 @@ async def handle_test(page: Page) -> bool:
     config = Config.get_instance()
     match page.url:
         case ExamEntranceUrls.DAILY_EXAM_PAGE:
-            getLogger(APPID).info(get_lang(
+            getLogger(appid).info(get_lang(
                 config.lang, "core-info-processing-daily-test"))
             await emulate_answer(page)
         case ExamEntranceUrls.WEEKLY_EXAM_PAGE:
@@ -140,7 +142,7 @@ async def handle_test(page: Page) -> bool:
                     stat = to_str(await week.locator(
                         AnswerSelectors.TEST_WEEK_STAT).get_attribute("class"))
                     if "done" not in stat:
-                        getLogger(APPID).info(
+                        getLogger(appid).info(
                             get_lang(config.lang, "core-info-processing-weekly-test") % title)
                         await button.click()
                         await emulate_answer(page)
@@ -148,10 +150,10 @@ async def handle_test(page: Page) -> bool:
                         break
                 if not handled_page:
                     next_btn = page.locator(AnswerSelectors.TEST_NEXT_PAGE)
-                    getLogger(APPID).warning(get_lang(
+                    getLogger(appid).warning(get_lang(
                         config.lang, "core-warning-no-test-on-current-page"))
                     if await next_btn.get_attribute("aria-disabled") == "true":
-                        getLogger(APPID).error(get_lang(
+                        getLogger(appid).error(get_lang(
                             config.lang, "core-error-no-available-test"))
                         skip = True
                         break
@@ -181,7 +183,7 @@ async def handle_test(page: Page) -> bool:
                     title = title_text.replace(
                         before, "").replace(after, "").strip().replace("\n", " ")
                     if await points.count() == 0:
-                        getLogger(APPID).info(
+                        getLogger(appid).info(
                             get_lang(config.lang, "core-info-processing-special-test") % title)
                         await button.click()
                         await emulate_answer(page)
@@ -189,10 +191,10 @@ async def handle_test(page: Page) -> bool:
                         break
                 if not handled_page:
                     next_btn = page.locator(AnswerSelectors.TEST_NEXT_PAGE)
-                    getLogger(APPID).warning(get_lang(
+                    getLogger(appid).warning(get_lang(
                         config.lang, "core-warning-no-test-on-current-page"))
                     if await next_btn.get_attribute("aria-disabled") == "true":
-                        getLogger(APPID).error(get_lang(
+                        getLogger(appid).error(get_lang(
                             config.lang, "core-error-no-available-test"))
                         skip = True
                         break
@@ -204,7 +206,7 @@ async def handle_test(page: Page) -> bool:
                 else:
                     break
         case url:
-            getLogger(APPID).error(get_lang(
+            getLogger(appid).error(get_lang(
                 config.lang, "core-error-unknown-test") % url)
             skip = True
     return skip
