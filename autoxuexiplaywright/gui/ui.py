@@ -5,7 +5,7 @@ from PySide6.QtCore import (QFile, QPoint, QPointF, Qt, QSettings, QThread)
 from PySide6.QtWidgets import (QCheckBox, QVBoxLayout, QInputDialog, QLabel, QSystemTrayIcon,
                             QLineEdit, QMainWindow, QPlainTextEdit, QPushButton, QHBoxLayout, QWidget)
 
-from autoxuexiplaywright.defines.core import APPID, ANSWER_CONNECTOR
+from autoxuexiplaywright.defines.core import ANSWER_CONNECTOR
 from autoxuexiplaywright.defines.ui import ObjNames, UI_ICON, UI_CONF, OPACITY, UI_WIDTH, UI_HEIGHT, NOTIFY_SECS, SPLIT_TITLE_SIZE
 from autoxuexiplaywright.defines.events import EventId
 from autoxuexiplaywright.gui.settings import SettingsWindow
@@ -15,6 +15,7 @@ from autoxuexiplaywright.utils.answerutils import is_valid_answer
 from autoxuexiplaywright.utils.storage import get_resource_path
 from autoxuexiplaywright.utils.eventmanager import find_event_by_id, clean_callbacks
 from autoxuexiplaywright.utils.config import Config
+from autoxuexiplaywright import appid
 
 
 class MainWindow(QMainWindow):
@@ -23,7 +24,7 @@ class MainWindow(QMainWindow):
         self.icon = QPixmap()
         self.icon.loadFromData(UI_ICON)
         self.setWindowIcon(QIcon(self.icon))
-        self.setWindowTitle(APPID)
+        self.setWindowTitle(appid)
         self.setWindowOpacity(OPACITY)
         self.setObjectName(ObjNames.MAIN)
         self.resize(UI_WIDTH, UI_HEIGHT)
@@ -38,7 +39,7 @@ class MainWindow(QMainWindow):
                 self.windowFlags() | Qt.WindowType.WindowStaysOnTopHint
             )
         self.tray = QSystemTrayIcon(self.windowIcon(), self)
-        self.tray.setToolTip(APPID)
+        self.tray.setToolTip(appid)
         self.central_widget = QWidget(self)
         self.central_widget.setObjectName(ObjNames.CENTRAL_WIDGET)
         self.setCentralWidget(self.central_widget)
@@ -61,7 +62,7 @@ class MainWindow(QMainWindow):
     def set_title_layout(self) -> None:
         config = Config.get_instance()
         self.title_layout = QHBoxLayout()
-        self.title = QLabel(APPID)
+        self.title = QLabel(appid)
         self.title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.title.setObjectName(ObjNames.TITLE)
         self.score = QLabel(get_lang(config.lang, "ui-score-text") % (0, 0))

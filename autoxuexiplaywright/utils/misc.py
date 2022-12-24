@@ -9,7 +9,7 @@ from typing import Union
 from pyzbar.pyzbar import Decoded, decode # type: ignore
 
 from autoxuexiplaywright.defines.core import (
-    APPID, LOGGING_FMT, LOGGING_DATETIME_FMT
+    LOGGING_FMT, LOGGING_DATETIME_FMT
 )
 from autoxuexiplaywright.defines.events import EventId
 from autoxuexiplaywright.utils.lang import get_lang
@@ -17,15 +17,17 @@ from autoxuexiplaywright.utils.storage import get_cache_path
 from autoxuexiplaywright.utils.eventmanager import find_event_by_id
 from autoxuexiplaywright.utils.config import Config
 
+from autoxuexiplaywright import appid
+
 
 def init_logger(st: Handler = StreamHandler()) -> None:
-    logger = getLogger(APPID)
+    logger = getLogger(appid)
     fmt = Formatter(fmt=LOGGING_FMT,
                     datefmt=LOGGING_DATETIME_FMT)
     debug = Config.get_instance().debug
     level = DEBUG if debug else INFO
     fh = FileHandler(get_cache_path(
-        APPID+".log"), "w", "utf-8")
+        appid+".log"), "w", "utf-8")
     fh.setLevel(level)
     fh.setFormatter(fmt)
     st.setLevel(level)
@@ -48,7 +50,7 @@ def to_str(obj: Union[str, None]) -> str:
 def img2shell(img: bytes) -> None:
     config = Config.get_instance()
     if config.gui:
-        getLogger(APPID).info(get_lang(
+        getLogger(appid).info(get_lang(
             config.lang, "ui-info-failed-to-print-qr"))
         find_event_by_id(EventId.QR_UPDATED).invoke(img)
     else:

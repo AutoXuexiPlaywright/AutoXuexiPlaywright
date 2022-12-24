@@ -1,11 +1,11 @@
 from base64 import b64decode
 
-from autoxuexiplaywright.defines.core import APPID
 from autoxuexiplaywright.utils.storage import get_config_path
 
+from autoxuexiplaywright import appid
 
 OPACITY = 0.9
-UI_CONF = get_config_path(APPID+".ini")
+UI_CONF = get_config_path(appid+".ini")
 UI_ICON = b64decode(
     """iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAADeUlEQVRIie2WbWhWZRjH/5vnCaIPQSNMocYTjD70MjWWYumYQ2tiG1YoSkzLaVRQiLZyFUQfil6s5UgGg4Fk
         hhiuxd7SvTrcRDcjpfq4F9CtfGboBN15nnN+fbjceXp8XiYY2YfdcOBwn+u6fv/7uq/7uk+WK6HbMLJvB3QWPAtOGKFz5+X81+DQxs2S78m7BdCcG2GuRKaHkrXgurBhE66Er7t

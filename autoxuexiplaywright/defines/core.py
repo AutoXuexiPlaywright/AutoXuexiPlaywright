@@ -1,9 +1,6 @@
 from re import compile
 from enum import Enum
 
-
-APPID = "AutoXuexiPlaywright"
-
 DEFAULT_CONF = {
     "debug": False,
     "browser": "firefox",
