@@ -1,6 +1,10 @@
 from re import compile
 from enum import Enum
 
+APPID = "AutoXuexiPlaywright"
+APPAUTHOR = "AutoXuexiPlaywright"
+AUTHORTYPE = "org"
+
 DEFAULT_CONF = {
     "debug": False,
     "browser": "firefox",

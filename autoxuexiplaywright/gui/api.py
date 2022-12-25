@@ -4,8 +4,8 @@ from PySide6.QtCore import QTranslator
 
 from autoxuexiplaywright.gui.ui import MainWindow
 from autoxuexiplaywright.utils.config import Config
-
-from autoxuexiplaywright import appid, desktop_file_id
+from autoxuexiplaywright.defines.core import APPID
+from autoxuexiplaywright.defines.ui import DESKTOP_FILE_ID
 
 
 def lang_to_locale(lang: str) -> str:
@@ -19,9 +19,9 @@ def start(argv: list[str]):
         case "Windows":
             import ctypes
             ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(  # type: ignore
-                appid)
+                APPID)
         case "Linux":
-            QApplication.setDesktopFileName(desktop_file_id)
+            QApplication.setDesktopFileName(DESKTOP_FILE_ID)
         case _:
             pass
     app = QApplication(argv)
@@ -30,7 +30,7 @@ def start(argv: list[str]):
     app.installTranslator(translator)
     main_window = MainWindow()
     main_window.show()
-    app.exec_()
+    app.exec()
 
 
 __all__ = ["start"]

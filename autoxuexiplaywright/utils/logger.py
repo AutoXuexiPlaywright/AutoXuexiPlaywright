@@ -1,12 +1,11 @@
 from os import environ
 from logging import getLogger, FileHandler, Handler, StreamHandler, Formatter, DEBUG, INFO
 
-from autoxuexiplaywright.defines.core import LOGGING_FMT, LOGGING_DATETIME_FMT
+from autoxuexiplaywright.defines.core import LOGGING_FMT, LOGGING_DATETIME_FMT, APPID
 from autoxuexiplaywright.utils.storage import get_cache_path
 from autoxuexiplaywright.utils.config import Config
-from autoxuexiplaywright import appid
 
-logger = getLogger(appid)
+logger = getLogger(APPID)
 
 
 def init_logger(st: Handler | None = None) -> None:
@@ -17,7 +16,7 @@ def init_logger(st: Handler | None = None) -> None:
     debug = Config.get_instance().debug
     level = DEBUG if debug else INFO
     fh = FileHandler(get_cache_path(
-        appid+".log"), "w", "utf-8")
+        APPID+".log"), "w", "utf-8")
     fh.setLevel(level)
     fh.setFormatter(fmt)
     st.setLevel(level)
