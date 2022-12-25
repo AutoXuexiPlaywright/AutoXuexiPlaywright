@@ -1,4 +1,4 @@
-from autoxuexiplaywright import appid
+from autoxuexiplaywright.defines.core import APPID
 
 __all__ = ["AnswerSource"]
 PRIORITY_INF = 999
@@ -7,7 +7,7 @@ PRIORITY_INF = 999
 class AnswerSource():
     def __init__(self) -> None:
         self.name = "SourceTemplate"
-        self.author = appid
+        self.author = APPID
         # This will be set by script when it is imported.
         self.priority = PRIORITY_INF
 

@@ -4,8 +4,7 @@ from random import sample
 from string import ascii_letters, digits
 from sqlite3 import connect
 from enum import Enum
-from importlib import util
-from autoxuexiplaywright.defines.core import ANSWER_CONNECTOR, EXTRA_ANSWER_SOURCES_NAMESPACE, MOD_EXT
+from autoxuexiplaywright.defines.core import ANSWER_CONNECTOR, APPID
 from autoxuexiplaywright.defines.events import EventId
 from autoxuexiplaywright.utils.lang import get_lang
 from autoxuexiplaywright.utils.storage import get_config_path, get_modules_paths
@@ -13,7 +12,7 @@ from autoxuexiplaywright.utils.eventmanager import find_event_by_id
 from autoxuexiplaywright.utils.config import Config
 from autoxuexiplaywright.sdk import AnswerSource
 from autoxuexiplaywright.utils.logger import logger
-from autoxuexiplaywright import appid
+from autoxuexiplaywright.utils.modules import get_modules_in_file
 
 
 sources: list[AnswerSource] = []
@@ -33,7 +32,7 @@ class AddSupportedAnswerSource(AnswerSource):
 class DatabaseSource(AddSupportedAnswerSource):
     def __init__(self) -> None:
         self.name = "DatabaseSource"
-        self.author = appid
+        self.author = APPID
         self.priority = 0
         self.conn = connect(get_config_path("data.db"))
         self.conn.execute(
@@ -82,7 +81,7 @@ def is_valid_answer(chars: str) -> bool:
 
 def request_answer(tips: str) -> list[str]:
     answer: list[str] = []
-    config = Config()
+    config = Config.get_instance()
     if config.gui:
         # gui is ready for getting answer from user input
         answer_queue: Queue[list[str]] = Queue(1)
@@ -97,39 +96,18 @@ def request_answer(tips: str) -> list[str]:
 
 
 def init_sources() -> None:
-    config = Config()
+    config = Config.get_instance()
     sources.clear()
     sources.append(DatabaseSource())
     modules = get_modules_paths()
     if len(modules) > 0:
         logger.warning(get_lang(
             config.lang, "core-warning-using-external-modules"))
-        priority = 1
         for file in modules:
-            if file.endswith(MOD_EXT):
-                try:
-                    spec = util.spec_from_file_location(
-                        EXTRA_ANSWER_SOURCES_NAMESPACE +
-                        ".external_" + str(priority), file)
-                    if spec is not None:
-                        module = util.module_from_spec(spec)
-                        if spec.loader is not None:
-                            # WARN: This will execute the .as.py file and may result in unexpected behavior
-                            spec.loader.exec_module(module)
-                            for name in dir(module):
-                                obj = getattr(module, name)
-                                if issubclass(obj, AnswerSource) and not \
-                                        issubclass(obj, AddSupportedAnswerSource) and not \
-                                        obj is AnswerSource:
-                                    instance = obj()
-                                    instance.priority = priority
-                                    sources.append(instance)
-                                    priority += 1
-                except:
-                    pass
+            sources.extend(get_modules_in_file(file))
 
-    if len(sources) > 1:
-        sources.sort(key=lambda o: o.priority)
+    for source in sources:
+        source.priority = sources.index(source)
     if len(sources) > 0:
         logger.debug(get_lang(config.lang, "core-debug-current-modules-num") %
                      (len(sources), [src.name for src in sources]))
@@ -150,7 +128,7 @@ def get_answer_from_sources(title: str) -> list[str]:
             result = source.get_answer(title)
         except Exception as e:
             logger.debug(get_lang(
-                Config().lang, "core-debug-answer-source-failed") % (source.author, source.name, e))
+                Config.get_instance().lang, "core-debug-answer-source-failed") % (source.author, source.name, e))
         else:
             if len(result) > 0:
                 return result

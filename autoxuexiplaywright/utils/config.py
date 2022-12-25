@@ -16,7 +16,7 @@ class Config:
             Config.instance = Config(path)
         return Config.instance
 
-    def __init__(self, path: str | None = None, refresh: bool = False):
+    def __init__(self, path: str | None = None):
         if path == None:
             path = get_config_path("config.json")
         json: ConfigType = {}

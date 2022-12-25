@@ -298,13 +298,13 @@ class SettingsWindow(QDialog):
         self.config.lang = LANGS[idx]
 
     def on_async_check_changed(self, state: Qt.CheckState):
-        self.config.async_mode = state == Qt.CheckState.Checked
+        self.config.async_mode = Qt.CheckState(state) == Qt.CheckState.Checked
 
     def on_debug_check_changed(self, state: Qt.CheckState):
-        self.config.debug = state == Qt.CheckState.Checked
+        self.config.debug = Qt.CheckState(state) == Qt.CheckState.Checked
 
     def on_gui_check_changed(self, state: Qt.CheckState):
-        self.config.gui = state == Qt.CheckState.Checked
+        self.config.gui = Qt.CheckState(state) == Qt.CheckState.Checked
 
     def on_save_btn_clicked(self):
         with open(get_config_path("config.json"), "w", encoding="utf-8") as writer:
@@ -330,7 +330,7 @@ class SettingsWindow(QDialog):
     def on_skipped_items_input_edit_finished(self):
         input_text = self.skipped_items_input.text()
         input_items = input_text.split(
-            ANSWER_CONNECTOR) if input_text != "" else []
+            ANSWER_CONNECTOR) if ANSWER_CONNECTOR in input_text else []
         for i in range(len(input_items)):
             input_items[i] = input_items[i].strip()
         self.config.skipped = input_items
