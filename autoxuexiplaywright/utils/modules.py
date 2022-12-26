@@ -1,8 +1,12 @@
 from sys import modules
+from typing import TypeVar, Any
 from importlib.util import spec_from_file_location, module_from_spec
 
 from autoxuexiplaywright.sdk import AnswerSource
 from autoxuexiplaywright.defines.core import MOD_EXT, EXTRA_ANSWER_SOURCES_NAMESPACE
+
+
+T = TypeVar("T")
 
 
 def get_modules_in_file(file: str) -> list[AnswerSource]:
@@ -17,11 +21,9 @@ def get_modules_in_file(file: str) -> list[AnswerSource]:
                 modules[spec.name] = module
                 spec.loader.exec_module(module)
                 for name in dir(module):
-                    value = getattr(module, name)
+                    value: type[AnswerSource]= getattr(module, name)
                     if is_valid_obj(value, AnswerSource):
-                        instance = value.__new__(value)
-                        instance.__init__()
-                        modules_to_return.append(instance)
+                        modules_to_return.append(create_instance(value))
     return modules_to_return
 
 
@@ -34,3 +36,7 @@ def is_valid_obj(obj: type, cls: type) -> bool:
     except:
         return False
     return False
+
+
+def create_instance(cls: type[T], **kwargs: Any) -> T:
+    return cls(**kwargs)
