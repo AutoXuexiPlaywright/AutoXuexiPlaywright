@@ -18,7 +18,7 @@ source=(
     "autoxuexiplaywright.desktop")
 sha256sums=('SKIP'
             'ac95e6329fb7a52dc4d43372eca62a56c12eb3b3fb943ba463871e538b51735c'
-            'bc4e858948e8e4f097304aa7070844951bf88d806919761a9722ed6cc8ce0074')
+            '220eccba3090274aa8bb47a37399d923bbec2a0da92c265ab6efc500a6676fb0')
 
 pkgver(){
     cd "${srcdir}/AutoXuexiPlaywright"
