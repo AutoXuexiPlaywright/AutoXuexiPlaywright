@@ -2,6 +2,6 @@
 Type=Application
 Name=AutoXuexiPlaywright
 Icon=autoxuexiplaywright
-Comment="Automatically finish something boring."
+Comment=Automatically finish something boring.
 Exec=autoxuexiplaywright
 Categories=Network;
