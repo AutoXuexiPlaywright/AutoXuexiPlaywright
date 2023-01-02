@@ -98,8 +98,8 @@ python-versions = ">=3.6"
 
 [package.source]
 type = "legacy"
-url = "https://pypi.tuna.tsinghua.edu.cn/simple"
-reference = "tuna"
+url = "https://mirrors.bfsu.edu.cn/pypi/web/simple"
+reference = "bfsu"
 
 [[package]]
 name = "charset-normalizer"
@@ -308,8 +308,8 @@ python-versions = ">=3.7"
 
 [package.source]
 type = "legacy"
-url = "https://pypi.tuna.tsinghua.edu.cn/simple"
-reference = "tuna"
+url = "https://mirrors.bfsu.edu.cn/pypi/web/simple"
+reference = "bfsu"
 
 [[package]]
 name = "pillow"
@@ -330,7 +330,7 @@ reference = "bfsu"
 
 [[package]]
 name = "playwright"
-version = "1.28.0"
+version = "1.29.0"
 description = "A high-level API to automate web browsers"
 category = "main"
 optional = false
@@ -503,8 +503,8 @@ testing = ["coverage (>=6.2)", "flaky (>=3.5.0)", "hypothesis (>=5.7.1)", "mypy 
 
 [package.source]
 type = "legacy"
-url = "https://pypi.tuna.tsinghua.edu.cn/simple"
-reference = "tuna"
+url = "https://mirrors.bfsu.edu.cn/pypi/web/simple"
+reference = "bfsu"
 
 [[package]]
 name = "pytest-base-url"
@@ -753,7 +753,7 @@ reference = "bfsu"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.10,<3.12"
-content-hash = "35097ce0332b2b8202d88c58751a50d92499f375705092b76c41cf0a5ac1e308"
+content-hash = "99c84a2ecf10ea63c807c374ae53d420af6c805d37df90615765da796f1efa98"
 
 [metadata.files]
 aiohttp = [
@@ -1224,13 +1224,13 @@ pillow = [
     {file = "Pillow-9.3.0.tar.gz", hash = "sha256:c935a22a557a560108d780f9a0fc426dd7459940dc54faa49d83249c8d3e760f"},
 ]
 playwright = [
-    {file = "playwright-1.28.0-py3-none-macosx_10_13_x86_64.whl", hash = "sha256:2e101b17e4d5252ef96c9dc8b2ac17f2980dde0420728c1c96a77eeaf6f9b11f"},
-    {file = "playwright-1.28.0-py3-none-macosx_11_0_arm64.whl", hash = "sha256:265f47aaa42c7986316100f5f468f8654e9a1609c2a2578743e25d058bddc1e6"},
-    {file = "playwright-1.28.0-py3-none-macosx_11_0_universal2.whl", hash = "sha256:a21ddd7b6f6afd434a73471f7cd39673286f0ca88b62b756d90264eb7b5a7daf"},
-    {file = "playwright-1.28.0-py3-none-manylinux1_x86_64.whl", hash = "sha256:96a2d63954098233bbfc48b874f2a8e7cf0c64d7fcae24469571b0fb90ebe00f"},
-    {file = "playwright-1.28.0-py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:074f73c17971f233903949492f31113bfbc2f1e2e85da7c1c03a15e5008b529f"},
-    {file = "playwright-1.28.0-py3-none-win32.whl", hash = "sha256:8557d92718ce45814aff017fa1774ab92089e40b6c16a8073d5a7c4d583d4aed"},
-    {file = "playwright-1.28.0-py3-none-win_amd64.whl", hash = "sha256:794b9da616c03354a12e48ddf060a9e776ab59b90662b0131ff74ec1b25739f4"},
+    {file = "playwright-1.29.0-py3-none-macosx_10_13_x86_64.whl", hash = "sha256:c7a4fc12f15fb24fdb810503a6e08db81d38805f739b252645c3eede357e9918"},
+    {file = "playwright-1.29.0-py3-none-macosx_11_0_arm64.whl", hash = "sha256:b8c2317789ae2cbca1e345f421dfa6082dac0910a4d0f57f345a395cb9e57197"},
+    {file = "playwright-1.29.0-py3-none-macosx_11_0_universal2.whl", hash = "sha256:84ae9f999d57463d6450fd4fb3e9e70695fb2b87c4ca76f4459f054ab6fa6583"},
+    {file = "playwright-1.29.0-py3-none-manylinux1_x86_64.whl", hash = "sha256:f9849cb83041a8bff69c7899ab1aef8066e3eb422b437c9c7a3772c22f432323"},
+    {file = "playwright-1.29.0-py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:2ef51608b56fe7699b7e1e3b7e8484d3677e2bc9054afc78d28489e060300e2b"},
+    {file = "playwright-1.29.0-py3-none-win32.whl", hash = "sha256:9203d2977ec9e6716ff5611eb786e838c15742cca1dea4cc1d85de3e699ad25a"},
+    {file = "playwright-1.29.0-py3-none-win_amd64.whl", hash = "sha256:8a283d52d1d10a636ba7ce4f90d0d6fd611ee45c8c8f3eaae03b27596439c7fd"},
 ]
 pluggy = [
     {file = "pluggy-1.0.0-py2.py3-none-any.whl", hash = "sha256:74134bbf457f031a36d68416e1509f34bd5ccc019f0bcc952c7b909d06b37bd3"},
