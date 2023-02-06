@@ -905,6 +905,23 @@ url = "https://mirrors.bfsu.edu.cn/pypi/web/simple"
 reference = "bfsu"
 
 [[package]]
+name = "pypng"
+version = "0.20220715.0"
+description = "Pure Python library for saving and loading PNG images"
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "pypng-0.20220715.0-py3-none-any.whl", hash = "sha256:4a43e969b8f5aaafb2a415536c1a8ec7e341cd6a3f957fd5b5f32a4cfeed902c"},
+    {file = "pypng-0.20220715.0.tar.gz", hash = "sha256:739c433ba96f078315de54c0db975aee537cbc3e1d0ae4ed9aab0ca1e427e2c1"},
+]
+
+[package.source]
+type = "legacy"
+url = "https://mirrors.bfsu.edu.cn/pypi/web/simple"
+reference = "bfsu"
+
+[[package]]
 name = "pyside6"
 version = "6.4.2"
 description = "Python bindings for the Qt cross-platform application and UI framework"
@@ -1139,25 +1156,28 @@ reference = "bfsu"
 
 [[package]]
 name = "qrcode"
-version = "7.3.1"
+version = "7.4.2"
 description = "QR Code image generator"
 category = "main"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.7"
 files = [
-    {file = "qrcode-7.3.1.tar.gz", hash = "sha256:375a6ff240ca9bd41adc070428b5dfc1dcfbb0f2507f1ac848f6cded38956578"},
+    {file = "qrcode-7.4.2-py3-none-any.whl", hash = "sha256:581dca7a029bcb2deef5d01068e39093e80ef00b4a61098a2182eac59d01643a"},
+    {file = "qrcode-7.4.2.tar.gz", hash = "sha256:9dd969454827e127dbd93696b20747239e6d540e082937c90f14ac95b30f5845"},
 ]
 
 [package.dependencies]
 colorama = {version = "*", markers = "platform_system == \"Windows\""}
-pillow = {version = "*", optional = true, markers = "extra == \"pil\""}
+pillow = {version = ">=9.1.0", optional = true, markers = "extra == \"pil\""}
+pypng = "*"
+typing-extensions = "*"
 
 [package.extras]
-all = ["pillow", "pytest", "pytest", "pytest-cov", "tox", "zest.releaser[recommended]"]
-dev = ["pytest", "tox"]
+all = ["pillow (>=9.1.0)", "pytest", "pytest-cov", "tox", "zest.releaser[recommended]"]
+dev = ["pytest", "pytest-cov", "tox"]
 maintainer = ["zest.releaser[recommended]"]
-pil = ["pillow"]
-test = ["pytest", "pytest-cov"]
+pil = ["pillow (>=9.1.0)"]
+test = ["coverage", "pytest"]
 
 [package.source]
 type = "legacy"
@@ -1415,4 +1435,4 @@ reference = "bfsu"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "14797a655512bc1fb15c746080d8485525d67c6ac77899caa730b4a46c769106"
+content-hash = "05b415830e07fc973b7104d4d55ca78d2e9dda69b09709153cad3d30e95b8480"
