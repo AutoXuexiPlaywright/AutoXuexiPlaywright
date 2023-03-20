@@ -34,7 +34,7 @@ optional = true
 pyside6 = "^6.4.2"
 
 [tool.poetry.group.dev.dependencies]
-pytest-asyncio = "^0.20.2"
+pytest-asyncio = "^0.21.0"
 pytest-playwright = "^0.3.0"
 autopep8 = "^2.0.1"
 pytest = "^7.2.1"
