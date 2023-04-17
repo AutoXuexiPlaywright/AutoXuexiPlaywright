@@ -31,7 +31,7 @@ pyxdg = "^0.28"
 optional = true
 
 [tool.poetry.group.gui.dependencies]
-pyside6 = "^6.4.2"
+pyside6 = "^6.5.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest-asyncio = "^0.20.2"
