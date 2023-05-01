@@ -1055,21 +1055,21 @@ reference = "bfsu"
 
 [[package]]
 name = "pytest-playwright"
-version = "0.3.0"
+version = "0.3.3"
 description = "A pytest wrapper with fixtures for Playwright to automate web browsers"
 category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "pytest-playwright-0.3.0.tar.gz", hash = "sha256:62b843b73d259431380393b335bee65cc7a420c9095c83f78274b6b508cb2f33"},
-    {file = "pytest_playwright-0.3.0-py3-none-any.whl", hash = "sha256:2f41058f4a769a2c9631baacec65e9ebb3255e34519f0aab7f46e4c7fe66d127"},
+    {file = "pytest-playwright-0.3.3.tar.gz", hash = "sha256:9bf79c633c97dd1405308b8d3600e6c8c2a200a733e2f36c5a150ba4701936f8"},
+    {file = "pytest_playwright-0.3.3-py3-none-any.whl", hash = "sha256:83a896b1b28bfaa081ca9ea27229a06a114e106e2e62fb3d5f06544748fbc1fe"},
 ]
 
 [package.dependencies]
 playwright = ">=1.18"
-pytest = "*"
-pytest-base-url = "*"
-python-slugify = "*"
+pytest = ">=6.2.4,<8.0.0"
+pytest-base-url = ">=1.0.0,<3.0.0"
+python-slugify = ">=6.0.0,<9.0.0"
 
 [package.source]
 type = "legacy"
@@ -1415,4 +1415,4 @@ reference = "bfsu"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "14797a655512bc1fb15c746080d8485525d67c6ac77899caa730b4a46c769106"
+content-hash = "6fa780479050ea5fa3ef6498fcc916fa735c6a6a8c78b0566c9b54a82787821e"
