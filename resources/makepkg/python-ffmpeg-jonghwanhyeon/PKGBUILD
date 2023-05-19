@@ -1,5 +1,5 @@
 pkgname=python-ffmpeg-jonghwanhyeon-git
-pkgver=2.0.4.r2.gc04544c
+pkgver=2.0.4.r4.g9870752
 pkgrel=1
 pkgdesc="A python binding for FFmpeg which provides sync and async APIs"
 arch=("any")
@@ -9,6 +9,10 @@ provides=("python-ffmpeg-jonghwanhyeon")
 conflicts=("python-ffmpeg-jonghwanhyeon")
 makedepends=("python-installer" "git" "python-pipx")
 depends=("ffmpeg" "python-typing_extensions" "python-pyee")
+source=(
+    "git+${url}.git"
+)
+sha256sums=('SKIP')
 
 pkgver(){
     cd "${srcdir}/python-ffmpeg"
