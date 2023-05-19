@@ -74,4 +74,4 @@ jobs:
                       dist/*
                       ${{ steps.arch-package.outputs.pkgfile }}
                       ${{ steps.arch-python-ffmpeg.outputs.pkgfile }}
-              generate_release_notes: true
+                  generate_release_notes: true
