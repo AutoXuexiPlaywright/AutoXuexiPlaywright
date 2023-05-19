@@ -32,6 +32,7 @@ jobs:
                 do
                     poetry source remove $source
                 done
+                poetry lock
             - name: Install depends
               run: poetry install --with=dev --with=gui
             - name: Run program tests
