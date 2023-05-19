@@ -1,7 +1,7 @@
 #Maintainer: Noob Zhang <17194552+zhanghua000 at users dot noreply dot github dot com>
 
 pkgname="python-autoxuexiplaywright-git"
-pkgver=2.1.3.r61.gf9cffc2
+pkgver=3.0.0.r2.g2bc0398
 pkgrel=1
 pkgdesc="Auto finish something boring."
 arch=("any")
@@ -9,10 +9,13 @@ url="https://github.com/AutoXuexiPlaywright/AutoXuexiPlaywright"
 license=("GPL")
 provides=("python-autoxuexiplaywright")
 conflicts=("python-autoxuexiplaywright")
-makedepends=("python-poetry" "python-installer" "git" "imagemagick")
+makedepends=("python-poetry" "python-installer" "git")
 depends=(
     "python-pillow" "pyzbar" "python-qrcode" "python-playwright"
     "python-m3u8" "python-magic"
+)
+checkdepends=(
+    "pyside6"
 )
 optdepends=(
     "pyside6: for GUI interface"
@@ -30,14 +33,13 @@ pkgver(){
 }
 build(){
     cd "${srcdir}/AutoXuexiPlaywright"
-    magick ./autoxuexiplaywright/resources/icon.ico -resize 32x32 icon.png
     poetry install --with=gui --with=dev
     poetry build
 }
 check(){
     cd "${srcdir}/AutoXuexiPlaywright"
-    poetry run pytest --cov=.
-    poetry run pycycle
+    poetry run pytest --cov=autoxuexiplaywright
+    poetry run pycycle --here
 }
 package(){
     cd "${srcdir}/AutoXuexiPlaywright"
@@ -45,6 +47,6 @@ package(){
     python -m installer --destdir="${pkgdir}" dist/*.whl
     install -Dm644 "${srcdir}/autoxuexiplaywright.desktop" \
         "${pkgdir}/usr/share/applications/org.autoxuexiplaywright.autoxuexiplaywright.desktop"
-    install -Dm644 "${srcdir}/AutoXuexiPlaywright/icon.png" \
+    install -Dm644 "${srcdir}/AutoXuexiPlaywright/autoxuexiplaywright/resources/icon.png" \
         "${pkgdir}/usr/share/icons/hicolor/32x32/apps/autoxuexiplaywright.png" 
 }

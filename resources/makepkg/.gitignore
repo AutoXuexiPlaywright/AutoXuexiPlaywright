@@ -1,0 +1,6 @@
+pkg
+src
+*.log
+*.pkg.tar.*
+AutoXuexiPlaywright
+python-ffmpeg
