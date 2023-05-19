@@ -17,6 +17,7 @@ jobs:
             - name: Print Info
               run: |
                   echo github.ref_type is ${{ github.ref_type }}
+                  echo github.event_name is ${{ github.event_name }}
             - name: Checkout
               uses: actions/checkout@v3
             - name: Setup Python
@@ -69,7 +70,7 @@ jobs:
         name: Sync Code to TechXueXi
         needs: test-and-build
         runs-on: ubuntu-latest
-        if: github.event.event_name  == 'push'
+        if: github.event_name  == 'push'
         steps:
         - name: check
           uses: actions/checkout@v3
