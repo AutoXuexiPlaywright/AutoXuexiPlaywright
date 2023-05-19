@@ -1,0 +1,12 @@
+{
+    "lang": "zh-cn",
+    "async_mode": false,
+    "browser_id": "firefox",
+    "browser_channel": null,
+    "debug": false,
+    "executable_path": null,
+    "gui": true,
+    "proxy": null,
+    "skipped": [],
+    "extra": null
+}

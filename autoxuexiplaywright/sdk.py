@@ -1,21 +1,22 @@
-from autoxuexiplaywright.defines.core import APPID
-
-__all__ = ["AnswerSource"]
-PRIORITY_INF = 999
+from abc import ABC, abstractmethod
 
 
-class AnswerSource():
-    def __init__(self) -> None:
-        self.name = "SourceTemplate"
-        self.author = APPID
-        # This will be set by script when it is imported.
-        self.priority = PRIORITY_INF
+class Module(ABC):
+    @property
+    @abstractmethod
+    def name(self) -> str: ...  # The name of your module
 
-    def get_answer(self, title: str) -> list[str]:
-        raise NotImplementedError(
-            "Please Implement this Method yourself.",
-            "If you are a common user, please report this problem to %s" % self.author
-        )
+    @property
+    @abstractmethod
+    def author(self) -> str: ...  # The author of your module
 
-    def close(self) -> None:
+    def start(self):  # Called when it is started
         pass
+
+    def close(self):  # Called when it is going to be closed
+        pass
+
+
+class AnswerSource(Module):
+    @abstractmethod
+    def get_answer(self, title: str) -> list[str]: ...  # Core function

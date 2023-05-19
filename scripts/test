@@ -1,4 +1,0 @@
-#!/usr/bin/env bash
-
-poetry run pycycle
-poetry run pytest
