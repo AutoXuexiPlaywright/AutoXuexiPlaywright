@@ -1,3 +1,6 @@
-*cache*
+*py*cache*
 dist
 .vscode
+__old
+pyrightconfig.json
+.coverage

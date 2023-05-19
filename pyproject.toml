@@ -1,37 +1,57 @@
 [tool.poetry]
 name = "autoxuexiplaywright"
-version = "2.1.4"
+version = "3.0.0"
 description = "A tool to finish something boring."
 authors = ["Noob Zhang <17194552+zhanghua000@users.noreply.github.com>"]
 license = "GPL"
+packages = [{include = "autoxuexiplaywright"}]
+
 
 [tool.poetry.scripts]
 autoxuexiplaywright = "autoxuexiplaywright.__main__:main"
 
+
 [[tool.poetry.source]]
 name = "bfsu"
 url = "https://mirrors.bfsu.edu.cn/pypi/web/simple"
-default = true
+default = false
+secondary = true
+
 
 [[tool.poetry.source]]
 name = "tuna"
 url = "https://pypi.tuna.tsinghua.edu.cn/simple"
 default = false
+secondary = true
+
+
+[[tool.poetry.source]]
+name = "sjtu"
+url = "https://mirror.sjtu.edu.cn/pypi/web/simple"
+default = false
+secondary = true
 
 [tool.poetry.dependencies]
-python = ">=3.10,<3.12"
-aiohttp = "^3.8.3"
+python = ">=3.11,<3.12"
 pyzbar = "^0.1.9"
 qrcode = {extras = ["pil"], version = "^7.3.1"}
-requests = "^2.28.2"
 playwright = "^1.30.0"
-pyxdg = "^0.28"
+m3u8 = "^3.4.0"
+python-magic = "^0.4.27"
+python-ffmpeg = {version = "^2.0.4", optional = true}
+
 
 [tool.poetry.group.gui]
 optional = true
 
+
 [tool.poetry.group.gui.dependencies]
 pyside6 = "^6.4.2"
+
+
+[tool.poetry.group.dev]
+optional = true
+
 
 [tool.poetry.group.dev.dependencies]
 pytest-asyncio = "^0.20.2"
@@ -39,6 +59,11 @@ pytest-playwright = "^0.3.0"
 autopep8 = "^2.0.1"
 pytest = "^7.2.1"
 pycycle = "^0.0.8"
+pydocstyle = "^6.3.0"
+isort = "^5.12.0"
+pytest-cov = "^4.0.0"
+pytest-xdist = "^3.2.1"
+
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

@@ -11,11 +11,12 @@ This is a completely rewrite, you can see [CHANGELOG.md](./CHANGELOG.md) for mor
 ## How to use?
 
 - Prepare Python  
-    We need Python 3.10 and above. Because we use `str|int` instead of `Union[str,int]` in function signature, which is only available on 3.10 and later.
+    We need Python 3.11 and above. Because we use `Self` in function signature and `asyncio.TaskGroup` in code, which are only available on 3.11 and later.
 - Install Poetry  
     We use `poetry` to manage dependencies. See [here](https://python-poetry.org/docs/) for more info. For Linux users, we strongly recommend using your distribution's package manager to install poetry. For Arch Linux, you can run `# pacman -Sy python-poetry` to achieve that.
 - Install dependencies  
     Open a terminal, go to where the repository is, and run `poetry install` to install dependencies. Poetry will create virtual environment automatically. We have set mirror site of pypi in China so it should not spend too much time.
+    Note: If you want to download video on test pages to help solving questions, you must also install optional dependency `python-ffmpeg` and its dependencies.
 - Install Qt binding  
     This is only needed if you want to use GUI, you can run `poetry install --with=gui` in repository directory to install it.
 - Build and install the project  
@@ -30,33 +31,12 @@ This is a completely rewrite, you can see [CHANGELOG.md](./CHANGELOG.md) for mor
 - Run from built package  
     If you are running program from built package, you can simply run `autoxuexiplaywright` from terminal.
 
-For Arch Linux users, we provide a [PKGBUILD](./resources/makepkg/PKGBUILD) which may be useful for you. Note: Processing video page has problems on Arch Linux now, this is due to that Playwright can't use ffmpeg5 provided by Arch Linux. You can try to set custom browser executable file path to browsers provided by distributions to solve this. Update: You can also update playwright's firefox build to latest version and use firefox to solve this.
-
-## About Proxy
-
-``` text
-proxy sample:
-"proxy": {
-    "server":"socks5://127.0.0.1:20808",
-    "username":"user",
-    "password:"pwd",
-    "bypass":"localhost"
-}
-
-OR
-
-None
-```
-Only server is needed if you want to use proxy, others are all optional. We have added a GUI config editor and it should work as expected. If you are using headless version, please check config format before saving file.
-
-## About async API
-
-We have implemented `asyncprocessor` and it is available now. But it still needs improvements because it is just a simple copy from `syncprocessor`. You can enable it in the settings window or edit `config.json` manually.
+For Arch Linux users, we provide a [PKGBUILD](./resources/makepkg/PKGBUILD) which may be useful for you.
 
 ## Notes
 
-1. This tool is under heavy development and may not as stable as other tools. Some fratures may also don't work as expected. Everyone's pull request to improve this tool is welcome.
+1. This tool is under heavy development and may not as stable as other tools. Some features may also don't work as expected. Everyone's pull request to improve this tool is welcome.
 
-2. This tool is designed only finishing tasks listed on [website](https://xuexi.cn), your max score in one day is 45 after using this tool correctly because some tasks are only available on mobile app.
+2. This tool is designed only finishing tasks listed on [website](https://xuexi.cn), your max score in one day is 35 after using this tool correctly because some tasks are only available on mobile app.
 
 3. This tool is just for researching purpose, we don't be responsible for any result by using this tool.

@@ -1,0 +1,13 @@
+{
+    "lang": "en-us",
+    "async_mode": true,
+    "browser_id": "chromium",
+    "browser_channel": "msedge",
+    "debug": false,
+    "executable_path": "/path/to/test",
+    "gui": false,
+    "proxy": {
+        "server":"127.0.0.1"
+    },
+    "skipped": ["A","B"]
+}

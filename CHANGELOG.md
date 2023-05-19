@@ -1,4 +1,9 @@
-# Changes since legacy version
+# Breaking changes since v2
+
+1. Module interface has changed.
+    See [test.as.py](./samples/test.as.py) and [sdk.py](./autoxuexiplaywright/sdk.py) for more info.
+
+# Breaking changes since legacy version
 
 1. Data storage has been changed.  
     In the legacy version, the program will record your history to avoid processing too many times. But now, we removed that, because this program may be used by more than one account.  
