@@ -15,21 +15,21 @@ autoxuexiplaywright = "autoxuexiplaywright.__main__:main"
 name = "bfsu"
 url = "https://mirrors.bfsu.edu.cn/pypi/web/simple"
 default = false
-secondary = true
+secondary = false
 
 
 [[tool.poetry.source]]
 name = "tuna"
 url = "https://pypi.tuna.tsinghua.edu.cn/simple"
 default = false
-secondary = true
+secondary = false
 
 
 [[tool.poetry.source]]
 name = "sjtu"
 url = "https://mirror.sjtu.edu.cn/pypi/web/simple"
 default = false
-secondary = true
+secondary = false
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.12"
