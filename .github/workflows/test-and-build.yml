@@ -29,21 +29,21 @@ jobs:
             - name: Remove custom pypi sources
               # Custom sources are only helpful in China
               run: |
-                poetry source show | grep name | cut -d : -f 2 | while read -r source
-                do
-                    poetry source remove $source
-                done
-                poetry lock
+                  poetry source show | grep name | cut -d : -f 2 | while read -r source
+                  do
+                      poetry source remove $source
+                  done
+                  poetry lock
             - name: Install depends
               run: poetry install --with=dev --with=gui
             - name: Run program tests
               continue-on-error: true
               run: |
-                poetry run pycycle --here --verbose
-                poetry run pytest --cov=autoxuexiplaywright
-                poetry run pydocstyle
-                poetry run isort --check --diff .
-                poetry run autopep8 -r --diff .
+                  poetry run pycycle --here --verbose
+                  poetry run pytest --cov=autoxuexiplaywright
+                  poetry run pydocstyle
+                  poetry run isort --check --diff .
+                  poetry run autopep8 -r --diff .
             - name: Build wheel
               run: poetry build
             - name: Build python-autoxuexiplaywright
