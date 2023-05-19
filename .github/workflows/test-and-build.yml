@@ -56,7 +56,7 @@ jobs:
                   path: resources/makepkg/python-ffmpeg-jonghwanhyeon
             - name: Release
               uses: softprops/action-gh-release@v1
-              if: ${{ github.ref_type }} == "tag"
+              if: github.ref_type  == "tag"
               with:
                   files: |
                       dist/*
@@ -68,7 +68,7 @@ jobs:
         name: Sync Code to TechXueXi
         needs: test-and-build
         runs-on: ubuntu-latest
-        if: ${{ github.event.event_name }} == "push"
+        if: github.event.event_name  == "push"
         steps:
         - name: check
           uses: actions/checkout@v3
