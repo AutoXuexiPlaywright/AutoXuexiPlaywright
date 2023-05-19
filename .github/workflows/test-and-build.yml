@@ -1,10 +1,11 @@
 name: Build Packages
 on:
     push:
-        branches: [ "main" ]
-        tags: [ "v*" ]
+        branches:
+            - main
     pull_request:
-        branches: [ "main" ]
+        branches:
+            - main
     workflow_dispatch:
 jobs:
     test-and-build:
@@ -57,3 +58,26 @@ jobs:
                       ${{ steps.arch-package.outputs.pkgfile }}
                       ${{ steps.arch-python-ffmpeg.outputs.pkgfile }}
                   generate_release_notes: true
+
+    push-to-techxuexi:
+        name: Sync Code to TechXueXi
+        needs: test-and-build
+        runs-on: ubuntu-latest
+        if: ${{ github.event.event_name }} == "push"
+        steps:
+        - name: check
+          uses: actions/checkout@v3
+          with:
+              fetch-depth: 0
+        - name: Git Configuration
+          env:
+          DEBIAN_FRONTEND: noninteractive
+          run: |
+              git config --global user.name 'GitHub' && git config --global user.email 'noreply@github.com'
+        - name: Push Code
+          run: |
+              mkdir -p ~/.ssh
+              echo -e "${{ secrets.SSHKEY }}" > ~/.ssh/id_rsa
+              chmod 600 ~/.ssh/id_rsa
+              ssh-keyscan github.com > ~/.ssh/known_hosts
+              git push -f "git@github.com:TechXueXi/AutoXuexiPlaywright.git" "main:main" --tags
