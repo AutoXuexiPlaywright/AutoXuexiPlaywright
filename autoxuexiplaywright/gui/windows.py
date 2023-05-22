@@ -114,27 +114,11 @@ class _QSettingsExtended(QSettings):
 class QFramelessWidget(_QWidgetExtended):
     def __init__(self, parent: QWidget | None = None, f: Qt.WindowType = Qt.WindowType.FramelessWindowHint) -> None:
         super().__init__(parent, f)
-        self._mouseEventPosition = QPointF()
 
     def mousePressEvent(self, event: QMouseEvent):
-        if event.button() == Qt.MouseButton.LeftButton:
-            self._mouseEventPosition = event.globalPosition()
-            self.setCursor(Qt.CursorShape.SizeAllCursor)
+        if not self.isMaximized() and not self.isFullScreen() and event.button() == Qt.MouseButton.LeftButton:
+            self.windowHandle().startSystemMove()
         return super().mousePressEvent(event)
-
-    def mouseReleaseEvent(self, event: QMouseEvent):
-        if event.button() == Qt.MouseButton.LeftButton:
-            self.setCursor(Qt.CursorShape.ArrowCursor)
-        return super().mouseReleaseEvent(event)
-
-    def mouseMoveEvent(self, event: QMouseEvent):
-        currentPos = event.globalPosition()
-        delta = QPointF(currentPos.x()-self._mouseEventPosition.x(),
-                        currentPos.y()-self._mouseEventPosition.y()).toPoint()
-        target = self.pos()+delta
-        self.move(target)
-        self._mouseEventPosition = currentPos
-        return super().mouseMoveEvent(event)
 
 
 class _QComboBoxWithLabel(QFramelessWidget):
