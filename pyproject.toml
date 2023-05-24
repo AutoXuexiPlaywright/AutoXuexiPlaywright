@@ -14,22 +14,24 @@ autoxuexiplaywright = "autoxuexiplaywright.__main__:main"
 [[tool.poetry.source]]
 name = "bfsu"
 url = "https://mirrors.bfsu.edu.cn/pypi/web/simple"
-default = false
-secondary = false
+priority = "supplemental"
 
 
 [[tool.poetry.source]]
 name = "tuna"
 url = "https://pypi.tuna.tsinghua.edu.cn/simple"
-default = false
-secondary = false
+priority = "supplemental"
 
 
 [[tool.poetry.source]]
 name = "sjtu"
 url = "https://mirror.sjtu.edu.cn/pypi/web/simple"
-default = false
-secondary = false
+priority = "supplemental"
+
+
+[[tool.poetry.source]]
+name = "PyPI"
+priority = "primary"
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.12"
