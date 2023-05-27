@@ -623,7 +623,7 @@ class MainWindow(QFramelessWidget):
             parsedTitle[0], _SPLIT_TITLE_SIZE))
         questionTips = "\n".join(split_text(parsedTitle[1], _SPLIT_TITLE_SIZE))
         answersFromPage = "\n".join(split_text(
-            parsedTitle[2], _SPLIT_TITLE_SIZE))
+            parsedTitle[2], _SPLIT_TITLE_SIZE)) if len(parsedTitle) > 2 else ""
         fullText = "\n".join(
             [dialogTitle, questionTitle, questionTips, answersFromPage])
         answerText, requireResult = QInputDialog.getText(
