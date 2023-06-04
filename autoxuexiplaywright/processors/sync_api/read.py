@@ -117,7 +117,7 @@ class VideoTask(_ReadTask):
 
     @property
     def handles(self) -> list[str]:
-        return ["视听学习", "视听学习时长"]
+        return ["视听学习", "视听学习时长", "我要视听学习"]
 
     def __enter__(self):
         self.last_page.goto(MAIN_PAGE)
