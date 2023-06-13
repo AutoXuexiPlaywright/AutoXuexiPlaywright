@@ -36,6 +36,14 @@ jobs:
                   poetry lock
             - name: Install depends
               run: poetry install --with=dev --with=gui
+            - name: Install Qt depends
+              # See https://github.com/cbrnr/mnelab/issues/327#issuecomment-1074853392
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y \
+                    libxcb-icccm4 libxcb-image0 libxcb-keysyms1 \
+                    libxkbcommon-x11-0 xvfb libxcb-randr0 \
+                    libxcb-render-util0 libxcb-xinerama0 libegl1
             - name: Run program tests
               continue-on-error: true
               run: |
