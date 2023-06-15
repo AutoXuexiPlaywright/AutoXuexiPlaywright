@@ -31,7 +31,7 @@ This is a completely rewrite, you can see [CHANGELOG.md](./CHANGELOG.md) for mor
 - Run from built package  
     If you are running program from built package, you can simply run `autoxuexiplaywright` from terminal.
 
-For Arch Linux users, we provide a [PKGBUILD](./resources/makepkg/PKGBUILD) which may be useful for you.
+For Arch Linux users, we provide a [PKGBUILD](./resources/makepkg/autoxuexiplaywright/PKGBUILD) which may be useful for you.
 
 ## Notes
 
