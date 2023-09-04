@@ -19,7 +19,7 @@ jobs:
                   echo github.ref_type is ${{ github.ref_type }}
                   echo github.event_name is ${{ github.event_name }}
             - name: Checkout
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4
             - name: Setup Python
               uses: actions/setup-python@v4
               with:
@@ -81,7 +81,7 @@ jobs:
         if: github.event_name  == 'push'
         steps:
         - name: check
-          uses: actions/checkout@v3
+          uses: actions/checkout@v4
           with:
               fetch-depth: 0
         - name: Git Configuration
