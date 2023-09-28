@@ -246,7 +246,7 @@ class _TestTask(Task):
 
     async def _fill_blank(self, blank: Locator, text: str):
         await blank.clear()
-        await blank.type(text, delay=uniform(ANSWER_SLEEP_MIN_SECS, ANSWER_SLEEP_MAX_SECS)*1000)
+        await blank.press_sequentially(text, delay=uniform(ANSWER_SLEEP_MIN_SECS, ANSWER_SLEEP_MAX_SECS)*1000)
 
     async def _chose_answer(self, choice: Locator):
         if "chosen" not in (await choice.get_attribute("class") or ""):
