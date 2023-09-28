@@ -1,3 +1,4 @@
+from time import sleep
 from random import randint, uniform
 from queue import Queue
 from urllib.parse import urlparse
@@ -246,8 +247,8 @@ class _TestTask(Task):
 
     def _fill_blank(self, blank: Locator, text: str):
         blank.clear()
-        blank.type(text, delay=uniform(
-            ANSWER_SLEEP_MIN_SECS, ANSWER_SLEEP_MAX_SECS)*1000)
+        sleep(uniform(ANSWER_SLEEP_MIN_SECS, ANSWER_SLEEP_MAX_SECS))
+        blank.fill(text)
 
     def _chose_answer(self, choice: Locator):
         if "chosen" not in (choice.get_attribute("class") or ""):
