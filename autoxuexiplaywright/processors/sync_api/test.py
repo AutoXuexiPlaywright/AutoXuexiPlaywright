@@ -247,7 +247,8 @@ class _TestTask(Task):
 
     def _fill_blank(self, blank: Locator, text: str):
         blank.clear()
-        sleep(uniform(ANSWER_SLEEP_MIN_SECS, ANSWER_SLEEP_MAX_SECS))
+        blank.page.wait_for_timeout(
+            uniform(ANSWER_SLEEP_MIN_SECS, ANSWER_SLEEP_MAX_SECS)*1000)
         blank.fill(text)
 
     def _chose_answer(self, choice: Locator):
