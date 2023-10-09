@@ -1,4 +1,3 @@
-from asyncio import sleep
 from random import randint, uniform
 from queue import Queue
 from urllib.parse import urlparse
@@ -247,7 +246,7 @@ class _TestTask(Task):
 
     async def _fill_blank(self, blank: Locator, text: str):
         await blank.clear()
-        await sleep(uniform(ANSWER_SLEEP_MIN_SECS, ANSWER_SLEEP_MAX_SECS))
+        await blank.page.wait_for_timeout(uniform(ANSWER_SLEEP_MIN_SECS, ANSWER_SLEEP_MAX_SECS)*1000)
         await blank.fill(text)
 
     async def _chose_answer(self, choice: Locator):
