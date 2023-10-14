@@ -1,5 +1,6 @@
 from os import remove, walk
-from os.path import join
+from shutil import rmtree
+from os.path import join, exists, expanduser
 # Relative imports
 from .common import cache, tasks_to_be_done, register_tasks, clean_tasks
 from .common.answer.sources import load_all_answer_sources, close_all_answer_sources
@@ -10,6 +11,10 @@ from ..languages import get_language_string
 
 
 _config = get_runtime_config()
+_legacy_pki_dir = join(expanduser("~"), ".pki")
+_mozilla_dir = join(expanduser("~"), ".mozilla")
+_remove_pki = not exists(_legacy_pki_dir)
+_remove_mozilla = not exists(_mozilla_dir)
 
 
 def _on_processor_started():
@@ -44,6 +49,10 @@ def _on_processor_stopped():
                 file_path = join(root, file)
                 if file_path.endswith(target_files):
                     remove(file_path)
+        if _remove_mozilla and exists(_mozilla_dir):
+            rmtree(_mozilla_dir)
+        if _remove_pki and exists(_legacy_pki_dir):
+            rmtree(_legacy_pki_dir)
 
 
 def start_processor():
