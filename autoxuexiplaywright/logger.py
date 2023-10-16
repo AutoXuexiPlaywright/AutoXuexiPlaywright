@@ -70,6 +70,7 @@ def init_logger(st: Handler | None = None):
             environ["DEBUG"] = "pw:api"
         else:
             level = INFO
+            environ["DEBUG"] = ""
         fh = FileHandler(get_cache_path(APPNAME+".log"), "w", "utf-8")
         fm = Formatter(_LOGGING_STRING_FMT, _LOGGING_DATE_FMT)
         _logger.setLevel(level)
