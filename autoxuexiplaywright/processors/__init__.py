@@ -2,7 +2,7 @@ from os import remove, walk
 from shutil import rmtree
 from os.path import join, exists, expanduser
 # Relative imports
-from .common import cache, tasks_to_be_done, register_tasks, clean_tasks
+from .common import cache, tasks_to_be_done, register_tasks, clean_tasks, try_inject_firefox_profile
 from .common.answer.sources import load_all_answer_sources, close_all_answer_sources
 from ..logger import warning
 from ..config import get_runtime_config
@@ -33,6 +33,9 @@ def _on_processor_started():
     if not register_tasks(LoginTask, NewsTask, VideoTask, DailyTestTask, WeeklyTestTask, SpecialTestTask):
         warning(get_language_string("core-warning-register-task-failed"))
     load_all_answer_sources()
+    if _config.browser_id == "firefox":
+        try_inject_firefox_profile(get_cache_path(
+            join("browser-data", _config.browser_id)))
 
 
 def _on_processor_stopped():

@@ -1,5 +1,5 @@
 from time import time
-from os.path import isfile
+from os.path import join
 from playwright.sync_api import BrowserContext, Page, Locator, sync_playwright
 # Relative imports
 from .task import do_task
@@ -99,24 +99,20 @@ def _finish_all(context: BrowserContext, close: bool = True):
 def start():
     start_time = time()
     with sync_playwright() as p:
-        browser = p[_config.browser_id].launch(
+        context = p[_config.browser_id].launch_persistent_context(
+            user_data_dir=get_cache_path(
+                join("browser-cache", _config.browser_id)
+            ),
             headless=not _config.debug, proxy=_config.proxy, channel=_config.browser_channel, args=["--mute-audio"],
-            devtools=not _config.debug, firefox_user_prefs={"media.volume_scale": "0.0"}, executable_path=_config.executable_path
+            devtools=not _config.debug, executable_path=_config.executable_path
         )
-        cookies_path = get_cache_path("cookies.json")
-        if isfile(cookies_path):
-            context = browser.new_context(storage_state=cookies_path)
-        else:
-            context = browser.new_context()
         context.set_default_timeout(WAIT_PAGE_SECS*1000)
         try:
             _finish_all(context)
         except Exception as e:
             error(get_language_string("core-err-process-exception") % e)
         finally:
-            context.storage_state(path=cookies_path)
             context.close()
-            browser.close()
     delta_mins, delta_secs = divmod(time()-start_time, 60)
     delta_hrs, delta_mins = divmod(delta_mins, 60)
     finish_str = get_language_string("core-info-all-finished").format(
