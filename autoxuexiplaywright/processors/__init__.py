@@ -1,8 +1,8 @@
-from os import remove, walk
+from os import remove, walk, makedirs
 from shutil import rmtree
 from os.path import join, exists, expanduser
 # Relative imports
-from .common import cache, tasks_to_be_done, register_tasks, clean_tasks, try_inject_firefox_profile
+from .common import cache, tasks_to_be_done, register_tasks, clean_tasks
 from .common.answer.sources import load_all_answer_sources, close_all_answer_sources
 from ..logger import warning
 from ..config import get_runtime_config
@@ -34,8 +34,17 @@ def _on_processor_started():
         warning(get_language_string("core-warning-register-task-failed"))
     load_all_answer_sources()
     if _config.browser_id == "firefox":
-        try_inject_firefox_profile(get_cache_path(
-            join("browser-data", _config.browser_id)))
+        profile_path = get_cache_path(join("browser-data", _config.browser_id))
+        makedirs(profile_path, exist_ok=True)
+        if not exists(join(profile_path, "user.js")):
+            with open(join(profile_path, "user.js"), "w", encoding="utf-8") as writer:
+                writer.writelines(
+                    ["user_pref(\"media.default_volume\", 0.0);"])
+        else:
+            with open(join(profile_path, "user.js"), "a+", encoding="utf-8") as operator:
+                if "user_pref(\"media.default_volume\", 0.0);" not in operator.readlines():
+                    operator.writelines(
+                        ["user_pref(\"media.default_volume\", 0.0);"])
 
 
 def _on_processor_stopped():
