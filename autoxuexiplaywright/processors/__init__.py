@@ -46,7 +46,7 @@ def _on_processor_stopped():
     tasks_to_be_done.clear()
     cache.clear()
     if not _config.debug:
-        target_files = ("video.mp4", "qr.png", "video.m3u8")
+        target_files = ("video.mp4", "qr.png", "video.m3u8", "cookies.json")
         for root, _, files in walk(get_cache_path("")):
             for file in files:
                 file_path = join(root, file)
