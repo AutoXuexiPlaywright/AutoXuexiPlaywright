@@ -1,10 +1,10 @@
-from time import sleep
 from random import randint, uniform
 from queue import Queue
 from urllib.parse import urlparse
 from playwright.sync_api import Locator, TimeoutError
 # Relative imports
 from .task import Task, TaskStatus
+from .captcha import handle_drag_captcha
 from ..common import WAIT_RESULT_SECS, WAIT_CHOICE_SECS, ANSWER_SLEEP_MIN_SECS, ANSWER_SLEEP_MAX_SECS, VIDEO_REQUEST_REGEX, ANSWER_CONNECTOR, clean_string
 from ..common.answer.utils import is_valid_answer, gen_random_string
 from ..common.answer.sources import add_answer_to_all_sources, find_answer_in_answer_sources
@@ -173,24 +173,6 @@ class _TestTask(Task):
         return False
 
     def _handle_captcha(self) -> bool:
-
-        def handle_drag_captcha(captcha: Locator) -> bool:
-            target_x = 298
-            target_y = 32
-            slider = captcha.locator(TestSelectors.TEST_CAPTCHA_SLIDER)
-            target = captcha.locator(TestSelectors.TEST_CAPTCHA_TARGET)
-            target_box = target.bounding_box()
-            if target_box != None:
-                target_x = round(target_box["width"])
-                target_y = round(target_box["height"])
-            slider.drag_to(
-                target,
-                target_position={
-                    "x": target_x,
-                    "y": target_y
-                }
-            )
-            return captcha.is_hidden()
         captcha = self.last_page.locator(TestSelectors.TEST_CAPTCHA_SWIPER)
         if captcha.locator(TestSelectors.TEST_CAPTCHA_TEXT).count() > 0:
             warning(get_language_string("core-warning-captcha-found"))
