@@ -146,21 +146,3 @@ def clean_string(string: str) -> str:
         str The new string which is stripped and replaced newline with space
     """
     return string.strip().replace("\n", "")
-
-
-def try_inject_firefox_profile(path: str):
-    """Try inject firefox profile
-    Such as media.volume_scale
-
-    Args:
-        path (str): The firefox profile path
-    """
-    makedirs(path, exist_ok=True)
-    if not exists(join(path, "user.js")):
-        with open(join(path, "user.js"), "w", encoding="utf-8") as writer:
-            writer.writelines(["user_pref(\"media.volume_scale\", false);"])
-    else:
-        with open(join(path, "user.js"), "a+", encoding="utf-8") as operator:
-            if "user_pref(\"media.volume_scale\", false);" not in operator.readlines():
-                operator.writelines(
-                    ["user_pref(\"media.volume_scale\", false);"])
