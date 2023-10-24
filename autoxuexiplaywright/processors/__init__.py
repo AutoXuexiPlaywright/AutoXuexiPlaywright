@@ -17,6 +17,50 @@ _remove_pki = not exists(_legacy_pki_dir)
 _remove_mozilla = not exists(_mozilla_dir)
 
 
+def _set_firefox_perf(perfs: dict[str, str | int | bool]):
+    """Set firefox preferences
+
+    Args:
+        perfs(dict[str, str | int | bool]): The perferences dict
+    """
+    def construct_line(key: str, value: str | int | bool) -> str:
+        """Build user.js line properly
+
+        The string need to be quoted properly.
+
+        Args:
+            key(str): The preference key
+            value(str | int | bool): The value of the key
+
+        Returns:
+            str: The proper line of user.js
+        """
+        if isinstance(value, str):
+            value = "\"{value}\"".format(value=value)
+        elif isinstance(value, bool):
+            value = str(value).lower()
+        else:
+            value = str(value)
+        return "user_pref(\"{key}\", {value});\n".format(key=key, value=value)
+
+    profile_path = get_cache_path(join("browser-data", _config.browser_id))
+    makedirs(profile_path, exist_ok=True)
+    userjs_path = join(profile_path, "user.js")
+    # user_pref("key", "str-value");
+    # user_pref("key", 0);
+    # user_pref("key", false);
+    lines = [construct_line(key, value) for key, value in perfs.items()]
+    with open(userjs_path, "w+", encoding="utf-8") as operator:
+        file_lines = operator.readlines()
+        changed = False
+        for line in lines:
+            if line not in file_lines:
+                file_lines.append(line)
+                changed = True
+        if changed:
+            operator.writelines(file_lines)
+
+
 def _on_processor_started():
     """Called on processor started
     """
@@ -34,17 +78,7 @@ def _on_processor_started():
         warning(get_language_string("core-warning-register-task-failed"))
     load_all_answer_sources()
     if _config.browser_id == "firefox":
-        profile_path = get_cache_path(join("browser-data", _config.browser_id))
-        makedirs(profile_path, exist_ok=True)
-        if not exists(join(profile_path, "user.js")):
-            with open(join(profile_path, "user.js"), "w", encoding="utf-8") as writer:
-                writer.writelines(
-                    ["user_pref(\"media.default_volume\", 0.0);"])
-        else:
-            with open(join(profile_path, "user.js"), "a+", encoding="utf-8") as operator:
-                if "user_pref(\"media.default_volume\", 0.0);" not in operator.readlines():
-                    operator.writelines(
-                        ["user_pref(\"media.default_volume\", 0.0);"])
+        _set_firefox_perf({"media.volume_scale": "0.0"})
 
 
 def _on_processor_stopped():
