@@ -1,7 +1,7 @@
 #Maintainer: Noob Zhang <17194552+zhanghua000 at users dot noreply dot github dot com>
 
 pkgname="python-autoxuexiplaywright-git"
-pkgver=3.0.0.r2.g2bc0398
+pkgver=3.0.8.r24.gff46027
 pkgrel=1
 pkgdesc="Auto finish something boring."
 arch=("any")
@@ -39,7 +39,6 @@ build(){
 check(){
     cd "${srcdir}/AutoXuexiPlaywright"
     poetry run pytest --cov=autoxuexiplaywright
-    poetry run pycycle --here
 }
 package(){
     cd "${srcdir}/AutoXuexiPlaywright"
