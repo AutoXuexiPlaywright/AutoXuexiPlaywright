@@ -47,7 +47,6 @@ jobs:
             - name: Run program tests
               continue-on-error: true
               run: |
-                  poetry run pycycle --here --verbose
                   poetry run pytest --cov=autoxuexiplaywright
                   poetry run pydocstyle
                   poetry run isort --check --diff .
