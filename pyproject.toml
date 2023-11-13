@@ -63,7 +63,7 @@ pytest = "^7.4.3"
 pydocstyle = "^6.3.0"
 isort = "^5.12.0"
 pytest-cov = "^4.0.0"
-pytest-xdist = "^3.3.1"
+pytest-xdist = "^3.4.0"
 
 
 [build-system]
