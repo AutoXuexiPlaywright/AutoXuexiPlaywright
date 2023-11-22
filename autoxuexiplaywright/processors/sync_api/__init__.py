@@ -104,7 +104,7 @@ def start():
                 join("browser-cache", _config.browser_id)
             ),
             headless=not _config.debug, proxy=_config.proxy, channel=_config.browser_channel, args=["--mute-audio"],
-            devtools=not _config.debug, executable_path=_config.executable_path
+            devtools=not _config.debug, executable_path=_config.executable_path, firefox_user_prefs={"media.volume_scale": "0.0"}
         )
         context.set_default_timeout(WAIT_PAGE_SECS*1000)
         try:
