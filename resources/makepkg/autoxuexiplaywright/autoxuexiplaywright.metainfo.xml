@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+    <id>org.autoxuexiplaywright.autoxuexiplaywright</id>
+    <name>AutoXuexiPlaywright</name>
+    <summary>Automatically finish something boring</summary>
+    <metadata_license>CC-BY-4.0</metadata_license>
+    <project_license>AGPL-3.0-or-later</project_license>
+    <description>
+        <p>
+      Python project to finish something boring.
+    </p>
+        <p>
+      Built with playwright, Microsoft's automatically test framework.
+    </p>
+    </description>
+    <launchable type="desktop-id">org.autoxuexiplaywright.autoxuexiplaywright.desktop</launchable>
+</component>

@@ -1,7 +1,7 @@
 #Maintainer: Noob Zhang <17194552+zhanghua000 at users dot noreply dot github dot com>
 
 pkgname="python-autoxuexiplaywright-git"
-pkgver=3.0.8.r24.gff46027
+pkgver=3.0.8.r28.ge1b8614
 pkgrel=1
 pkgdesc="Auto finish something boring."
 arch=("any")
@@ -23,9 +23,11 @@ optdepends=(
 )
 source=(
     "git+${url}"
-    "autoxuexiplaywright.desktop")
+    "autoxuexiplaywright.desktop"
+    "autoxuexiplaywright.metainfo.xml")
 sha256sums=('SKIP'
-            '220eccba3090274aa8bb47a37399d923bbec2a0da92c265ab6efc500a6676fb0')
+            '5ab5425ef45006354b67f85c7e7cbb1e45f30c69d83fd4c98c0434809a8d254b'
+            '6cc83c7c4b47b8f446c5c52a9503d5d19cb83c3388068b004499e3bdf6d50e5a')
 
 pkgver(){
     cd "${srcdir}/AutoXuexiPlaywright"
@@ -33,6 +35,7 @@ pkgver(){
 }
 build(){
     cd "${srcdir}/AutoXuexiPlaywright"
+    unset HTTP_PROXY HTTPS_PROXY http_proxy https_proxy
     poetry install --with=gui --with=dev
     poetry build
 }
@@ -42,10 +45,11 @@ check(){
 }
 package(){
     cd "${srcdir}/AutoXuexiPlaywright"
-    mkdir -p "${pkgdir}/usr/share/icons/hicolor/32x32/apps"
     python -m installer --destdir="${pkgdir}" dist/*.whl
     install -Dm644 "${srcdir}/autoxuexiplaywright.desktop" \
         "${pkgdir}/usr/share/applications/org.autoxuexiplaywright.autoxuexiplaywright.desktop"
     install -Dm644 "${srcdir}/AutoXuexiPlaywright/autoxuexiplaywright/resources/icon.png" \
-        "${pkgdir}/usr/share/icons/hicolor/32x32/apps/autoxuexiplaywright.png" 
+        "${pkgdir}/usr/share/icons/hicolor/32x32/apps/org.autoxuexiplaywright.autoxuexiplaywright.png"
+    install -Dm644 "${srcdir}/autoxuexiplaywright.metainfo.xml" \
+        "${pkgdir}/usr/share/metainfo/org.autoxuexiplaywright.autoxuexiplaywright.metainfo.xml"
 }
