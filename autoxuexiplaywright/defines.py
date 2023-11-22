@@ -1,3 +1,5 @@
-APPAUTHOR = "org.AutoXuexiPlaywright"
+APPAUTHORDOMAIN = "org"
+APPAUTHOR = "AutoXuexiPlaywright"
 APPNAME = "AutoXuexiPlaywright"
-APPID = ".".join([APPAUTHOR, APPNAME]).lower()
+APPID = ".".join([APPAUTHORDOMAIN, APPAUTHOR, APPNAME]).lower()
+APPVER = "3.0.8"

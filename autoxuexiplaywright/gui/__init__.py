@@ -1,7 +1,7 @@
 from platform import system, release
 from PySide6.QtWidgets import QApplication
 from PySide6.QtCore import QTranslator
-from autoxuexiplaywright.defines import APPID, APPNAME
+from autoxuexiplaywright.defines import APPID, APPNAME, APPVER, APPAUTHOR, APPAUTHORDOMAIN
 from autoxuexiplaywright.config import get_runtime_config
 from autoxuexiplaywright.gui.windows import MainWindow
 from autoxuexiplaywright.events import EventID, find_event_by_id
@@ -54,7 +54,11 @@ def start():
             QApplication.setDesktopFileName(APPID)
         case _:
             pass
-    QApplication.setApplicationName(APPNAME)
+    QApplication.setApplicationName(APPNAME.lower())
+    QApplication.setApplicationDisplayName(APPNAME)
+    QApplication.setApplicationVersion(APPVER)
+    QApplication.setOrganizationName(APPAUTHOR.lower())
+    QApplication.setOrganizationDomain(APPAUTHORDOMAIN)
     app = QApplication()
     translator = QTranslator()
     translator.load("qt_"+lang_to_locale(get_runtime_config().lang))
