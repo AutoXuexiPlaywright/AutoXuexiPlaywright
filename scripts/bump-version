@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+# Run this script at the root level of the repo
+
+_define_path="./autoxuexiplaywright/defines.py"
+
+echo "Bumping version to $1..."
+sed -i "s/APPVER = \".*\"/APPVER = \"$1\"/" $_define_path
+poetry version "$1"
+git add .
+git commit -m "Bump version to $1"
+git tag "v$1"
+echo "Bump version to $1 successful, you can push commits with tags now"
