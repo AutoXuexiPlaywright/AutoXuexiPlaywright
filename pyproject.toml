@@ -48,7 +48,7 @@ optional = true
 
 
 [tool.poetry.group.gui.dependencies]
-pyside6 = "^6.6.0"
+pyside6 = "^6.6.1"
 
 
 [tool.poetry.group.dev]
