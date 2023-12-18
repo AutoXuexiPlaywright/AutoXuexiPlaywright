@@ -306,17 +306,6 @@ files = [
 ]
 
 [[package]]
-name = "iso8601"
-version = "2.1.0"
-description = "Simple module to parse ISO 8601 dates"
-optional = false
-python-versions = ">=3.7,<4.0"
-files = [
-    {file = "iso8601-2.1.0-py3-none-any.whl", hash = "sha256:aac4145c4dcb66ad8b648a02830f5e2ff6c24af20f4f482689be402db2429242"},
-    {file = "iso8601-2.1.0.tar.gz", hash = "sha256:6b1d3829ee8921c4301998c909f7829fa9ed3cbdac0d3b16af2d743aed1ba8df"},
-]
-
-[[package]]
 name = "isort"
 version = "5.13.1"
 description = "A Python utility / library to sort Python imports."
@@ -329,17 +318,14 @@ files = [
 
 [[package]]
 name = "m3u8"
-version = "3.6.0"
+version = "4.0.0"
 description = "Python m3u8 parser"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.7"
 files = [
-    {file = "m3u8-3.6.0-py3-none-any.whl", hash = "sha256:18c2fc2e4e0906e3a114bc3747d5e73db71aadc72c5d2863a3538dd07c2367ab"},
-    {file = "m3u8-3.6.0.tar.gz", hash = "sha256:d7f17e357e63f90400ae9804bcd193b8935fcca4eb18659aa94f1d7af3b36451"},
+    {file = "m3u8-4.0.0-py3-none-any.whl", hash = "sha256:f4fbb2874c0c1632833a789025d9ce90ee43e3ad417150b1d61741bcfd747243"},
+    {file = "m3u8-4.0.0.tar.gz", hash = "sha256:32cb3300c702e802944427ecefbe5006e09f7fb5578334ce33f01e2e4bf05470"},
 ]
-
-[package.dependencies]
-iso8601 = "*"
 
 [[package]]
 name = "packaging"
@@ -837,4 +823,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.12"
-content-hash = "17b1259f9a6524a5a64c6fddd4ea7fe8444039e5086f968df5b6a3c72cfe85aa"
+content-hash = "f80fb697f127ad2d1837df0e6d476d8b9f15117cb347243f20fdfa45e8db596f"
