@@ -76,6 +76,7 @@
     "core-debug-spec-is-none": "spec 为 None",
     "core-debug-spec-loader-is-none": "spec.loader 为 None",
     "core-debug-detected-module-entrance-by-new-method": "确认新版模块 %s 入口点",
+    "core-warning-deprecated-module-version": "正在使用 API 版本为 %s 的过时模块 %s，请联系 %s 以解决这个问题",
     "ui-status-loging-in": "当前状态：正在登录",
     "ui-info-failed-to-print-qr": "GUI 模式无法输出二维码到终端，请扫描程序文件夹或者弹出的二维码图片",
     "ui-status-tooltip": "当前状态：正在处理 %s",

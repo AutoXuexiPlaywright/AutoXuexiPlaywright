@@ -128,7 +128,9 @@ def add_answer_to_all_sources(title: str, answer: list[str]):
 def close_all_answer_sources():
     """Close all answer sources
     """
-    for answer_source in _answer_sources:
+    print(*_answer_sources)
+    for answer_source in _answer_sources.copy():
+        print("Closing "+str(answer_source))
         try:
             answer_source.close()
         except Exception as e:
@@ -136,4 +138,5 @@ def close_all_answer_sources():
         else:
             _answer_sources.remove(answer_source)
     if len(_answer_sources) > 0:
-        warning("core-warning-exisis-sources-failed-to-close")
+        warning(get_language_string(
+            "core-warning-exisis-sources-failed-to-close"))
