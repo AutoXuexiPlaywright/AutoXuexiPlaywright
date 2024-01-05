@@ -8,7 +8,7 @@ class SemVer(NamedTuple):
     patch: int
 
     def __str__(self) -> str:
-        return "%d.%d.%d".format(self.major, self.minor, self.patch)
+        return "{}.{}.{}".format(self.major, self.minor, self.patch)
 
 
 class Module(ABC):
