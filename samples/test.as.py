@@ -1,6 +1,8 @@
-from autoxuexiplaywright.sdk import AnswerSource
+from autoxuexiplaywright.sdk.answer import AnswerSource
+from autoxuexiplaywright.sdk.module import module_entrance
 
 
+@module_entrance
 class TestSource(AnswerSource):
 
     def get_answer(self, title: str) -> list[str]:
