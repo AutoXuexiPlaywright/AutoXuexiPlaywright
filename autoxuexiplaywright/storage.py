@@ -86,7 +86,7 @@ def get_modules_file_paths(mod_ext: str) -> list[str]:
             for file in listdir(_path["modules_user"]):
                 if file.endswith(mod_ext):
                     user_modules_file_names.append(basename(file))
-                    _modules.append(file)
+                    _modules.append(join(_path["modules_user"], file))
         if system() == "Linux":
             # Linux has a shared modules path
             if not isinstance(_path["modules_system"], str):
@@ -95,7 +95,8 @@ def get_modules_file_paths(mod_ext: str) -> list[str]:
                 for file in listdir(_path["modules_system"]):
                     if file.endswith(mod_ext):
                         if basename(file) not in user_modules_file_names:
-                            _modules.append(file)
+                            _modules.append(
+                                join(_path["modules_system"], file))
     return _modules
 
 
