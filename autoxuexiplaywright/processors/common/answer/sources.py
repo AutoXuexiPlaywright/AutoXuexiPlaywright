@@ -128,15 +128,14 @@ def add_answer_to_all_sources(title: str, answer: list[str]):
 def close_all_answer_sources():
     """Close all answer sources
     """
-    print(*_answer_sources)
-    for answer_source in _answer_sources.copy():
-        print("Closing "+str(answer_source))
+    def try_close(answer_source: AnswerSource) -> bool:
         try:
             answer_source.close()
         except Exception as e:
             warning(get_language_string("core-warning-close-source-failed") % e)
+            return True
         else:
-            _answer_sources.remove(answer_source)
-    if len(_answer_sources) > 0:
+            return False
+    if len(list(filter(try_close, _answer_sources))) > 0:
         warning(get_language_string(
             "core-warning-exisis-sources-failed-to-close"))
