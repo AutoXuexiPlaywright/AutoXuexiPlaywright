@@ -25,7 +25,7 @@ jobs:
               with:
                   python-version: '3.11'
             - name: Setup Poetry
-              uses: Gr1N/setup-poetry@v8
+              uses: Gr1N/setup-poetry@v9
             - name: Remove custom pypi sources
               # Custom sources are only helpful in China
               run: |
