@@ -322,13 +322,13 @@ colors = ["colorama (>=0.4.6)"]
 
 [[package]]
 name = "m3u8"
-version = "4.0.0"
+version = "4.1.0"
 description = "Python m3u8 parser"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "m3u8-4.0.0-py3-none-any.whl", hash = "sha256:f4fbb2874c0c1632833a789025d9ce90ee43e3ad417150b1d61741bcfd747243"},
-    {file = "m3u8-4.0.0.tar.gz", hash = "sha256:32cb3300c702e802944427ecefbe5006e09f7fb5578334ce33f01e2e4bf05470"},
+    {file = "m3u8-4.1.0-py3-none-any.whl", hash = "sha256:981daed09f57b7590721b6437278e49f2c36c1bceaa8fbe48f585e1745571d17"},
+    {file = "m3u8-4.1.0.tar.gz", hash = "sha256:3b9d7e5bafbaae89f2464cb16f397887d8decf6b1b48d8de58711414dc1c7b45"},
 ]
 
 [[package]]
@@ -849,4 +849,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.12"
-content-hash = "98ab72f47ec8f3b7d1d9255b77a3e371f389d03f4dc164593d73d5f51a7fff12"
+content-hash = "26daa4937f74405d4c0d168f6eba70c0fd78062aaa9261720bb3a9f8da67ed9a"
