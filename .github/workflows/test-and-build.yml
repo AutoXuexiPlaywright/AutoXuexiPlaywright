@@ -45,7 +45,8 @@ jobs:
                     libxkbcommon-x11-0 xvfb libxcb-randr0 \
                     libxcb-render-util0 libxcb-xinerama0 libegl1
             - name: Run program tests
-              continue-on-error: true
+              env:
+                RUFF_OUTPUT_FORMAT: github
               run: poetry run pytest
             - name: Build wheel
               run: poetry build
