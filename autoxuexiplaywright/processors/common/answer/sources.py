@@ -1,11 +1,13 @@
 from sqlite3 import connect
 from abc import abstractmethod
 from base64 import b64decode, b64encode
+
+
 # Relative imports
-from ..modules import get_modules_in_file, EXTRA_MODULES_NAMESPACE
+from ....sdk.module import get_modules_by_type
 from ...common import ANSWER_CONNECTOR
 from ....sdk.answer import AnswerSource
-from ....storage import get_modules_file_paths, get_data_path
+from ....storage import get_data_path
 from ....logger import debug, warning
 from ....languages import get_language_string
 from ....defines import APPAUTHOR
@@ -13,7 +15,6 @@ from ....defines import APPAUTHOR
 
 _ANSWER_DB_FILENAME = "data.db"
 _ANSWER_SOURCE_MOD_EXT = ".as.py"
-_ANSWER_SOURCE_NAMESPACE = EXTRA_MODULES_NAMESPACE+".answer_sources"
 
 _answer_sources: list[AnswerSource] = []
 
@@ -75,13 +76,10 @@ def _add_source_manually(source: type[AnswerSource]):
 def load_all_answer_sources():
     """Load all answer sources
     """
-    for module_path in get_modules_file_paths(_ANSWER_SOURCE_MOD_EXT):
-        debug(get_language_string("core-debug-loading-module-file") % module_path)
-        modules = get_modules_in_file(
-            module_path, _ANSWER_SOURCE_NAMESPACE)
-        for module in modules:
-            if isinstance(module, AnswerSource) and module not in _answer_sources:
-                _answer_sources.append(module)
+    for module in get_modules_by_type(AnswerSource):
+        if module not in _answer_sources:
+            _answer_sources.append(module)
+
     _add_source_manually(SqliteAnswerSource)
     debug(get_language_string("core-debug-current-modules-num") %
           (len(_answer_sources), str(_answer_sources)))

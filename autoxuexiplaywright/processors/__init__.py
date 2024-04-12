@@ -1,12 +1,13 @@
-from os import remove, walk, makedirs
+from os import remove, walk
 from shutil import rmtree
 from os.path import join, exists, expanduser
 # Relative imports
 from .common import cache, tasks_to_be_done, register_tasks, clean_tasks
+from .common.modules import load_modules
 from .common.answer.sources import load_all_answer_sources, close_all_answer_sources
 from ..logger import warning
 from ..config import get_runtime_config
-from ..storage import get_cache_path
+from ..storage import get_cache_path, get_modules_file_paths
 from ..languages import get_language_string
 
 
@@ -15,6 +16,8 @@ _legacy_pki_dir = join(expanduser("~"), ".pki")
 _mozilla_dir = join(expanduser("~"), ".mozilla")
 _remove_pki = not exists(_legacy_pki_dir)
 _remove_mozilla = not exists(_mozilla_dir)
+
+MODULE_EXT=".py"
 
 
 def _on_processor_started():
@@ -32,6 +35,8 @@ def _on_processor_started():
         from .sync_api.read import VideoTask, NewsTask
     if not register_tasks(LoginTask, NewsTask, VideoTask, DailyTestTask, WeeklyTestTask, SpecialTestTask):
         warning(get_language_string("core-warning-register-task-failed"))
+    for filename in get_modules_file_paths(MODULE_EXT):
+        load_modules(filename)
     load_all_answer_sources()
 
 
