@@ -1,5 +1,5 @@
 # DEPRECATED: Use sub-packages in autoxuexiplaywright.sdk instead
-from typing import Callable, final
+from typing import Callable
 
 from ..languages import get_language_string
 from ..logger import warning
@@ -25,7 +25,6 @@ def _override_version(version: SemVer):
     """
     def override_wrapper(cls: type[Module]):
 
-        @final
         @staticmethod
         def get_module_api_version():
             return version
