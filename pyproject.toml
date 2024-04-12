@@ -74,7 +74,7 @@ reportImplicitOverride = "information"
 reportShadowedImports = "information"
 
 [tool.pytest.ini_options]
-addopts = "--cov=e5renewer --ruff"
+addopts = "--cov=autoxuexiplaywright --ruff"
 required_plugins = "pytest-ruff pytest-cov"
 
 [tool.ruff]
