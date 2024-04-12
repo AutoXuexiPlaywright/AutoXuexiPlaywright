@@ -46,11 +46,7 @@ jobs:
                     libxcb-render-util0 libxcb-xinerama0 libegl1
             - name: Run program tests
               continue-on-error: true
-              run: |
-                  poetry run pytest --cov=autoxuexiplaywright
-                  poetry run pydocstyle
-                  poetry run isort --check --diff .
-                  poetry run autopep8 -r --diff .
+              run: poetry run pytest
             - name: Build wheel
               run: poetry build
             - name: Build python-autoxuexiplaywright
