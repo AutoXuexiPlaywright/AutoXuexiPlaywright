@@ -1,23 +1,28 @@
+"""Main module when runs in headless mode."""
+
 from io import BytesIO
 from PIL import Image
 from queue import Queue
-from logging import Handler
 from qrcode import QRCode  # type: ignore
-from pyzbar.pyzbar import decode  # type: ignore
+from .events import EventID
+from .events import find_event_by_id
+
 # Relative imports
 from .logger import init_logger
-from .processors import start_processor
-from .events import EventID, find_event_by_id
-from .processors.common import ANSWER_CONNECTOR
+from logging import Handler
 from .languages import get_language_string
+from .processors import start_processor
+from pyzbar.pyzbar import decode  # type: ignore
+from .processors.common import ANSWER_CONNECTOR
 
 
 def _request_answer(tips: str, queue: Queue[list[str]]):
     queue.put(
         input(
-            get_language_string("core-manual-enter-answer-required") %
-            (ANSWER_CONNECTOR, tips)
-        ).strip().split(ANSWER_CONNECTOR)
+            get_language_string("core-manual-enter-answer-required") % (ANSWER_CONNECTOR, tips),
+        )
+        .strip()
+        .split(ANSWER_CONNECTOR),
     )
 
 
@@ -29,12 +34,16 @@ def _print_qr(image: bytes):
 
 
 def register_callbacks():
-    find_event_by_id(EventID.ANSWER_REQUESTED).add_callback(
-        _request_answer)
-    find_event_by_id(EventID.QR_UPDATED).add_callback(
-        _print_qr)
+    """Register required callbacks."""
+    find_event_by_id(EventID.ANSWER_REQUESTED).add_callback(_request_answer)
+    find_event_by_id(EventID.QR_UPDATED).add_callback(_print_qr)
 
 
 def start(st: Handler | None = None):
+    """Main entrance of headless mode.
+
+    Args:
+        st(Handler|None): log handler, defaults to None for StreamHandler
+    """
     init_logger(st)
     start_processor()

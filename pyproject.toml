@@ -127,6 +127,36 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
+# Import core or gui according to config
+"autoxuexiplaywright/__init__.py" = ["PLC0415"]
+# Function is too complex
+"autoxuexiplaywright/config.py" = ["PLR0912"]
+# classmethod returns instance
+# NoSuchEventException cannot be fixed because compatibility reason.
+"autoxuexiplaywright/events.py" = ["ANN206", "N818"]
+# Import ctypes only on Windows
+"autoxuexiplaywright/gui/__init__.py" = ["PLC0415"]
+# follow Qt's name style
+# Drawing UI requires many statements
+"autoxuexiplaywright/gui/*.py" = ["N815", "N802", "N806", "PLR0915", "PLR0914"]
+# _ObjectIDs, magic value
+"autoxuexiplaywright/gui/windows.py" = ["RUF012", "PLR6301", "PLR2004"]
+# NoSuchLanguageKeyException
+"autoxuexiplaywright/languages.py" = ["N818"]
+# Dynamic import objects
+"autoxuexiplaywright/processors/__init__.py" = ["PLC0415"]
+# Size of list, method is function
+"autoxuexiplaywright/processors/**.py" = ["PLR6301", "PLR2004"]
+# Nested block
+"autoxuexiplaywright/processors/*/read.py" = ["PLR1702"]
+# Dynamic import
+"autoxuexiplaywright/processors/*/test.py" = ["PLC0415"]
+# SQL is too long
+"autoxuexiplaywright/processors/common/answer/sources.py" = ["E501"]
+# empty functions
+"autoxuexiplaywright/sdk/module.py" = ["B027"]
+# Too many nested blocks
+"autoxuexiplaywright/storage.py" = ["PLR1702"]
 # tests are usually using assert and private objects
 # pyright is not happy when using i.attr
 # test __eq__ function should not be changed to ==

@@ -1,11 +1,11 @@
+"""Test if deserialize and serialize are correct."""
+
 from json import load
-from tempfile import mkdtemp
-from os import chdir, rmdir, remove
-from os.path import realpath, split, join
-from autoxuexiplaywright.config import Config, deserialize_config, serialize_config
+from pathlib import Path
+from autoxuexiplaywright.config import Config
+from autoxuexiplaywright.config import serialize_config
+from autoxuexiplaywright.config import deserialize_config
 
-
-chdir(split(realpath(__file__))[0])
 
 _input_config_instance_normal = Config()
 _input_config_instance_normal.lang = "en-us"
@@ -29,24 +29,22 @@ _input_config_instance_extrakey = Config()
 _configs_map = {
     "normal.json": _input_config_instance_normal,
     "nokey.json": _input_config_instance_nokey,
-    "extrakey.json": _input_config_instance_extrakey
+    "extrakey.json": _input_config_instance_extrakey,
 }
 
 
 def test_deserialize_config():
+    """Check if deserialize_config works."""
+    file_dir = Path(__file__).resolve().parent
     for k, v in _configs_map.items():
-        assert deserialize_config(join("data", k)) == v
+        assert deserialize_config(file_dir / "data" / k) == v
 
 
-def test_serialize_config():
-    temp = mkdtemp()
-    try:
-        for k, v in _configs_map.items():
-            tmp_path = join(temp, k)
-            serialize_config(v, tmp_path)
-            with open(tmp_path, "r", encoding="utf-8") as reader:
-                json = load(reader)
-            assert v.__dict__ == json
-    finally:
-        [remove(join(temp, k)) for k in _configs_map.keys()]
-        rmdir(temp)
+def test_serialize_config(tmpdir: str):
+    """Check if serialize_config works."""
+    for k, v in _configs_map.items():
+        tmp_path = Path(tmpdir) / k
+        serialize_config(v, tmp_path)
+        with tmp_path.open("r", encoding="utf-8") as reader:
+            json = load(reader)
+        assert v.__dict__ == json

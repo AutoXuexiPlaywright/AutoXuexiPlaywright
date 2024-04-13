@@ -1,9 +1,13 @@
-from enum import Enum
+"""Common objects for async and sync apis."""
+
 from re import compile
-from abc import ABC, abstractmethod
+from abc import ABC
+from abc import abstractmethod
+from enum import Enum
 
 
 class TaskStatus(Enum):
+    """Status of task."""
     UNKNOWN = 0
     READY = 1
     SUCCESS = 2
@@ -12,16 +16,19 @@ class TaskStatus(Enum):
 
 
 class AbstractBaseTask(ABC):
+    """Common parts of Task in sync and async apis."""
     status = TaskStatus.UNKNOWN
 
     @property
     @abstractmethod
     def requires(self) -> list[str]:
+        """What does this task requires."""
         return []
 
     @property
     @abstractmethod
     def handles(self) -> list[str]:
+        """What does this task can do."""
         return []
 
 
@@ -36,7 +43,7 @@ READ_TIME_SECS = 60
 READ_SLEEPS_MIN_SECS = 2.0
 READ_SLEEPS_MAX_SECS = 5.0
 
-VIDEO_REQUEST_REGEX = compile('https://.+.(m3u8|mp4)')
+VIDEO_REQUEST_REGEX = compile("https://.+.(m3u8|mp4)")
 
 ANSWER_CONNECTOR = "#"
 
@@ -50,14 +57,11 @@ _known_tasks: list[AbstractBaseTask] = []
 
 
 def _is_task_registered(task_type: type[AbstractBaseTask]) -> bool:
-    for task in _known_tasks:
-        if isinstance(task, task_type):
-            return True
-    return False
+    return any(isinstance(task, task_type) for task in _known_tasks)
 
 
 def get_task_by_task_title(task_title: str) -> AbstractBaseTask | None:
-    """Get task by task title
+    """Get task by task title.
 
     Args:
         task_title (str): The title of task on status page
@@ -68,10 +72,11 @@ def get_task_by_task_title(task_title: str) -> AbstractBaseTask | None:
     for task in _known_tasks:
         if task_title in task.handles:
             return task
+    return None
 
 
 def register_tasks(*tasks: type[AbstractBaseTask]) -> bool:
-    """Register all tasks given
+    """Register all tasks given.
 
     This will make them available
 
@@ -89,13 +94,12 @@ def register_tasks(*tasks: type[AbstractBaseTask]) -> bool:
 
 
 def clean_tasks():
-    """Remove all the registered tasks
-    """
+    """Remove all the registered tasks."""
     _known_tasks.clear()
 
 
 def set_task_status_by_task_title(task_title: str, status: TaskStatus) -> bool:
-    """Set task status by task title
+    """Set task status by task title.
 
     Args:
         task_title (str): The title of task on status page
@@ -105,14 +109,14 @@ def set_task_status_by_task_title(task_title: str, status: TaskStatus) -> bool:
         bool: If set successfully
     """
     task = get_task_by_task_title(task_title)
-    if task != None:
+    if task:
         task.status = status
         return True
     return False
 
 
 def create_queues_from_existing_task_titles(*task_titles: str) -> list[TaskQueue]:
-    """Create task queue from titles
+    """Create task queue from titles.
 
     Args:
         *task_titles (str): The list of task title
@@ -123,9 +127,9 @@ def create_queues_from_existing_task_titles(*task_titles: str) -> list[TaskQueue
     queues_dict: dict[int, TaskQueue] = {}
     for task_title in task_titles:
         task = get_task_by_task_title(task_title)
-        if task != None:
+        if task:
             requires_count = len(task.requires)
-            if requires_count in queues_dict.keys():
+            if requires_count in queues_dict:
                 queues_dict[requires_count].append(task_title)
             else:
                 queues_dict[requires_count] = [task_title]
@@ -135,7 +139,7 @@ def create_queues_from_existing_task_titles(*task_titles: str) -> list[TaskQueue
 
 
 def clean_string(string: str) -> str:
-    """Clean the string
+    """Clean the string.
 
     Args:
         string (str): The input string

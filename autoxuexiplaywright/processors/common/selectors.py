@@ -1,8 +1,13 @@
+"""Classes for storaging selectors constrants."""
+
+
 class Selectors:
+    """Selectors for common usage."""
     LOADING = "div.ant-spin-spinning"
 
 
 class PointsSelectors:
+    """Selectors for getting points."""
     POINTS_CARDS = "div.my-points-card"
     POINTS_SPAN = "span.my-points-points"
     CARD_TITLE = POINTS_CARDS.replace("div.", "p.") + "-title"
@@ -10,6 +15,7 @@ class PointsSelectors:
 
 
 class TestSelectors:
+    """Selectors for processing tests."""
     TEST_WEEKS = "div.ant-spin-container div.week"
     TEST_WEEK_TITLE = "div.week-title"
     TEST_BTN = "button.button"
@@ -39,18 +45,19 @@ class TestSelectors:
     ANSWER_ITEM = "div.q-answer"
     TIPS = "span.tips"
     POPOVER = "div.ant-popover-placement-bottom"
-    ANSWER_FONT = "div.line-feed font[color=\"red\"]"
+    ANSWER_FONT = 'div.line-feed font[color="red"]'
 
 
 class ReadSelectors:
-    NEWS_TITLE_SPAN = "section[data-data-id=\"zhaiyao-title\"] span.moreUrl"
-    NEWS_LIST = "section[data-data-id=\"textListGrid\"] div.grid-cell"
+    """Selectors for handling read tasks."""
+    NEWS_TITLE_SPAN = 'section[data-data-id="zhaiyao-title"] span.moreUrl'
+    NEWS_LIST = 'section[data-data-id="textListGrid"] div.grid-cell'
     NEWS_TITLE_TEXT = "div.text-wrap>span.text"
-    NEXT_PAGE = "div.btn:has-text(\">>\")"
+    NEXT_PAGE = 'div.btn:has-text(">>")'
 
     PAGE_PARAGRAPHS = "div.render-detail-content>p,div.videoSet-article-summary>p"
 
-    VIDEO_ENTRANCE = "div[data-data-id=\"tv-station-header\"]>div.right>span.moreText"
+    VIDEO_ENTRANCE = 'div[data-data-id="tv-station-header"]>div.right>span.moreText'
     # Maybe a.single.text-ellipsis[data-locations]:has-text("学习电视台")
     VIDEO_LIBRARY = "div.more-wrap p.text"
     VIDEO_TEXT_WRAPPER = "div.textWrapper"
@@ -61,6 +68,7 @@ class ReadSelectors:
 
 
 class LoginSelectors:
+    """Selectors for handling login tasks."""
     LOGIN_QGLOGIN = "div#qglogin"
     LOGIN_IFRAME = "iframe"
     LOGIN_IMAGE = "div#app img"

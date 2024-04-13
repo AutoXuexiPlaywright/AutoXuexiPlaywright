@@ -1,29 +1,27 @@
+"""Sample Module."""
+
+from typing_extensions import override
 from autoxuexiplaywright.sdk.answer import AnswerSource
 from autoxuexiplaywright.sdk.module import module_entrance
 
 
 @module_entrance
 class TestSource(AnswerSource):
-
+    """Sample AnswerSource module."""
+    @override
     def get_answer(self, title: str) -> list[str]:
-        """Get answer from title given
-        Args:
-            title (str): The question's title without space
-        Returns:
-            list[str]: The list of answers
-        """
         return []
 
     @property
+    @override
     def name(self) -> str:
-        """The name of this source
-        """
         return "Test"
 
     @property
+    @override
     def author(self) -> str:
-        """The author of this source
-        """
         return "Test"
 
-# Simply place this file to modules folder under data directory, we will load this file when start processing.
+
+# Simply place this file to modules folder under data directory,
+# we will load this file when start processing.

@@ -1,14 +1,18 @@
-# DEPRECATED: Use sub-packages in autoxuexiplaywright.sdk instead
+"""Dummy sdk package for compatibility reasons.
+
+DEPRECATED: Use sub-packages in autoxuexiplaywright.sdk instead
+"""
+
 from typing import Callable
-
-from ..languages import get_language_string
-from ..logger import warning
-from .module import Module, SemVer
 from .answer import AnswerSource as AnswerSourceNew
+from .module import Module
+from .module import SemVer
+from ..logger import warning
+from ..languages import get_language_string
 
 
-def _override_version(version: SemVer):
-    """Override version to a specific SemVer
+def _override_version(version: SemVer) -> Callable[[type[Module]], type[Module]]:
+    """Override version to a specific SemVer.
 
     Args:
         version (SemVer): The version to override to
@@ -18,35 +22,37 @@ def _override_version(version: SemVer):
 
     Examples:
         ```python
-        @_override_version(SemVer(1,0,0))
-        class MyModule(Module):
-            ...
+        @_override_version(SemVer(1, 0, 0))
+        class MyModule(Module): ...
         ```
     """
-    def override_wrapper(cls: type[Module]):
 
+    def override_wrapper(cls: type[Module]) -> type[Module]:
         @staticmethod
-        def get_module_api_version():
+        def get_module_api_version() -> SemVer:
             return version
 
         def extra_start(instance: Module):
-            warning(get_language_string("core-warning-deprecated-module-version") %
-                    (str(instance.get_module_api_version()), instance.name, instance.author))
+            warning(
+                get_language_string("core-warning-deprecated-module-version")
+                % (str(instance.get_module_api_version()), instance.name, instance.author),
+            )
 
         if version <= cls.get_module_api_version():
-            orig_start: Callable[[Module], None] = getattr(cls, "start")
+            orig_start: Callable[[Module], None] = cls.start
             if callable(orig_start):
 
-                def new_start(instance: Module):
-                    orig_start(instance)
-                    extra_start(instance)
+                def new_start(self: Module):
+                    orig_start(self)
+                    extra_start(self)
 
-                setattr(cls, "start", new_start)
-        setattr(cls, "get_module_api_version", get_module_api_version)
+                cls.start = new_start
+        cls.get_module_api_version = get_module_api_version  # type: ignore
         return cls
+
     return override_wrapper
 
 
 @_override_version(SemVer(1, 0, 0))
 class AnswerSource(AnswerSourceNew):
-    pass
+    """Dummy AnswerSource for compatibility reasons."""

@@ -1,8 +1,14 @@
+"""Classes and functions for Event system."""
+
 from enum import Enum
-from typing import Callable, Any
+from typing import Any
+from typing import Callable
+from contextlib import suppress
+from typing_extensions import override
 
 
 class EventID(Enum):
+    """ID of all events."""
     NONE = 0
     FINISHED = 1
     STATUS_UPDATED = 2
@@ -11,17 +17,25 @@ class EventID(Enum):
     ANSWER_REQUESTED = 5
 
     @classmethod
-    def __missing__(cls, value: object):
+    @override
+    def _missing_(cls, value: object):
+        """Triggered when EventID(...) is called and nothing matched."""
         return EventID.NONE
 
 
 class Event(object):
-    def __init__(self, id: EventID = EventID.NONE):
+    """Event will be triggered during execution."""
+    def __init__(self, _id: EventID = EventID.NONE):
+        """Create an Event instance.
+
+        Args:
+            _id(EventID): The ID of event, defaults to EventID.NONE
+        """
         self.callbacks: list[Callable[..., None]] = []
-        self.id = id
+        self.id_ = _id
 
     def add_callback(self, callback: Callable[..., None]):
-        """Add a callback to the event
+        """Add a callback to the event.
 
         Args:
             callback (Callable[..., None]): The callback function
@@ -30,32 +44,37 @@ class Event(object):
             self.callbacks.append(callback)
 
     def invoke(self, *args: Any, **kwargs: Any):
-        """Invoke the callbacks in the event
+        """Invoke the callbacks in the event.
 
-            **Note:** args and kwargs will be passed to the callbacks as parameter
+        **Note:** args and kwargs will be passed to the callbacks as parameter
+                  Each callback will block the thread.
 
         """
         for callback in self.callbacks:
-            try:
+            with suppress(Exception):
                 callback(*args, **kwargs)
-            except:
-                pass
 
 
 class NoSuchEventException(Exception):
-    def __init__(self, id: EventID) -> None:
-        self.id = id
-        super().__init__("No such event: %s" % id)
+    """Exception shows that no event is found."""
+    def __init__(self, _id: EventID) -> None:
+        """Create a NoSuchEventException instance.
+
+        Args:
+            _id(EventID): The event id.
+        """
+        self._id = _id
+        super().__init__("No such event: %s" % _id)
 
 
-_events: list[Event] = [Event(id) for id in EventID if id != EventID.NONE]
+_events: list[Event] = [Event(_id) for _id in EventID if _id != EventID.NONE]
 
 
-def find_event_by_id(id: EventID) -> Event:
-    """Find an event by the id given
+def find_event_by_id(_id: EventID) -> Event:
+    """Find an event by the id given.
 
     Args:
-        id (EventID): The id
+        _id (EventID): The id
 
     Raises:
         NoSuchEventException: When no such event
@@ -63,7 +82,7 @@ def find_event_by_id(id: EventID) -> Event:
     Returns:
         Event: The event
     """
-    events = list(filter(lambda i: i.id == id, _events))
-    if len(events) > 0:
-        return events[0]
-    raise NoSuchEventException(id)
+    for event in _events:
+        if event.id_ == _id:
+            return event
+    raise NoSuchEventException(_id)
