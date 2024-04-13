@@ -1,23 +1,18 @@
-from autoxuexiplaywright.events import find_event_by_id, EventID, NoSuchEventException
+"""Test if find_event_by_id is correct."""
+
+import pytest
+from autoxuexiplaywright.events import EventID
+from autoxuexiplaywright.events import NoSuchEventException
+from autoxuexiplaywright.events import find_event_by_id
 
 
 def test_find_event_by_id():
-    for id in EventID:
-        if id == EventID.NONE:
-            try:
-                find_event_by_id(id)
-            except NoSuchEventException:
-                pass
-            else:
-                raise Exception
+    """Check if find_event_by_id works."""
+    for _id in EventID:
+        if _id == EventID.NONE:
+            with pytest.raises(NoSuchEventException):
+                _ = find_event_by_id(_id)
         else:
-            find_event_by_id(id)
-    setattr(EventID, "TEST", -1)
-    try:
-        find_event_by_id(getattr(EventID, "TEST"))
-    except NoSuchEventException:
-        pass
-    else:
-        raise Exception
-    finally:
-        delattr(EventID, "TEST")
+            _ = find_event_by_id(_id)
+    with pytest.raises(NoSuchEventException):
+        _ = find_event_by_id(EventID(-1))

@@ -1,7 +1,16 @@
+"""Classes and functions for logging."""
+
 from os import environ
-from logging import Formatter, Handler, StreamHandler, FileHandler, getLogger, DEBUG, INFO
+
 # Relative imports
 from .config import get_runtime_config
+from logging import INFO
+from logging import DEBUG
+from logging import Handler
+from logging import Formatter
+from logging import FileHandler
+from logging import StreamHandler
+from logging import getLogger
 from .defines import APPNAME
 from .storage import get_cache_path
 
@@ -12,8 +21,8 @@ _logger = getLogger(APPNAME)
 _context = {"init": False}
 
 
-def debug(msg: object):
-    """Generate a debug message
+def debug(msg: object) -> None:
+    """Generate a debug message.
 
     Args:
         msg (object): The message
@@ -21,10 +30,11 @@ def debug(msg: object):
     """
     if _context["init"]:
         return _logger.debug(msg)
+    return None
 
 
-def info(msg: object):
-    """Generate a info message
+def info(msg: object) -> None:
+    """Generate a info message.
 
     Args:
         msg (object): The message
@@ -32,10 +42,11 @@ def info(msg: object):
     """
     if _context["init"]:
         return _logger.info(msg)
+    return None
 
 
-def warning(msg: object):
-    """Generate a warning message
+def warning(msg: object) -> None:
+    """Generate a warning message.
 
     Args:
         msg (object): The message
@@ -43,10 +54,11 @@ def warning(msg: object):
     """
     if _context["init"]:
         return _logger.warning(msg)
+    return None
 
 
-def error(msg: object):
-    """Generate an error message
+def error(msg: object) -> None:
+    """Generate an error message.
 
     Args:
         msg (object): The message
@@ -54,10 +66,11 @@ def error(msg: object):
     """
     if _context["init"]:
         return _logger.error(msg)
+    return None
 
 
 def init_logger(st: Handler | None = None):
-    """Init the logger
+    """Init the logger.
 
     Args:
         st (Handler | None, optional): Any Handler for printing log records. Defaults to None.
@@ -71,7 +84,7 @@ def init_logger(st: Handler | None = None):
         else:
             level = INFO
             environ["DEBUG"] = ""
-        fh = FileHandler(get_cache_path(APPNAME+".log"), "w", "utf-8")
+        fh = FileHandler(get_cache_path(APPNAME + ".log"), "w", "utf-8")
         fm = Formatter(_LOGGING_STRING_FMT, _LOGGING_DATE_FMT)
         _logger.setLevel(level)
         st.setFormatter(fm)

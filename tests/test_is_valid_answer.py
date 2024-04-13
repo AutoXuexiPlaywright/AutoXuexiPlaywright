@@ -1,4 +1,7 @@
+"""Test if is_valid_answer works."""
+
 from autoxuexiplaywright.processors.common.answer.utils import is_valid_answer
+
 
 _test_items = {
     "": False,
@@ -8,10 +11,11 @@ _test_items = {
     "c测试": True,
     "测试c": True,
     "测c试": True,
-    " ": False
+    " ": False,
 }
 
 
 def test_is_valid_answer():
+    """Check if is_valid_answer is correct."""
     for k, v in _test_items.items():
         assert is_valid_answer(k) == v

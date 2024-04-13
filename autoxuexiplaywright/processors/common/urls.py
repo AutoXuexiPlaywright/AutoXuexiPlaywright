@@ -1,3 +1,5 @@
+"""Urls for processing."""
+
 LOGIN_PAGE = "https://pc.xuexi.cn/points/login.html"
 POINTS_PAGE = "https://pc.xuexi.cn/points/my-points.html"
 INVALID_ADDR_HEAD = "https://www.xuexi.cn/lgpage/detail/index.html?id="

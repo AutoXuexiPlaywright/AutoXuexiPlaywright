@@ -1,25 +1,48 @@
-from typing import Literal, Self
-from types import TracebackType
+"""Task abstract class and functions."""
+
 from abc import abstractmethod
-from playwright.async_api import Locator, Page, TimeoutError
+from types import TracebackType
+from typing import Self
+from typing import Literal
+from ..common import TaskStatus
+
 # Relative imports
-from ..common import AbstractBaseTask, TaskStatus, get_task_by_task_title
-from ...events import EventID, find_event_by_id
+from ..common import AbstractBaseTask
+from ..common import get_task_by_task_title
+from ...events import EventID
+from ...events import find_event_by_id
+from playwright.async_api import Page
+from playwright.async_api import Locator
+from playwright.async_api import TimeoutError
 
 
 class Task(AbstractBaseTask):
+    """Base Task class."""
     @property
     def last_page(self) -> Page:
+        """The latest page."""
         return self.pages[-1]
 
     def ready(self, page: Page, task_title: str, close: bool = True) -> Self:
+        """Make task handler ready.
+
+        Args:
+            page(Page): The page to work on
+            task_title(str): The task's name
+            close(bool): Close the page after finished, defaults to True
+        """
         self.pages = [page]
         self.close = close
         self.status = TaskStatus.READY
         find_event_by_id(EventID.STATUS_UPDATED).invoke(task_title)
         return self
 
-    async def _wait_locator(self, locator: Locator, timeout: float | None = None, state: Literal["attached", "detached", "hidden", "visible"] | None = None) -> bool:
+    async def _wait_locator(
+        self,
+        locator: Locator,
+        timeout: float | None = None,
+        state: Literal["attached", "detached", "hidden", "visible"] | None = None,
+    ) -> bool:
         try:
             await locator.wait_for(timeout=timeout, state=state)
         except TimeoutError:
@@ -27,21 +50,29 @@ class Task(AbstractBaseTask):
         return True
 
     @abstractmethod
-    async def finish(self) -> bool: ...
+    async def finish(self) -> bool:
+        """Finish the task."""
 
     @abstractmethod
-    async def __aenter__(self) -> Self: ...
+    async def __aenter__(self) -> Self:
+        """Implements context manager."""
 
-    async def __aexit__(self, exc_type: type[Exception] | None, exc_value: Exception | None, trace_back: TracebackType | None) -> bool:
-        if self.close and not all([page.is_closed() for page in self.pages]):
+    async def __aexit__(
+        self,
+        exc_type: type[Exception] | None,
+        exc_value: Exception | None,
+        trace_back: TracebackType | None,
+    ) -> bool:
+        """Implements context manager."""
+        if self.close and not all(page.is_closed() for page in self.pages):
             [await page.close() for page in self.pages]
         if self.status == TaskStatus.READY:
             self.status = TaskStatus.SUCCESS
-        return all([exc == None for exc in [exc_type, exc_value, trace_back]])
+        return all(not exc for exc in [exc_type, exc_value, trace_back])
 
 
 async def do_task(page: Page, task_title: str, close: bool) -> bool:
-    """Do the task
+    """Do the task.
 
     Args:
         page (Page): The page assaigned to the task

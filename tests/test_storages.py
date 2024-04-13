@@ -1,79 +1,96 @@
-from importlib.resources import files as resource_files, as_file as resource_as_file
+"""Test if storage functions are working."""
+
+import pytest
+from os import environ
+from os import removedirs
+from pathlib import Path
 from platform import system
-from os import environ, removedirs, listdir
-from os.path import expanduser, join, split
-from autoxuexiplaywright.storage import get_cache_path, get_config_path, get_data_path, get_resources_path
+from importlib.resources import files as resource_files
+from importlib.resources import as_file as resource_as_file
 from autoxuexiplaywright.defines import APPNAME
+from autoxuexiplaywright.storage import get_data_path
+from autoxuexiplaywright.storage import get_cache_path
+from autoxuexiplaywright.storage import get_config_path
+from autoxuexiplaywright.storage import get_resources_path
 
 
-def test_get_cache_path():
-    test = get_cache_path("test")
+@pytest.fixture()
+def cache_path() -> Path:
+    """Generate cache path."""
     match system():
         case "Windows":
-            assert test == join(expanduser("~"), "AppData",
-                                "Local", APPNAME, "test")
+            return Path.home() / "AppData" / "Local" / APPNAME
         case "Linux":
             xdg_cache_home = environ.get("XDG_CACHE_HOME")
-            if xdg_cache_home == None:
-                xdg_cache_home = join(expanduser("~"), ".cache")
-            assert test == join(xdg_cache_home, APPNAME, "test")
+            xdg_cache_home = Path(xdg_cache_home) if xdg_cache_home \
+                else Path.home() / ".cache"
+            return xdg_cache_home / APPNAME
         case "Darwin":
-            assert test == join(expanduser("~"), "Library",
-                                "Caches", APPNAME, "test")
+            return Path.home() / "Library" / "Caches" / APPNAME
         case _:
-            assert test == join(expanduser("~"), ".cache", APPNAME, "test")
-    parent = split(test)[0]
-    if len(listdir(parent)) == 0:
-        removedirs(parent)
+            return Path.home() / ".cache" / APPNAME
 
 
-def test_get_config_path():
-    test = get_config_path("test")
+@pytest.fixture()
+def config_path() -> Path:
+    """Generate config path."""
     match system():
         case "Windows":
-            assert test == join(expanduser("~"), "AppData",
-                                "Local", APPNAME, "test")
+            return Path.home() / "AppData" / "Local" / APPNAME
         case "Linux":
             xdg_config_home = environ.get("XDG_CONFIG_HOME")
-            if xdg_config_home == None:
-                xdg_config_home = join(expanduser("~"), ".config")
-            assert test == join(xdg_config_home, APPNAME, "test")
+            xdg_config_home = Path(xdg_config_home) if xdg_config_home \
+                else Path.home() / ".config"
+            return xdg_config_home / APPNAME
         case "Darwin":
-            assert test == join(expanduser("~"), "Library",
-                                "Preferences", APPNAME, "test")
+            return Path.home() / "Library" / "Preferences" / APPNAME
         case _:
-            assert test == join(expanduser("~"), ".config", APPNAME, "test")
-    parent = split(test)[0]
-    if len(listdir(parent)) == 0:
-        removedirs(parent)
+            return Path.home() / ".config" / APPNAME
 
 
-def test_get_data_path():
-    test = get_data_path("test")
+@pytest.fixture()
+def data_path() -> Path:
+    """Generate data path."""
     match system():
         case "Windows":
-            assert test == join(expanduser("~"), "AppData",
-                                "Local", APPNAME, "test")
+            return Path.home() / "AppData" / "Local" / APPNAME
         case "Linux":
             xdg_data_home = environ.get("XDG_DATA_HOME")
-            if xdg_data_home == None:
-                xdg_data_home = join(expanduser("~"), ".local", "share")
-            assert test == join(xdg_data_home, APPNAME, "test")
+            xdg_data_home = Path(xdg_data_home) if xdg_data_home \
+                else Path.home() / ".local" / "share"
+            return xdg_data_home / APPNAME
         case "Darwin":
-            assert test == join(expanduser("~"), "Library",
-                                "Application Support", APPNAME, "test")
+            return Path.home() / "Library" / "Application Support" / APPNAME
         case _:
-            assert test == join(expanduser("~"), ".local",
-                                "share", APPNAME, "test")
-    parent = split(test)[0]
-    if len(listdir(parent)) == 0:
-        removedirs(parent)
+            return Path.home() / ".local" / "share" / APPNAME
+
+
+def test_get_cache_path(cache_path: Path):
+    """Check if get_cache_path is correct."""
+    assert get_cache_path("") == cache_path
+    if len(list(cache_path.iterdir())) == 0:
+        removedirs(cache_path)
+
+
+def test_get_config_path(config_path: Path):
+    """Check if get_config_path is correct."""
+    assert get_config_path("") == config_path
+    if len(list(config_path.iterdir())) == 0:
+        removedirs(config_path)
+
+
+def test_get_data_path(data_path: Path):
+    """Check if get_data_path is correct."""
+    assert get_data_path("") == data_path
+    if len(list(data_path.iterdir())) == 0:
+        removedirs(data_path)
 
 
 def test_get_resources_path():
-    try:
-        get_resources_path("no-such-file")
-    except FileNotFoundError:
-        pass
-    with resource_as_file(resource_files("autoxuexiplaywright") / "resources" / "README.txt") as path:
-        assert get_resources_path("README.txt") == str(path.absolute())
+    """Check if get_resources_path is correct."""
+    with pytest.raises(FileNotFoundError):
+        _ = get_resources_path("no-such-file")
+    with resource_as_file(
+        resource_files("autoxuexiplaywright") / "resources" / "README.txt",
+    ) as path:
+        assert get_resources_path("README.txt") == path.absolute()

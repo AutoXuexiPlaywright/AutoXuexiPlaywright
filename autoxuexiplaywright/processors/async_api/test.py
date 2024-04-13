@@ -1,20 +1,42 @@
-from random import randint, uniform
-from queue import Queue
-from urllib.parse import urlparse
-from playwright.async_api import Locator, TimeoutError
+"""Classes and functions for handling test."""
+
 # Relative imports
-from .task import Task, TaskStatus
+from .task import Task
+from .task import TaskStatus
+from queue import Queue
+from random import randint
+from random import uniform
+from typing import Self
+from ..common import ANSWER_CONNECTOR
+from ..common import WAIT_CHOICE_SECS
+from ..common import WAIT_RESULT_SECS
+from ..common import VIDEO_REQUEST_REGEX
+from ..common import ANSWER_SLEEP_MAX_SECS
+from ..common import ANSWER_SLEEP_MIN_SECS
+from ..common import clean_string
 from .captcha import handle_drag_captcha
-from ..common import WAIT_RESULT_SECS, WAIT_CHOICE_SECS, ANSWER_SLEEP_MIN_SECS, ANSWER_SLEEP_MAX_SECS, VIDEO_REQUEST_REGEX, ANSWER_CONNECTOR, clean_string
-from ..common.answer.utils import is_valid_answer, gen_random_string
-from ..common.answer.sources import add_answer_to_all_sources, find_answer_in_answer_sources
-from ..common.selectors import Selectors, TestSelectors
-from ..common.urls import DAILY_EXAM_PAGE, WEEKLY_EXAM_PAGE, SPECIAL_EXAM_PAGE
-from ...languages import get_language_string
-from ...logger import info, debug, error, warning
 from ...config import get_runtime_config
-from ...events import EventID, find_event_by_id
+from ...events import EventID
+from ...events import find_event_by_id
+from ...logger import info
+from ...logger import debug
+from ...logger import error
+from ...logger import warning
 from ...storage import get_cache_path
+from ...languages import get_language_string
+from urllib.parse import urlparse
+from ..common.urls import DAILY_EXAM_PAGE
+from ..common.urls import WEEKLY_EXAM_PAGE
+from ..common.urls import SPECIAL_EXAM_PAGE
+from typing_extensions import override
+from ..common.selectors import Selectors
+from ..common.selectors import TestSelectors
+from playwright.async_api import Locator
+from playwright.async_api import TimeoutError
+from ..common.answer.utils import is_valid_answer
+from ..common.answer.utils import gen_random_string
+from ..common.answer.sources import add_answer_to_all_sources
+from ..common.answer.sources import find_answer_in_answer_sources
 
 
 _config = get_runtime_config()
@@ -22,9 +44,11 @@ _config = get_runtime_config()
 
 class _TestTask(Task):
     @property
+    @override
     def requires(self) -> list[str]:
         return ["登录"]
 
+    @override
     async def finish(self) -> bool:
         while not await self._is_test_finished():
             # Get question title and choice(s) or title only
@@ -40,20 +64,21 @@ class _TestTask(Task):
             match await choices.count():
                 case 0:
                     # Blank
-                    items_to_answer = question.locator(
-                        TestSelectors.BLANK)
-                    debug(get_language_string(
-                        "core-debug-current-question-type-blank"))
+                    items_to_answer = question.locator(TestSelectors.BLANK)
+                    debug(get_language_string("core-debug-current-question-type-blank"))
                 case 1:
                     # Choice
-                    items_to_answer = choices.locator(
-                        TestSelectors.ANSWER_ITEM)
-                    tips.append(get_language_string("core-available-answers") +
-                                ANSWER_CONNECTOR.join(
-                        [clean_string(item) for item in await items_to_answer.all_inner_texts()])
+                    items_to_answer = choices.locator(TestSelectors.ANSWER_ITEM)
+                    tips.append(
+                        get_language_string("core-available-answers")
+                        + ANSWER_CONNECTOR.join(
+                            [
+                                clean_string(item)
+                                for item in await items_to_answer.all_inner_texts()
+                            ],
+                        ),
                     )
-                    debug(get_language_string(
-                        "core-debug-current-question-type-choice"))
+                    debug(get_language_string("core-debug-current-question-type-choice"))
                 case _:
                     self.status = TaskStatus.FAILED
                     return False
@@ -67,8 +92,7 @@ class _TestTask(Task):
 
     async def _get_answer_from_page(self) -> list[str]:
         answer_on_page: list[str] = []
-        tips = self.last_page.locator(
-            TestSelectors.QUESTION).locator(TestSelectors.TIPS)
+        tips = self.last_page.locator(TestSelectors.QUESTION).locator(TestSelectors.TIPS)
         if "ant-popover-open" not in (await tips.get_attribute("class") or ""):
             await tips.click()
         popover = self.last_page.locator(TestSelectors.POPOVER)
@@ -76,8 +100,7 @@ class _TestTask(Task):
             font = popover.locator(TestSelectors.ANSWER_FONT)
             await self._wait_locator(font.last)
             if await font.count() > 0:
-                answer_on_page_raw = [clean_string(text)
-                                      for text in await font.all_inner_texts()]
+                answer_on_page_raw = [clean_string(text) for text in await font.all_inner_texts()]
                 for answer in answer_on_page_raw:
                     if is_valid_answer(answer):
                         answer_on_page.append(answer)
@@ -90,24 +113,20 @@ class _TestTask(Task):
         if _config.get_video:
             await self._get_video()
         queue: Queue[list[str]] = Queue(1)
-        find_event_by_id(EventID.ANSWER_REQUESTED).invoke(
-            "\n".join(tips), queue)
+        find_event_by_id(EventID.ANSWER_REQUESTED).invoke("\n".join(tips), queue)
         return queue.get()
 
     async def _go_to_next_question(self):
         action_row = self.last_page.locator(TestSelectors.TEST_ACTION_ROW)
-        next_button = action_row.locator(
-            TestSelectors.TEST_NEXT_QUESTION_BTN)
+        next_button = action_row.locator(TestSelectors.TEST_NEXT_QUESTION_BTN)
         if await next_button.is_enabled():
             await next_button.click(
-                delay=uniform(ANSWER_SLEEP_MIN_SECS,
-                              ANSWER_SLEEP_MAX_SECS)*1000
+                delay=uniform(ANSWER_SLEEP_MIN_SECS, ANSWER_SLEEP_MAX_SECS) * 1000,
             )
 
         else:
             await action_row.locator(TestSelectors.TEST_SUBMIT_BTN).click(
-                delay=uniform(ANSWER_SLEEP_MIN_SECS,
-                              ANSWER_SLEEP_MAX_SECS)*1000
+                delay=uniform(ANSWER_SLEEP_MIN_SECS, ANSWER_SLEEP_MAX_SECS) * 1000,
             )
         if not await self._handle_captcha():
             error(get_language_string("core-error-captcha-failed"))
@@ -119,34 +138,38 @@ class _TestTask(Task):
 
         await self.last_page.wait_for_load_state()
 
-    async def _do_answer(self, elements: Locator, blank: bool, tips: list[str], title: str | None = None) -> bool:
-
+    async def _do_answer(
+        self,
+        elements: Locator,
+        blank: bool,
+        tips: list[str],
+        title: str | None = None,
+    ) -> bool:
         async def do_answer(answers: list[str]) -> bool:
             handled = False
             if len(answers) > 0:
                 if len(answers) > await elements.count():
-                    warning(get_language_string(
-                        "core-warning-too-much-answers"))
-                debug(get_language_string(
-                    "core-debug-final-answer-list") % answers)
+                    warning(get_language_string("core-warning-too-much-answers"))
+                debug(get_language_string("core-debug-final-answer-list") % answers)
 
                 for i in range(len(answers)):
                     if blank:
                         if i <= await elements.count():
-                            debug(get_language_string(
-                                "core-debug-filling-blank"))
+                            debug(get_language_string("core-debug-filling-blank"))
                             await self._fill_blank(elements.nth(i), answers[i])
                             handled = True
                     else:
                         for j in range(await elements.count()):
                             if answers[i] in clean_string(await elements.nth(j).inner_text()):
-                                debug(get_language_string(
-                                    "core-debug-choosing-choice") % elements.nth(j))
+                                debug(
+                                    get_language_string("core-debug-choosing-choice")
+                                    % elements.nth(j),
+                                )
                                 await self._chose_answer(elements.nth(j))
                                 handled = True
             return handled
 
-        if title == None:
+        if not title:
             title = tips[0]
         if await do_answer(find_answer_in_answer_sources(title)):
             return True
@@ -155,8 +178,7 @@ class _TestTask(Task):
             return True
         error(get_language_string("core-error-no-answer-found"))
         tips.append(
-            get_language_string("core-available-tips") +
-            ANSWER_CONNECTOR.join(answer_from_page)
+            get_language_string("core-available-tips") + ANSWER_CONNECTOR.join(answer_from_page),
         )
         answers_from_manual_input = await self._get_answer_from_manual_input(tips)
         if await do_answer(answers_from_manual_input):
@@ -165,11 +187,9 @@ class _TestTask(Task):
         warning(get_language_string("core-warning-no-valid-answer"))
         if blank:
             for i in range(await elements.count()):
-                await self._fill_blank(elements.nth(
-                    i), gen_random_string())
+                await self._fill_blank(elements.nth(i), gen_random_string())
         else:
-            await self._chose_answer(elements.nth(
-                randint(0, await elements.count())))
+            await self._chose_answer(elements.nth(randint(0, await elements.count())))
         return False
 
     async def _handle_captcha(self) -> bool:
@@ -187,39 +207,40 @@ class _TestTask(Task):
                 await video_player.nth(i).hover()
                 try:
                     async with self.last_page.expect_response(VIDEO_REQUEST_REGEX) as response:
-                        await video_player.nth(i).locator(
-                            TestSelectors.TEST_VIDEO_PLAY_BTN).click()
+                        await video_player.nth(i).locator(TestSelectors.TEST_VIDEO_PLAY_BTN).click()
                 except TimeoutError:
-                    error(get_language_string(
-                        "core-error-test-download-video-failed"))
+                    error(get_language_string("core-error-test-download-video-failed"))
                 else:
                     if (await response.value).url.endswith(".mp4"):
-                        info(get_language_string(
-                            "core-info-test-download-video-success"))
-                        with open(get_cache_path(str(i) + "video.mp4"), "wb") as writer:
+                        info(get_language_string("core-info-test-download-video-success"))
+                        with get_cache_path(str(i) + "video.mp4").open("wb") as writer:
                             writer.write(await (await response.value).body())
                     elif (await response.value).url.endswith(".m3u8"):
                         url = urlparse((await response.value).url)
                         prefix = "%s://%s" % (
                             url.scheme,
-                            url.netloc + "/".join(url.path.split("/")[:-1])
+                            url.netloc + "/".join(url.path.split("/")[:-1]),
                         )
                         m3u8_path = get_cache_path(str(i) + "video.m3u8")
+
                         try:
+                            from m3u8 import loads  # type: ignore
                             loads(response.value.text(), prefix).dump(  # type: ignore
-                                m3u8_path)
+                                m3u8_path,
+                            )
                             from ffmpeg.asyncio import FFmpeg  # type: ignore
+
                             ffmpeg = FFmpeg().option("y")  # type: ignore
                             ffmpeg = ffmpeg.input(m3u8_path)  # type: ignore
                             ffmpeg = ffmpeg.output(  # type: ignore
-                                get_cache_path(str(i) + "video.mp4"), vcodec="copy")
-                            await ffmpeg.execute()
-                        except:
-                            error(get_language_string(
-                                "core-error-test-download-video-failed"))
+                                get_cache_path(str(i) + "video.mp4"),
+                                vcodec="copy",
+                            )
+                            await ffmpeg.execute()  # type: ignore
+                        except Exception:
+                            error(get_language_string("core-error-test-download-video-failed"))
                     else:
-                        error(get_language_string(
-                            "core-error-test-download-video-failed"))
+                        error(get_language_string("core-error-test-download-video-failed"))
 
     async def _is_test_finished(self) -> bool:
         result = self.last_page.locator(TestSelectors.TEST_RESULT)
@@ -229,52 +250,55 @@ class _TestTask(Task):
 
     async def _fill_blank(self, blank: Locator, text: str):
         await blank.clear()
-        await blank.page.wait_for_timeout(uniform(ANSWER_SLEEP_MIN_SECS, ANSWER_SLEEP_MAX_SECS)*1000)
+        await blank.page.wait_for_timeout(
+            uniform(ANSWER_SLEEP_MIN_SECS, ANSWER_SLEEP_MAX_SECS) * 1000,
+        )
         await blank.fill(text)
 
     async def _chose_answer(self, choice: Locator):
         if "chosen" not in (await choice.get_attribute("class") or ""):
-            await choice.click(delay=uniform(ANSWER_SLEEP_MIN_SECS, ANSWER_SLEEP_MAX_SECS)*1000)
+            await choice.click(delay=uniform(ANSWER_SLEEP_MIN_SECS, ANSWER_SLEEP_MAX_SECS) * 1000)
 
 
 class DailyTestTask(_TestTask):
-
+    """Class for handling daily test."""
     @property
+    @override
     def handles(self) -> list[str]:
         return ["每日答题"]
 
-    async def __aenter__(self):
+    @override
+    async def __aenter__(self) -> Self:
         await self.last_page.goto(DAILY_EXAM_PAGE)
         info(get_language_string("core-info-processing-daily-test"))
         return self
 
 
 class WeeklyTestTask(_TestTask):
-
+    """Class for handling weekly test."""
     @property
+    @override
     def handles(self) -> list[str]:
         return ["每周答题"]
 
-    async def __aenter__(self):
+    @override
+    async def __aenter__(self) -> Self:
         await self.last_page.goto(WEEKLY_EXAM_PAGE)
         await self.last_page.locator(Selectors.LOADING).wait_for(state="hidden")
         weeks = self.last_page.locator(TestSelectors.TEST_WEEKS)
         await weeks.last.wait_for()
         week = await self._get_first_available_week(weeks)
-        while week == None:
+        while not week:
             next_btn = self.last_page.locator(TestSelectors.TEST_NEXT_PAGE)
             warning(get_language_string("core-warning-no-test-on-current-page"))
             if (await next_btn.get_attribute("aria-disabled") or "") == "true":
                 error(get_language_string("core-error-no-available-test"))
                 self.status = TaskStatus.FAILED
                 return self
-            else:
-                await next_btn.first.click()
-                await self.last_page.locator(
-                    Selectors.LOADING).wait_for(state="hidden")
-                week = await self._get_first_available_week(weeks)
-        title = clean_string(await week.locator(
-            TestSelectors.TEST_WEEK_TITLE).inner_text())
+            await next_btn.first.click()
+            await self.last_page.locator(Selectors.LOADING).wait_for(state="hidden")
+            week = await self._get_first_available_week(weeks)
+        title = clean_string(await week.locator(TestSelectors.TEST_WEEK_TITLE).inner_text())
         info(get_language_string("core-info-processing-weekly-test") % title)
         await week.locator(TestSelectors.TEST_BTN).click()
         return self
@@ -282,43 +306,46 @@ class WeeklyTestTask(_TestTask):
     async def _get_first_available_week(self, weeks: Locator) -> Locator | None:
         for i in range(await weeks.count()):
             week = weeks.nth(i)
-            stat = await (week.locator(
-                TestSelectors.TEST_WEEK_STAT).get_attribute("class")) or "done"
+            stat = await week.locator(TestSelectors.TEST_WEEK_STAT).get_attribute("class") or "done"
             if "done" not in stat:
                 return week
+        return None
 
 
 class SpecialTestTask(_TestTask):
-
+    """Class for handling special test."""
     @property
+    @override
     def handles(self) -> list[str]:
         return ["专项答题"]
 
-    async def __aenter__(self):
+    @override
+    async def __aenter__(self) -> Self:
         await self.last_page.goto(SPECIAL_EXAM_PAGE)
         await self.last_page.locator(Selectors.LOADING).wait_for(state="hidden")
         items = self.last_page.locator(TestSelectors.TEST_ITEMS)
         await items.last.wait_for()
         item = await self._get_first_available_item(items)
-        while item == None:
+        while not item:
             next_btn = self.last_page.locator(TestSelectors.TEST_NEXT_PAGE)
             warning(get_language_string("core-warning-no-test-on-current-page"))
             if (await next_btn.get_attribute("aria-disabled") or "") == "true":
                 error(get_language_string("core-error-no-available-test"))
                 self.status = TaskStatus.FAILED
                 return self
-            else:
-                await next_btn.first.click()
-                await self.last_page.locator(
-                    Selectors.LOADING).wait_for(state="hidden")
-                item = await self._get_first_available_item(items)
+            await next_btn.first.click()
+            await self.last_page.locator(Selectors.LOADING).wait_for(state="hidden")
+            item = await self._get_first_available_item(items)
         title_element = item.locator(TestSelectors.TEST_SPECIAL_TITLE)
         before_text = await title_element.locator(
-            TestSelectors.TEST_SPECIAL_TITLE_BEFORE).inner_text()
+            TestSelectors.TEST_SPECIAL_TITLE_BEFORE,
+        ).inner_text()
         after_text = await title_element.locator(
-            TestSelectors.TEST_SPECIAL_TITLE_AFTER).inner_text()
-        title = clean_string((await title_element.inner_text()).removeprefix(
-            before_text).removesuffix(after_text))
+            TestSelectors.TEST_SPECIAL_TITLE_AFTER,
+        ).inner_text()
+        title = clean_string(
+            (await title_element.inner_text()).removeprefix(before_text).removesuffix(after_text),
+        )
         info(get_language_string("core-info-processing-special-test") % title)
         await item.locator(TestSelectors.TEST_BTN).click()
         return self
@@ -328,3 +355,4 @@ class SpecialTestTask(_TestTask):
             item = items.nth(i)
             if await item.locator(TestSelectors.TEST_SPECIAL_SOLUTION).count() == 0:
                 return item
+        return None

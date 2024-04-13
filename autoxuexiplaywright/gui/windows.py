@@ -1,18 +1,45 @@
-from queue import Queue
+"""Qt Windows."""
+
 from magic import from_buffer
+from queue import Queue
 from typing import TypeVar
-from os.path import isfile
-from PySide6.QtGui import QMouseEvent, QPixmap, QIcon, QRegularExpressionValidator
-from PySide6.QtCore import QFile, QPointF, QSettings, QThread, Qt, QRegularExpression, QDir
-from PySide6.QtWidgets import QCheckBox, QVBoxLayout, QInputDialog, QLabel, QSystemTrayIcon, QLineEdit, QPlainTextEdit, QPushButton, QHBoxLayout, QWidget, QComboBox, QFileDialog, QGridLayout
+from pathlib import Path
+from ..config import serialize_config
+from ..config import get_runtime_config
+
 # Relative imports
 from .objects import SubProcess
 from ..defines import APPNAME
+from ..storage import get_config_path
+from ..storage import get_resources_path
 from ..languages import get_language_string
-from ..storage import get_config_path, get_resources_path
-from ..config import get_runtime_config, serialize_config
+from PySide6.QtGui import QIcon
+from PySide6.QtGui import QPixmap
+from PySide6.QtGui import QMouseEvent
+from PySide6.QtGui import QRegularExpressionValidator
+from PySide6.QtCore import Qt
+from PySide6.QtCore import QDir
+from PySide6.QtCore import QFile
+from PySide6.QtCore import QThread
+from PySide6.QtCore import QSettings
+from PySide6.QtCore import QRegularExpression
+from PySide6.QtWidgets import QLabel
+from PySide6.QtWidgets import QWidget
+from PySide6.QtWidgets import QCheckBox
+from PySide6.QtWidgets import QComboBox
+from PySide6.QtWidgets import QLineEdit
+from PySide6.QtWidgets import QFileDialog
+from PySide6.QtWidgets import QGridLayout
+from PySide6.QtWidgets import QHBoxLayout
+from PySide6.QtWidgets import QPushButton
+from PySide6.QtWidgets import QVBoxLayout
+from PySide6.QtWidgets import QInputDialog
+from PySide6.QtWidgets import QPlainTextEdit
+from PySide6.QtWidgets import QSystemTrayIcon
 from ..processors.common import ANSWER_CONNECTOR
-from ..processors.common.answer.utils import split_text, is_valid_answer
+from ..processors.common.answer.utils import split_text
+from ..processors.common.answer.utils import is_valid_answer
+
 
 _SettingsValueType = TypeVar("_SettingsValueType", int, str, float, bool)
 _QObjectType = TypeVar("_QObjectType")
@@ -20,7 +47,7 @@ _QObjectType = TypeVar("_QObjectType")
 _ICON_FILE_NAME = "icon.png"
 _QSS_FILE_NAME = "ui.qss"
 _OPACITY = 0.9
-_UI_CONFIG_PATH = get_config_path(APPNAME+".ini")
+_UI_CONFIG_PATH = get_config_path(APPNAME + ".ini")
 _UI_WIDTH = 1024
 _UI_HEIGHT = 768
 _START_BTN_SIZE = 8
@@ -29,19 +56,26 @@ _NOTIFY_SECS = 5
 _SPLIT_TITLE_SIZE = 35
 _VALID_BROWSERS = ["chromium", "firefox", "webkit"]
 _VALID_CHANNELS = {
-    "msedge": "Microsoft Edge", "msedge-beta": "Microsoft Edge Beta", "msedge-dev": "Microsoft Edge Dev",
-    "chrome": "Google Chrome", "chrome-beta": "Google Chrome Beta", "chrome-dev": "Google Chrome Dev",
-    "chromium": "Chromium", "chromium-beta": "Chromium Beta", "chromium-dev": "Chromium Dev"}
+    "msedge": "Microsoft Edge",
+    "msedge-beta": "Microsoft Edge Beta",
+    "msedge-dev": "Microsoft Edge Dev",
+    "chrome": "Google Chrome",
+    "chrome-beta": "Google Chrome Beta",
+    "chrome-dev": "Google Chrome Dev",
+    "chromium": "Chromium",
+    "chromium-beta": "Chromium Beta",
+    "chromium-dev": "Chromium Dev",
+}
 _PROXY_PRETTY_NAMES = {
     "server": ("ui-config-window-proxy-address", "ui-config-window-proxy-address-tooltip"),
     "username": ("ui-config-window-proxy-username", "ui-config-window-proxy-username-tooltip"),
     "password": ("ui-config-window-proxy-password", "ui-config-window-proxy-password-tooltip"),
-    "bypass": ("ui-config-window-proxy-bypass", "ui-config-window-proxy-bypass-tooltip")
+    "bypass": ("ui-config-window-proxy-bypass", "ui-config-window-proxy-bypass-tooltip"),
 }
 _PROXY_REGEX = r"(https?|socks[45])://[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]"
 
 
-class _QObjectIDs():
+class _QObjectIDs:
     MAIN = "main"
     TITLE = "title"
     TRAY = "tray"
@@ -69,32 +103,39 @@ class _QObjectIDs():
         "server": "proxy_addr",
         "username": "proxy_username",
         "password": "proxy_password",
-        "bypass": "proxy_bypass"
+        "bypass": "proxy_bypass",
     }
 
 
 class _QWidgetExtended(QWidget):
-    def findChildWithProperType(self, type: type[_QObjectType], name: str = "", options: Qt.FindChildOption = Qt.FindChildOption.FindDirectChildrenOnly) -> _QObjectType | None:
-        """Find Child QObject with proper type
+    def findChildWithProperType(
+        self,
+        _type: type[_QObjectType],
+        name: str = "",
+        options: Qt.FindChildOption = Qt.FindChildOption.FindDirectChildrenOnly,
+    ) -> _QObjectType | None:
+        """Find Child QObject with proper type.
 
         This is for making static type checker happy
 
         Args:
-            type (type[_QObjectType]): The type of target QObject
-            name (str, optional): The object name of target QObject. Defaults to "".
-            options (Qt.FindChildOption, optional): Find option. Defaults to Qt.FindChildOption.FindDirectChildrenOnly.
+            _type (type[_QObjectType]): The type of target QObject
+            name (str): The object name of target QObject. Defaults to "".
+            options (Qt.FindChildOption): Find option.
+                Defaults to Qt.FindChildOption.FindDirectChildrenOnly.
 
         Returns:
             _QObjectType | None: The target QObject, or None if not found
         """
-        result = self.findChild(type, name, options)
-        if isinstance(result, type):
+        result = self.findChild(_type, name, options)
+        if isinstance(result, _type):
             return result
+        return None
 
 
 class _QSettingsExtended(QSettings):
     def getValueWithProperType(self, key: str, default: _SettingsValueType) -> _SettingsValueType:
-        """Get value with proper type
+        """Get value with proper type.
 
         This is for making static type checker happy
 
@@ -112,11 +153,31 @@ class _QSettingsExtended(QSettings):
 
 
 class QFramelessWidget(_QWidgetExtended):
-    def __init__(self, parent: QWidget | None = None, f: Qt.WindowType = Qt.WindowType.FramelessWindowHint) -> None:
+    """Qt Frameless Widget."""
+    def __init__(
+        self,
+        parent: QWidget | None = None,
+        f: Qt.WindowType = Qt.WindowType.FramelessWindowHint,
+    ) -> None:
+        """Create a QFramelessWidget isinstance.
+
+        Args:
+            parent(QWidget|None): The parent widget, defaults to None
+            f(Qt.WindowType): WindowFlags of the widget, defaults to FramelessWindowHint
+        """
         super().__init__(parent, f)
 
-    def mousePressEvent(self, event: QMouseEvent):
-        if not self.isMaximized() and not self.isFullScreen() and event.button() == Qt.MouseButton.LeftButton:
+    def mousePressEvent(self, event: QMouseEvent) -> None:
+        """Triggered when mouse is pressed.
+
+        Args:
+            event(QMouseEvent): QMouseEvent instance shows the press event
+        """
+        if (
+            not self.isMaximized()
+            and not self.isFullScreen()
+            and event.button() == Qt.MouseButton.LeftButton
+        ):
             self.windowHandle().startSystemMove()
         return super().mousePressEvent(event)
 
@@ -170,27 +231,35 @@ class _QLineEditWithLabelMultiple(QFramelessWidget):
             self._lineEditsWithLabel[key] = currentLineEditWithLabel
             currentLineEditWithLabel.lineEdit.setObjectName(key)
             currentLineEditWithLabel.label.setObjectName(key)
-            if split > 0 and x > split-1:
-                y = y+1
-                x = x-split
+            if split > 0 and x > split - 1:
+                y += 1
+                x -= split
             layout.addWidget(currentLineEditWithLabel, y, x)
-            x = x+1
+            x += 1
         self.setLayout(layout)
         self.setStyleSheet(parent.styleSheet())
 
     def findLabelByKey(self, key: str) -> QLabel | None:
         lineEditWithLabel = self._lineEditsWithLabel.get(key)
-        if lineEditWithLabel != None:
+        if lineEditWithLabel:
             return lineEditWithLabel.label
+        return None
 
     def findLineEditByKey(self, key: str) -> QLineEdit | None:
         lineEditWithLabel = self._lineEditsWithLabel.get(key)
-        if lineEditWithLabel != None:
+        if lineEditWithLabel:
             return lineEditWithLabel.lineEdit
+        return None
 
 
 class SettingsWindow(QFramelessWidget):
+    """Qt window for editing settings."""
     def __init__(self, parent: QWidget):
+        """Create SettingsWindow instance.
+
+        Args:
+            parent(QWidget): The parent widget
+        """
         super().__init__(parent, parent.windowFlags() | Qt.WindowType.Dialog)
         self.setObjectName(_QObjectIDs.SETTINGS_WINDOW)
         mainLayout = QVBoxLayout()
@@ -206,103 +275,98 @@ class SettingsWindow(QFramelessWidget):
         config = get_runtime_config()
         # browser selector
         browserSelector = _QComboBoxWithLabel(self)
-        browserSelector.setObjectName(
-            _QObjectIDs.SETTINGS_WINDOW_BROWSER_SELECTOR)
-        browserSelector.label.setText(
-            get_language_string("ui-config-window-browser-title"))
-        browserSelector.comboBox.setToolTip(get_language_string(
-            "ui-config-window-browser-selector-tooltip"))
-        browserSelector.comboBox.setObjectName(
-            _QObjectIDs.SETTINGS_WINDOW_BROWSER_SELECTOR)
+        browserSelector.setObjectName(_QObjectIDs.SETTINGS_WINDOW_BROWSER_SELECTOR)
+        browserSelector.label.setText(get_language_string("ui-config-window-browser-title"))
+        browserSelector.comboBox.setToolTip(
+            get_language_string("ui-config-window-browser-selector-tooltip"),
+        )
+        browserSelector.comboBox.setObjectName(_QObjectIDs.SETTINGS_WINDOW_BROWSER_SELECTOR)
         for i in _VALID_BROWSERS:
             browserSelector.comboBox.addItem(i.title(), i)
-        browserSelector.comboBox.setCurrentIndex(
-            _VALID_BROWSERS.index(config.browser_id))
+        browserSelector.comboBox.setCurrentIndex(_VALID_BROWSERS.index(config.browser_id))
         browserSelector.comboBox.currentIndexChanged.connect(  # type: ignore
-            self._onBrowserSelectorIndexChanged)
+            self._onBrowserSelectorIndexChanged,
+        )
         browserSettingsLayout.addWidget(browserSelector)
         # channelSelector
         channelSelector = _QComboBoxWithLabel(self)
-        channelSelector.setObjectName(
-            _QObjectIDs.SETTINGS_WINDOW_CHANNEL_SELECTOR)
-        channelSelector.label.setText(
-            get_language_string("ui-config-window-channel-title"))
-        channelSelector.comboBox.setToolTip(get_language_string(
-            "ui-config-window-channel-selector-tooltip"))
-        channelSelector.comboBox.setObjectName(
-            _QObjectIDs.SETTINGS_WINDOW_CHANNEL_SELECTOR)
+        channelSelector.setObjectName(_QObjectIDs.SETTINGS_WINDOW_CHANNEL_SELECTOR)
+        channelSelector.label.setText(get_language_string("ui-config-window-channel-title"))
+        channelSelector.comboBox.setToolTip(
+            get_language_string("ui-config-window-channel-selector-tooltip"),
+        )
+        channelSelector.comboBox.setObjectName(_QObjectIDs.SETTINGS_WINDOW_CHANNEL_SELECTOR)
         for k, v in _VALID_CHANNELS.items():
             channelSelector.comboBox.addItem(v, k)
-        if config.browser_channel != None:
+        if config.browser_channel:
             channelSelector.comboBox.setCurrentIndex(
-                list(_VALID_CHANNELS.keys()).index(config.browser_channel))
+                list(_VALID_CHANNELS.keys()).index(config.browser_channel),
+            )
         channelSelector.setEnabled(
-            (not bool(browserSelector.comboBox.currentIndex())) or (
-                config.browser_channel != None))
+            (not bool(browserSelector.comboBox.currentIndex())) or bool(config.browser_channel),
+        )
         channelSelector.comboBox.currentIndexChanged.connect(  # type: ignore
-            self._onChannelSelectorIndexChanged
+            self._onChannelSelectorIndexChanged,
         )
         browserSettingsLayout.addWidget(channelSelector)
         contentsLayout.addLayout(browserSettingsLayout)
         # executableSetting
         executableSettingWidget = _QLineEditWithBrowseButton(self)
-        executableSettingWidget.setObjectName(
-            _QObjectIDs.SETTINGS_WINDOW_EXECUTABLE_INPUT)
+        executableSettingWidget.setObjectName(_QObjectIDs.SETTINGS_WINDOW_EXECUTABLE_INPUT)
         executableSettingWidget.label.setText(
-            get_language_string("ui-config-window-executable-label"))
+            get_language_string("ui-config-window-executable-label"),
+        )
         executableSettingWidget.lineEdit.setToolTip(
-            get_language_string("ui-config-window-executable-tooltip"))
-        executableSettingWidget.lineEdit.setObjectName(
-            _QObjectIDs.SETTINGS_WINDOW_EXECUTABLE_INPUT)
-        if config.executable_path != None:
+            get_language_string("ui-config-window-executable-tooltip"),
+        )
+        executableSettingWidget.lineEdit.setObjectName(_QObjectIDs.SETTINGS_WINDOW_EXECUTABLE_INPUT)
+        if config.executable_path:
             executableSettingWidget.lineEdit.setText(config.executable_path)
         executableSettingWidget.lineEdit.editingFinished.connect(  # type: ignore
-            self._onBrowserExecutableEditFinished
+            self._onBrowserExecutableEditFinished,
         )
         executableSettingWidget.browseBtn.setText(
-            get_language_string("ui-config-window-executable-browse-text"))
+            get_language_string("ui-config-window-executable-browse-text"),
+        )
         executableSettingWidget.browseBtn.setToolTip(
-            get_language_string("ui-config-window-executable-browse-tooltip"))
+            get_language_string("ui-config-window-executable-browse-tooltip"),
+        )
         executableSettingWidget.browseBtn.clicked.connect(  # type: ignore
-            self._onBrowserExecutableBrowseButtonClicked
+            self._onBrowserExecutableBrowseButtonClicked,
         )
         contentsLayout.addWidget(executableSettingWidget)
         # skipped items
         skippedItemsWidget = _QLineEditWithLabelOnly(self)
-        skippedItemsWidget.setObjectName(
-            _QObjectIDs.SETTINGS_WINDOW_SKIPPED_ITEMS)
-        skippedItemsWidget.label.setText(get_language_string(
-            "ui-config-window-skipped-items-label"))
-        skippedItemsWidget.lineEdit.setToolTip(get_language_string(
-            "ui-config-window-skipped-items-tooltip") % ANSWER_CONNECTOR)
-        skippedItemsWidget.lineEdit.setObjectName(
-            _QObjectIDs.SETTINGS_WINDOW_SKIPPED_ITEMS)
+        skippedItemsWidget.setObjectName(_QObjectIDs.SETTINGS_WINDOW_SKIPPED_ITEMS)
+        skippedItemsWidget.label.setText(
+            get_language_string("ui-config-window-skipped-items-label"),
+        )
+        skippedItemsWidget.lineEdit.setToolTip(
+            get_language_string("ui-config-window-skipped-items-tooltip") % ANSWER_CONNECTOR,
+        )
+        skippedItemsWidget.lineEdit.setObjectName(_QObjectIDs.SETTINGS_WINDOW_SKIPPED_ITEMS)
         if len(config.skipped) > 0:
-            skippedItemsWidget.lineEdit.setText(
-                ANSWER_CONNECTOR.join(config.skipped))
+            skippedItemsWidget.lineEdit.setText(ANSWER_CONNECTOR.join(config.skipped))
         skippedItemsWidget.lineEdit.editingFinished.connect(  # type: ignore
-            self._onSkippedItemsEditFinished
+            self._onSkippedItemsEditFinished,
         )
         contentsLayout.addWidget(skippedItemsWidget)
         # extra items
         extraSettingsLayout = QHBoxLayout()
-        asyncMode = QCheckBox(get_language_string(
-            "ui-config-window-async"), self)
-        asyncMode.setToolTip(get_language_string(
-            "ui-config-window-async-tooltip"))
+        asyncMode = QCheckBox(get_language_string("ui-config-window-async"), self)
+        asyncMode.setToolTip(get_language_string("ui-config-window-async-tooltip"))
         asyncMode.setObjectName(_QObjectIDs.SETTINGS_WINDOW_ASYNC_CHECK)
         asyncMode.setChecked(config.async_mode)
         asyncMode.stateChanged.connect(  # type: ignore
-            self._onAsyncModeChanged)
+            self._onAsyncModeChanged,
+        )
         extraSettingsLayout.addWidget(asyncMode)
-        debugMode = QCheckBox(get_language_string(
-            "ui-config-window-debug"), self)
-        debugMode.setToolTip(get_language_string(
-            "ui-config-window-debug-tooltip"))
+        debugMode = QCheckBox(get_language_string("ui-config-window-debug"), self)
+        debugMode.setToolTip(get_language_string("ui-config-window-debug-tooltip"))
         debugMode.setObjectName(_QObjectIDs.SETTINGS_WINDOW_DEBUG_CHECK)
         debugMode.setChecked(config.debug)
         debugMode.stateChanged.connect(  # type: ignore
-            self._onDebugModeChanged
+            self._onDebugModeChanged,
         )
         extraSettingsLayout.addWidget(debugMode)
         guiMode = QCheckBox(get_language_string("ui-config-window-gui"), self)
@@ -310,25 +374,23 @@ class SettingsWindow(QFramelessWidget):
         guiMode.setObjectName(_QObjectIDs.SETTINGS_WINDOW_GUI_CHECK)
         guiMode.setChecked(config.gui)
         guiMode.stateChanged.connect(  # type: ignore
-            self._onGUIModeChanged
+            self._onGUIModeChanged,
         )
         extraSettingsLayout.addWidget(guiMode)
-        getVideo = QCheckBox(get_language_string(
-            "ui-config-window-get-video"), self)
-        getVideo.setToolTip(get_language_string(
-            "ui-config-window-get-video-tooltip"))
+        getVideo = QCheckBox(get_language_string("ui-config-window-get-video"), self)
+        getVideo.setToolTip(get_language_string("ui-config-window-get-video-tooltip"))
         getVideo.setObjectName(_QObjectIDs.SETTINGS_WINDOW_GET_VIDEO)
         getVideo.setChecked(config.get_video)
         getVideo.stateChanged.connect(  # type: ignore
-            self._onGetVideoChanged
+            self._onGetVideoChanged,
         )
         extraSettingsLayout.addWidget(getVideo)
         langSetting = _QComboBoxWithLabel(self)
         langSetting.setObjectName(_QObjectIDs.SETTINGS_WINDOW_LANG)
-        langSetting.label.setText(
-            get_language_string("ui-config-window-lang-title"))
-        langSetting.comboBox.setToolTip(get_language_string(
-            "ui-config-window-lang-selector-tooltip"))
+        langSetting.label.setText(get_language_string("ui-config-window-lang-title"))
+        langSetting.comboBox.setToolTip(
+            get_language_string("ui-config-window-lang-selector-tooltip"),
+        )
         langSetting.comboBox.setObjectName(_QObjectIDs.SETTINGS_WINDOW_LANG)
         langIDs = self._getLangIDs()
         for i in langIDs:
@@ -336,45 +398,39 @@ class SettingsWindow(QFramelessWidget):
         if config.lang in langIDs:
             langSetting.comboBox.setCurrentIndex(langIDs.index(config.lang))
         langSetting.comboBox.currentIndexChanged.connect(  # type: ignore
-            self._onLanguageSettingIndexChanged
+            self._onLanguageSettingIndexChanged,
         )
         extraSettingsLayout.addWidget(langSetting)
 
         contentsLayout.addLayout(extraSettingsLayout)
         # proxy setting
-        proxySetting = _QLineEditWithLabelMultiple(
-            self, list(_PROXY_PRETTY_NAMES.keys()), 2)
-        for key in _PROXY_PRETTY_NAMES.keys():
+        proxySetting = _QLineEditWithLabelMultiple(self, list(_PROXY_PRETTY_NAMES.keys()), 2)
+        for key in _PROXY_PRETTY_NAMES:
             label = proxySetting.findLabelByKey(key)
-            if label != None:
+            if label:
                 label.setText(get_language_string(_PROXY_PRETTY_NAMES[key][0]))
             lineEdit = proxySetting.findLineEditByKey(key)
-            if lineEdit != None:
-                lineEdit.setToolTip(get_language_string(
-                    _PROXY_PRETTY_NAMES[key][1]))
+            if lineEdit:
+                lineEdit.setToolTip(get_language_string(_PROXY_PRETTY_NAMES[key][1]))
                 lineEdit.setObjectName(_QObjectIDs.SETTINGS_WINDOW_PROXY[key])
         serverLineEdit = proxySetting.findLineEditByKey("server")
-        if serverLineEdit != None:
+        if serverLineEdit:
             serverLineEdit.setValidator(
-                QRegularExpressionValidator(QRegularExpression(_PROXY_REGEX))
+                QRegularExpressionValidator(QRegularExpression(_PROXY_REGEX)),
             )
         passwordLineEdit = proxySetting.findLineEditByKey("password")
-        if passwordLineEdit != None:
+        if passwordLineEdit:
             passwordLineEdit.setEchoMode(QLineEdit.EchoMode.PasswordEchoOnEdit)
         contentsLayout.addWidget(proxySetting)
         # save/cancel
         operateLayout = QHBoxLayout()
-        saveBtn = QPushButton(get_language_string(
-            "ui-config-window-save"), self)
-        saveBtn.setToolTip(get_language_string(
-            "ui-config-window-save-tooltip"))
+        saveBtn = QPushButton(get_language_string("ui-config-window-save"), self)
+        saveBtn.setToolTip(get_language_string("ui-config-window-save-tooltip"))
         saveBtn.clicked.connect(self._onSaveButtonClicked)  # type: ignore
 
         operateLayout.addWidget(saveBtn)
-        cancelBtn = QPushButton(get_language_string(
-            "ui-config-window-cancel"), self)
-        cancelBtn.setToolTip(get_language_string(
-            "ui-config-window-cancel-tooltip"))
+        cancelBtn = QPushButton(get_language_string("ui-config-window-cancel"), self)
+        cancelBtn.setToolTip(get_language_string("ui-config-window-cancel-tooltip"))
         cancelBtn.clicked.connect(self._onCancelButtonClicked)  # type: ignore
 
         operateLayout.addWidget(cancelBtn)
@@ -387,26 +443,31 @@ class SettingsWindow(QFramelessWidget):
     def _getLangIDs(self) -> list[str]:
         langSuffix = ".json"
         langDir = QDir(get_resources_path("lang"))
-        langDir.setNameFilters(["*"+langSuffix])
-        return [langFile.replace(langSuffix, "")
-                for langFile in langDir.entryList()]
+        langDir.setNameFilters(["*" + langSuffix])
+        return [langFile.replace(langSuffix, "") for langFile in langDir.entryList()]
 
     def _onBrowserSelectorIndexChanged(self, index: int):
         browserSelector = self.findChildWithProperType(
-            _QComboBoxWithLabel, _QObjectIDs.SETTINGS_WINDOW_BROWSER_SELECTOR)
-        if browserSelector != None:
+            _QComboBoxWithLabel,
+            _QObjectIDs.SETTINGS_WINDOW_BROWSER_SELECTOR,
+        )
+        if browserSelector:
             config = get_runtime_config()
             config.browser_id = browserSelector.comboBox.currentData()
         channelSelector = self.findChildWithProperType(
-            _QComboBoxWithLabel, _QObjectIDs.SETTINGS_WINDOW_CHANNEL_SELECTOR)
-        if channelSelector != None:
+            _QComboBoxWithLabel,
+            _QObjectIDs.SETTINGS_WINDOW_CHANNEL_SELECTOR,
+        )
+        if channelSelector:
             channelSelector.setEnabled(not bool(index))
             self._onChannelSelectorIndexChanged(index)
 
-    def _onChannelSelectorIndexChanged(self, index: int):
+    def _onChannelSelectorIndexChanged(self, _: int):
         channelSelector = self.findChildWithProperType(
-            _QComboBoxWithLabel, _QObjectIDs.SETTINGS_WINDOW_CHANNEL_SELECTOR)
-        if channelSelector != None:
+            _QComboBoxWithLabel,
+            _QObjectIDs.SETTINGS_WINDOW_CHANNEL_SELECTOR,
+        )
+        if channelSelector:
             config = get_runtime_config()
             if channelSelector.isEnabled():
                 config.browser_channel = channelSelector.comboBox.currentData()
@@ -414,34 +475,35 @@ class SettingsWindow(QFramelessWidget):
                 config.browser_channel = None
 
     def _onBrowserExecutableEditFinished(self):
-        executableSettingWidget = self.findChildWithProperType(
-            _QLineEditWithBrowseButton)
-        if executableSettingWidget != None:
+        executableSettingWidget = self.findChildWithProperType(_QLineEditWithBrowseButton)
+        if executableSettingWidget:
             config = get_runtime_config()
             path = executableSettingWidget.lineEdit.text()
-            if isfile(path):
+            if Path(path).is_file():
                 config.executable_path = path
-            elif path != "":
+            elif path:
                 config.executable_path = None
 
     def _onBrowserExecutableBrowseButtonClicked(self):
-        executableSettingWidget = self.findChildWithProperType(
-            _QLineEditWithBrowseButton)
-        if executableSettingWidget != None:
+        executableSettingWidget = self.findChildWithProperType(_QLineEditWithBrowseButton)
+        if executableSettingWidget:
             config = get_runtime_config()
-            result: str = QFileDialog.getOpenFileName(  # type: ignore
-                self, get_language_string("ui-config-window-executable-browse-title"))[0]
-            if result != "":
+            result = QFileDialog.getOpenFileName(
+                self,
+                get_language_string("ui-config-window-executable-browse-title"),
+            )[0]
+            if result:
                 config.executable_path = result
-            elif config.executable_path != None:
+            elif config.executable_path:
                 config.executable_path = None
-            executableSettingWidget.lineEdit.setText(result)  # type: ignore
+            executableSettingWidget.lineEdit.setText(result)
 
     def _onSkippedItemsEditFinished(self):
-        skippedItemsWidget = self.findChildWithProperType(
-            _QLineEditWithLabelOnly)
-        if skippedItemsWidget != None:
-            get_runtime_config().skipped = skippedItemsWidget.lineEdit.text().split(ANSWER_CONNECTOR)
+        skippedItemsWidget = self.findChildWithProperType(_QLineEditWithLabelOnly)
+        if skippedItemsWidget:
+            get_runtime_config().skipped = skippedItemsWidget.lineEdit.text().split(
+                ANSWER_CONNECTOR,
+            )
 
     def _onAsyncModeChanged(self, state: Qt.CheckState):
         get_runtime_config().async_mode = Qt.CheckState(state) == Qt.CheckState.Checked
@@ -457,14 +519,22 @@ class SettingsWindow(QFramelessWidget):
 
     def _onLanguageSettingIndexChanged(self, index: int):
         languageSetting = self.findChildWithProperType(
-            _QComboBoxWithLabel, _QObjectIDs.SETTINGS_WINDOW_LANG)
-        if languageSetting != None:
+            _QComboBoxWithLabel,
+            _QObjectIDs.SETTINGS_WINDOW_LANG,
+        )
+        if languageSetting:
             get_runtime_config().lang = self._getLangIDs()[index]
 
     def _onSaveButtonClicked(self):
-        path: str = QFileDialog.getSaveFileName(self, get_language_string(  # type: ignore
-            "ui-config-window-save-title"), get_config_path(""), "JSON(*.json)")[0]
-        if path != "":
+        path: str = QFileDialog.getSaveFileName(
+            self,
+            get_language_string(
+                "ui-config-window-save-title",
+            ),
+            str(get_config_path("").absolute()),
+            "JSON(*.json)",
+        )[0]
+        if path:
             config = get_runtime_config()
             serialize_config(config, path)  # type: ignore
 
@@ -473,20 +543,22 @@ class SettingsWindow(QFramelessWidget):
 
 
 class MainWindow(QFramelessWidget):
+    """Qt window for main ui."""
     def __init__(self):
+        """Create a MainWindow instance."""
         super().__init__()
-        self.setWindowIcon(QIcon(get_resources_path(_ICON_FILE_NAME)))
+        self.setWindowIcon(QIcon(str(get_resources_path(_ICON_FILE_NAME))))
         self.setWindowTitle(APPNAME)
         self.setWindowOpacity(_OPACITY)
         self.setObjectName(_QObjectIDs.MAIN)
         self.resize(_UI_WIDTH, _UI_HEIGHT)
-        settings = _QSettingsExtended(
-            _UI_CONFIG_PATH, QSettings.Format.IniFormat, self)
-        self.move(settings.getValueWithProperType("UI/x", 0),
-                  settings.getValueWithProperType("UI/y", 0))
+        settings = _QSettingsExtended(str(_UI_CONFIG_PATH), QSettings.Format.IniFormat, self)
+        self.move(
+            settings.getValueWithProperType("UI/x", 0),
+            settings.getValueWithProperType("UI/y", 0),
+        )
         if settings.getValueWithProperType("UI/ontop", False):
-            self.setWindowFlags(self.windowFlags() |
-                                Qt.WindowType.WindowStaysOnTopHint)
+            self.setWindowFlags(self.windowFlags() | Qt.WindowType.WindowStaysOnTopHint)
 
         tray = QSystemTrayIcon(self.windowIcon(), self)
         tray.setToolTip(APPNAME)
@@ -517,7 +589,8 @@ class MainWindow(QFramelessWidget):
         onTopCheck.setObjectName(_QObjectIDs.ONTOP)
         onTopCheck.setToolTip(get_language_string("ui-ontop-checkbox-tooltip"))
         onTopCheck.stateChanged.connect(  # type: ignore
-            self._onOnTopStateChanged)
+            self._onOnTopStateChanged,
+        )
         controlLayout.addWidget(onTopCheck)
         controlLayout.addWidget(minimizeBtn)
         controlLayout.addWidget(closeBtn)
@@ -532,13 +605,11 @@ class MainWindow(QFramelessWidget):
         logPanel.verticalScrollBar().setObjectName(_QObjectIDs.LOG_PANEL_SCROLL)
         # start/setting buttons
         startLayout = QHBoxLayout()
-        startBtn = QPushButton(get_language_string(
-            "ui-start-btn-tooltip"), self)
+        startBtn = QPushButton(get_language_string("ui-start-btn-tooltip"), self)
         startBtn.setToolTip(get_language_string("ui-start-btn-tooltip"))
         startBtn.setObjectName(_QObjectIDs.START)
         startBtn.clicked.connect(self._onStartBtnClicked)  # type: ignore
-        settingsBtn = QPushButton(get_language_string(
-            "ui-settings-btn-tooltip"), self)
+        settingsBtn = QPushButton(get_language_string("ui-settings-btn-tooltip"), self)
         settingsBtn.setToolTip(get_language_string("ui-settings-btn-tooltip"))
         settingsBtn.setObjectName(_QObjectIDs.SETTINGS)
         settingsBtn.clicked.connect(self._onSettingsBtnClicked)  # type: ignore
@@ -565,80 +636,90 @@ class MainWindow(QFramelessWidget):
         # stylesheets
         qssFile = QFile(get_resources_path(_QSS_FILE_NAME))
         qssFile.open(QFile.OpenModeFlag.ReadOnly)
-        self.setStyleSheet(qssFile.readAll().data().decode())
+        self.setStyleSheet(qssFile.readAll().data().decode())  # type: ignore
         qssFile.close()
 
     def show(self):
+        """Show the UI."""
         tray = self.findChildWithProperType(QSystemTrayIcon, _QObjectIDs.TRAY)
-        if tray != None:
+        if tray:
             tray.show()
         super().show()
 
     def close(self) -> bool:
+        """Close the UI."""
         tray = self.findChildWithProperType(QSystemTrayIcon, _QObjectIDs.TRAY)
-        if tray != None:
+        if tray:
             tray.hide()
         return super().close()
 
     def showMinimized(self):
+        """Minimize the UI."""
         tray = self.findChildWithProperType(QSystemTrayIcon, _QObjectIDs.TRAY)
-        if tray != None:
-            if tray.isSystemTrayAvailable():
-                tray.show()
-                self.hide()
-                return
+        if tray and tray.isSystemTrayAvailable():
+            tray.show()
+            self.hide()
+            return
         super().showMinimized()
 
     def _onJobFinished(self, data: str):
         thread = self.findChildWithProperType(QThread)
-        if thread != None:
+        if thread:
             thread.quit()
         tray = self.findChildWithProperType(QSystemTrayIcon, _QObjectIDs.TRAY)
-        if tray != None:
-            tray.showMessage(get_language_string("ui-tray-notification-title-info"),
-                             data, QSystemTrayIcon.MessageIcon.Information, _NOTIFY_SECS*1000)
+        if tray:
+            tray.showMessage(
+                get_language_string("ui-tray-notification-title-info"),
+                data,
+                QSystemTrayIcon.MessageIcon.Information,
+                _NOTIFY_SECS * 1000,
+            )
 
     def _onQThreadFinished(self):
-        logPanel = self.findChildWithProperType(
-            QPlainTextEdit, _QObjectIDs.LOG_PANEL)
-        if logPanel != None:
-            logPanel.setToolTip(get_language_string(
-                "ui-logpanel-default-tooltip"))
+        logPanel = self.findChildWithProperType(QPlainTextEdit, _QObjectIDs.LOG_PANEL)
+        if logPanel:
+            logPanel.setToolTip(get_language_string("ui-logpanel-default-tooltip"))
         startBtn = self.findChildWithProperType(QPushButton, _QObjectIDs.START)
-        if startBtn != None:
+        if startBtn:
             startBtn.setEnabled(True)
             startBtn.setToolTip(get_language_string("ui-start-btn-tooltip"))
             startBtn.setText(get_language_string("ui-start-btn-tooltip"))
         qrLabel = self.findChildWithProperType(QLabel, _QObjectIDs.QR_LABEL)
-        if qrLabel != None:
+        if qrLabel:
             qrLabel.close()
 
     def _onManualInputRequired(self, data: tuple[str, Queue[list[str]]]):
         title = data[0]
         queue = data[1]
-        dialogTitle = get_language_string(
-            "ui-manual-input-required") % ANSWER_CONNECTOR
+        dialogTitle = get_language_string("ui-manual-input-required") % ANSWER_CONNECTOR
         parsedTitle = title.split("\n")
-        questionTitle = "\n".join(split_text(
-            parsedTitle[0], _SPLIT_TITLE_SIZE))
+        questionTitle = "\n".join(split_text(parsedTitle[0], _SPLIT_TITLE_SIZE))
         questionTips = "\n".join(split_text(parsedTitle[1], _SPLIT_TITLE_SIZE))
-        answersFromPage = "\n".join(split_text(
-            parsedTitle[2], _SPLIT_TITLE_SIZE)) if len(parsedTitle) > 2 else ""
-        fullText = "\n".join(
-            [dialogTitle, questionTitle, questionTips, answersFromPage])
+        answersFromPage = (
+            "\n".join(split_text(parsedTitle[2], _SPLIT_TITLE_SIZE)) if len(parsedTitle) > 2 else ""
+        )
+        fullText = f"{dialogTitle}\n{questionTitle}\n{questionTips}\n{answersFromPage}"
         answerText, requireResult = QInputDialog.getText(
-            self, dialogTitle, fullText, QLineEdit.EchoMode.Normal, "", Qt.WindowType.FramelessWindowHint)
+            self,
+            dialogTitle,
+            fullText,
+            QLineEdit.EchoMode.Normal,
+            "",
+            Qt.WindowType.FramelessWindowHint,
+        )
         if requireResult:
-            answer = [answerTextPart.strip() for answerTextPart in answerText.strip().split(
-                ANSWER_CONNECTOR) if is_valid_answer(answerTextPart.strip())]
+            answer = [
+                answerTextPart.strip()
+                for answerTextPart in answerText.strip().split(ANSWER_CONNECTOR)
+                if is_valid_answer(answerTextPart.strip())
+            ]
         else:
             answer = []
         queue.put(answer)
         self.subProcess.wait.wakeAll()
 
     def _onQRBytesRecived(self, qr: bytes):
-        existingQRLabel = self.findChildWithProperType(
-            QLabel, _QObjectIDs.QR_LABEL)
+        existingQRLabel = self.findChildWithProperType(QLabel, _QObjectIDs.QR_LABEL)
         if isinstance(existingQRLabel, QLabel):
             existingQRLabel.close()
         if from_buffer(qr, True).startswith("image"):
@@ -647,33 +728,32 @@ class MainWindow(QFramelessWidget):
             qrLabel.setWindowModality(Qt.WindowModality.WindowModal)
             qrLabel.setStyle(self.style())
             pixmap = QPixmap()
-            pixmap.loadFromData(qr)
+            pixmap.loadFromData(qr)  # type: ignore
             qrLabel.setPixmap(pixmap)
             qrLabel.resize(pixmap.size())
-            qrLabel.move(round((self.width()-qrLabel.width())/2),
-                         round((self.height()-qrLabel.height())/2))
+            qrLabel.move(
+                round((self.width() - qrLabel.width()) / 2),
+                round((self.height() - qrLabel.height()) / 2),
+            )
             qrLabel.show()
 
     def _onScoreUpdated(self, score: list[int]):
         score = score[:2]
         if score != [-1, -1]:
-            scoreLabel = self.findChildWithProperType(
-                QLabel, _QObjectIDs.SCORE)
-            if scoreLabel != None:
-                scoreLabel.setText(
-                    get_language_string("ui-score-text") % tuple(score))
+            scoreLabel = self.findChildWithProperType(QLabel, _QObjectIDs.SCORE)
+            if scoreLabel:
+                scoreLabel.setText(get_language_string("ui-score-text") % tuple(score))
 
     def _onOnTopStateChanged(self, state: Qt.CheckState):
         settings = self.findChildWithProperType(_QSettingsExtended)
-        if settings != None:
+        if settings:
             match Qt.CheckState(state):
                 case Qt.CheckState.Checked:
                     self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint)
                     settings.setValue("UI/ontop", True)
                     self.show()
                 case Qt.CheckState.Unchecked:
-                    self.setWindowFlag(
-                        Qt.WindowType.WindowStaysOnTopHint, False)
+                    self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, False)
                     settings.setValue("UI/ontop", False)
                     self.show()
                 case _:
@@ -681,25 +761,23 @@ class MainWindow(QFramelessWidget):
 
     def _onStartBtnClicked(self):
         startBtn = self.findChildWithProperType(QPushButton, _QObjectIDs.START)
-        if startBtn != None:
+        if startBtn:
             startBtn.setEnabled(False)
-            startBtn.setText(get_language_string(
-                "ui-start-btn-processing-tooltip"))
-            startBtn.setToolTip(get_language_string(
-                "ui-start-btn-processing-tooltip"))
+            startBtn.setText(get_language_string("ui-start-btn-processing-tooltip"))
+            startBtn.setToolTip(get_language_string("ui-start-btn-processing-tooltip"))
         qThread = self.findChildWithProperType(QThread)
-        if qThread != None:
+        if qThread:
             qThread.start()
 
     def _onSettingsBtnClicked(self):
-        settingsWindow = self.findChildWithProperType(
-            SettingsWindow, _QObjectIDs.SETTINGS)
-        if settingsWindow == None:
+        settingsWindow = self.findChildWithProperType(SettingsWindow, _QObjectIDs.SETTINGS)
+        if not settingsWindow:
             settingsWindow = SettingsWindow(self)
-        settingsWindow.resize(round(self.width()*3/4),
-                              round(self.height()*3/8))
-        settingsWindow.move(self.x()+round((self.width()-settingsWindow.width())/2),
-                            self.y()+round((self.height()-settingsWindow.height())/2))
+        settingsWindow.resize(round(self.width() * 3 / 4), round(self.height() * 3 / 8))
+        settingsWindow.move(
+            self.x() + round((self.width() - settingsWindow.width()) / 2),
+            self.y() + round((self.height() - settingsWindow.height()) / 2),
+        )
         settingsWindow.show()
 
     def _onTrayActivated(self, reason: QSystemTrayIcon.ActivationReason):
@@ -710,8 +788,6 @@ class MainWindow(QFramelessWidget):
                 pass
 
     def _onStatusUpdated(self, status: str):
-        logPanel = self.findChildWithProperType(
-            QPlainTextEdit, _QObjectIDs.LOG_PANEL)
-        if logPanel != None:
-            logPanel.setToolTip(get_language_string(
-                "ui-status-tooltip") % status)
+        logPanel = self.findChildWithProperType(QPlainTextEdit, _QObjectIDs.LOG_PANEL)
+        if logPanel:
+            logPanel.setToolTip(get_language_string("ui-status-tooltip") % status)

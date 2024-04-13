@@ -1,48 +1,66 @@
+"""Classes and functions for handling read task."""
+
 from time import time
-from random import randint, uniform
-from playwright.async_api import Locator, TimeoutError
+
 # Relative imports
-from .task import Task, TaskStatus
-from ..common import READ_TIME_SECS, READ_SLEEPS_MIN_SECS, READ_SLEEPS_MAX_SECS, cache, clean_string
-from ..common.selectors import Selectors, ReadSelectors
-from ..common.urls import MAIN_PAGE
+from .task import Task
+from .task import TaskStatus
+from random import randint
+from random import uniform
+from typing import Self
+from ..common import READ_TIME_SECS
+from ..common import READ_SLEEPS_MAX_SECS
+from ..common import READ_SLEEPS_MIN_SECS
+from ..common import cache
+from ..common import clean_string
+from ...logger import info
+from ...logger import debug
+from ...logger import error
+from ...logger import warning
 from ...languages import get_language_string
-from ...logger import info, warning, error, debug
+from ..common.urls import MAIN_PAGE
+from typing_extensions import override
+from ..common.selectors import Selectors
+from ..common.selectors import ReadSelectors
+from playwright.async_api import Locator
+from playwright.async_api import TimeoutError
 
 
 class _ReadTask(Task):
     @property
+    @override
     def requires(self) -> list[str]:
         return ["登录"]
 
+    @override
     async def finish(self) -> bool:
         scroll_paragraphs_in_order = True
         scroll_video_subtitles_in_order = True
         start_time = time()
         while (time() - start_time) <= READ_TIME_SECS:
             await self.last_page.wait_for_timeout(
-                uniform(READ_SLEEPS_MIN_SECS, READ_SLEEPS_MAX_SECS)*1000)
+                uniform(READ_SLEEPS_MIN_SECS, READ_SLEEPS_MAX_SECS) * 1000,
+            )
             try:
                 player = self.last_page.locator(ReadSelectors.VIDEO_PLAYER)
                 if await player.count() > 0:
-                    await player.last.wait_for(timeout=READ_TIME_SECS*1000)
+                    await player.last.wait_for(timeout=READ_TIME_SECS * 1000)
                     for i in range(await player.count()):
                         if await player.nth(i).locator(ReadSelectors.REPLAY_BTN).count() == 0:
                             await player.nth(i).hover()
-                            play_btn = player.nth(i).locator(
-                                ReadSelectors.PLAY_BTN)
+                            play_btn = player.nth(i).locator(ReadSelectors.PLAY_BTN)
                             if "playing" not in (await play_btn.get_attribute("class") or ""):
                                 await play_btn.click()
 
                 await self._scroll_elements(
                     self.last_page.locator(ReadSelectors.VIDEO_SUBTITLE),
-                    scroll_video_subtitles_in_order
+                    scroll_video_subtitles_in_order,
                 )
                 scroll_video_subtitles_in_order = False
 
                 await self._scroll_elements(
                     self.last_page.locator(ReadSelectors.PAGE_PARAGRAPHS),
-                    scroll_paragraphs_in_order
+                    scroll_paragraphs_in_order,
                 )
                 scroll_paragraphs_in_order = False
             except TimeoutError:
@@ -53,29 +71,30 @@ class _ReadTask(Task):
         return True
 
     async def _scroll_elements(self, elements: Locator, order: bool):
-        if (await elements.count() > 0):
+        if await elements.count() > 0:
             for i in range(await elements.count()):
                 await self.last_page.wait_for_timeout(
-                    timeout=uniform(READ_SLEEPS_MIN_SECS,
-                                    READ_SLEEPS_MAX_SECS)*1000
+                    timeout=uniform(READ_SLEEPS_MIN_SECS, READ_SLEEPS_MAX_SECS) * 1000,
                 )
                 if order:
                     await elements.nth(i).scroll_into_view_if_needed()
                 else:
-                    await elements.nth(randint(0, await elements.count()-1)
-                                       ).scroll_into_view_if_needed()
+                    await elements.nth(
+                        randint(0, await elements.count() - 1),
+                    ).scroll_into_view_if_needed()
 
 
 class NewsTask(_ReadTask):
-
+    """Task for handling news."""
     @property
+    @override
     def handles(self) -> list[str]:
         return ["我要选读文章"]
 
-    async def __aenter__(self):
+    @override
+    async def __aenter__(self) -> Self:
         await self.last_page.goto(MAIN_PAGE)
-        title_span = self.last_page.locator(
-            ReadSelectors.NEWS_TITLE_SPAN).first
+        title_span = self.last_page.locator(ReadSelectors.NEWS_TITLE_SPAN).first
         await title_span.wait_for()
         async with self.last_page.context.expect_page() as event:
             await title_span.click()
@@ -83,7 +102,7 @@ class NewsTask(_ReadTask):
         news_list = self.last_page.locator(ReadSelectors.NEWS_LIST)
         await news_list.last.wait_for()
         news_title = await self._get_first_available_news_title(news_list)
-        while news_title == None:
+        while not news_title:
             next_btn = self.last_page.locator(ReadSelectors.NEXT_PAGE)
             warning(get_language_string("core-warning-no-news-on-current-page"))
             if await next_btn.count() == 0:
@@ -91,12 +110,13 @@ class NewsTask(_ReadTask):
                 error(get_language_string("core-error-no-available-news"))
                 self.status = TaskStatus.FAILED
                 return self
-            else:
-                await next_btn.first.click()
-                await self.last_page.locator(
-                    Selectors.LOADING).wait_for(state="hidden")
-                news_title = await self._get_first_available_news_title(news_list)
-        info(get_language_string("core-info-processing-news") % clean_string(await news_title.inner_text()))
+            await next_btn.first.click()
+            await self.last_page.locator(Selectors.LOADING).wait_for(state="hidden")
+            news_title = await self._get_first_available_news_title(news_list)
+        info(
+            get_language_string("core-info-processing-news")
+            % clean_string(await news_title.inner_text()),
+        )
         async with self.last_page.context.expect_page() as event:
             await news_title.click()
         self.pages.append(await event.value)
@@ -110,15 +130,18 @@ class NewsTask(_ReadTask):
             title_element = news.locator(ReadSelectors.NEWS_TITLE_TEXT)
             if clean_string(await title_element.inner_text()) not in cache:
                 return title_element
+        return None
 
 
 class VideoTask(_ReadTask):
-
+    """Task for handling video."""
     @property
+    @override
     def handles(self) -> list[str]:
         return ["视听学习", "视听学习时长", "我要视听学习"]
 
-    async def __aenter__(self):
+    @override
+    async def __aenter__(self) -> Self:
         await self.last_page.goto(MAIN_PAGE)
         async with self.last_page.context.expect_page() as event:
             await self.last_page.locator(ReadSelectors.VIDEO_ENTRANCE).first.click()
@@ -126,26 +149,23 @@ class VideoTask(_ReadTask):
         async with self.last_page.context.expect_page() as event:
             await self.last_page.locator(ReadSelectors.VIDEO_LIBRARY).first.click()
         self.pages.append(await event.value)
-        text_wrappers = self.last_page.locator(
-            ReadSelectors.VIDEO_TEXT_WRAPPER)
+        text_wrappers = self.last_page.locator(ReadSelectors.VIDEO_TEXT_WRAPPER)
         await text_wrappers.last.wait_for()
         text_wrapper = await self._get_first_available_video_title(text_wrappers)
-        while text_wrapper == None:
+        while not text_wrapper:
             next_btn = self.last_page.locator(ReadSelectors.NEXT_PAGE)
-            warning(get_language_string(
-                "core-warning-no-videos-on-current-page"))
+            warning(get_language_string("core-warning-no-videos-on-current-page"))
             if await next_btn.count() == 0:
                 error(get_language_string("core-error-no-available-videos"))
                 self.status = TaskStatus.FAILED
                 return self
-            else:
-                await next_btn.first.click()
-                await self.last_page.locator(
-                    Selectors.LOADING).wait_for(state="hidden")
-                text_wrapper = await self._get_first_available_video_title(
-                    text_wrappers)
-        info(get_language_string("core-info-processing-video") %
-             clean_string(await text_wrapper.inner_text()))
+            await next_btn.first.click()
+            await self.last_page.locator(Selectors.LOADING).wait_for(state="hidden")
+            text_wrapper = await self._get_first_available_video_title(text_wrappers)
+        info(
+            get_language_string("core-info-processing-video")
+            % clean_string(await text_wrapper.inner_text()),
+        )
         async with self.last_page.context.expect_page() as event:
             await text_wrapper.click()
         self.pages.append(await event.value)
@@ -158,3 +178,4 @@ class VideoTask(_ReadTask):
             video = video_list.nth(i)
             if clean_string(await video.inner_text()) not in cache:
                 return video
+        return None
