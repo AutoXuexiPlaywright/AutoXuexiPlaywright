@@ -608,13 +608,13 @@ ruff = ">=0.0.242"
 
 [[package]]
 name = "python-ffmpeg"
-version = "2.0.10"
+version = "2.0.12"
 description = "A python binding for FFmpeg which provides sync and async APIs"
 optional = true
 python-versions = ">=3.7"
 files = [
-    {file = "python-ffmpeg-2.0.10.tar.gz", hash = "sha256:5c7c47f52e9990aabb4f530ef4debb5373bbc8041dd1e3a8452cc1c69ea615f4"},
-    {file = "python_ffmpeg-2.0.10-py3-none-any.whl", hash = "sha256:775642bdc6063431e9ee8c208826b731cbb2c8c39fc2967f8bebdce90bade216"},
+    {file = "python_ffmpeg-2.0.12-py3-none-any.whl", hash = "sha256:d86697da8dfb39335183e336d31baf42fb217468adf5ac97fd743898240faae3"},
+    {file = "python_ffmpeg-2.0.12.tar.gz", hash = "sha256:19ac80af5a064a2f53c245af1a909b2d7648ea045500d96d3bcd507b88d43dc7"},
 ]
 
 [package.dependencies]
@@ -789,4 +789,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.12"
-content-hash = "d8d04749b5546c631a1eb84f2ca81199244b150cb718e52fa9300295a3517bf6"
+content-hash = "86c95b3a62b98f74db54e3a69e62c9d920d8e10e175797c4db741ffc214a3c42"
