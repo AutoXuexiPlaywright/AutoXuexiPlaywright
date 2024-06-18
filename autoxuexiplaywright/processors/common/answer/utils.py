@@ -44,9 +44,9 @@ def is_valid_answer(answer: str) -> bool:
     Returns:
         bool: The result
     """
-    return not _starts_with_unseen(answer) \
-        and (_has_chinese_char(answer)
-                or _all_alpha_or_dights(answer))
+    return not _starts_with_unseen(answer) and (
+        _has_chinese_char(answer) or _all_alpha_or_dights(answer)
+    )
 
 
 def gen_random_string(length: int = 4) -> str:

@@ -221,6 +221,7 @@ class _TestTask(Task):
                         m3u8_path = get_cache_path(str(i) + "video.m3u8")
                         try:
                             from m3u8 import loads  # type: ignore
+
                             loads(response.value.text(), prefix).dump(  # type: ignore
                                 m3u8_path,
                             )
@@ -256,6 +257,7 @@ class _TestTask(Task):
 
 class DailyTestTask(_TestTask):
     """Class for handling daily test."""
+
     @property
     @override
     def handles(self) -> list[str]:
@@ -270,6 +272,7 @@ class DailyTestTask(_TestTask):
 
 class WeeklyTestTask(_TestTask):
     """Class for handling weekly test."""
+
     @property
     @override
     def handles(self) -> list[str]:
@@ -308,6 +311,7 @@ class WeeklyTestTask(_TestTask):
 
 class SpecialTestTask(_TestTask):
     """Class for handling special test."""
+
     @property
     @override
     def handles(self) -> list[str]:

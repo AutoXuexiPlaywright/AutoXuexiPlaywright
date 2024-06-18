@@ -86,6 +86,7 @@ class _ReadTask(Task):
 
 class NewsTask(_ReadTask):
     """Task for handling news."""
+
     @property
     @override
     def handles(self) -> list[str]:
@@ -135,6 +136,7 @@ class NewsTask(_ReadTask):
 
 class VideoTask(_ReadTask):
     """Task for handling video."""
+
     @property
     @override
     def handles(self) -> list[str]:

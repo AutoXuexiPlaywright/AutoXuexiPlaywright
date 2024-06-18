@@ -8,6 +8,7 @@ from enum import Enum
 
 class TaskStatus(Enum):
     """Status of task."""
+
     UNKNOWN = 0
     READY = 1
     SUCCESS = 2
@@ -17,6 +18,7 @@ class TaskStatus(Enum):
 
 class AbstractBaseTask(ABC):
     """Common parts of Task in sync and async apis."""
+
     status = TaskStatus.UNKNOWN
 
     @property

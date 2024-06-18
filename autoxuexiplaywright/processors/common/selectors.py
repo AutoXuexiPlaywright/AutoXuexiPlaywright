@@ -3,11 +3,13 @@
 
 class Selectors:
     """Selectors for common usage."""
+
     LOADING = "div.ant-spin-spinning"
 
 
 class PointsSelectors:
     """Selectors for getting points."""
+
     POINTS_CARDS = "div.my-points-card"
     POINTS_SPAN = "span.my-points-points"
     CARD_TITLE = POINTS_CARDS.replace("div.", "p.") + "-title"
@@ -16,6 +18,7 @@ class PointsSelectors:
 
 class TestSelectors:
     """Selectors for processing tests."""
+
     TEST_WEEKS = "div.ant-spin-container div.week"
     TEST_WEEK_TITLE = "div.week-title"
     TEST_BTN = "button.button"
@@ -50,6 +53,7 @@ class TestSelectors:
 
 class ReadSelectors:
     """Selectors for handling read tasks."""
+
     NEWS_TITLE_SPAN = 'section[data-data-id="zhaiyao-title"] span.moreUrl'
     NEWS_LIST = 'section[data-data-id="textListGrid"] div.grid-cell'
     NEWS_TITLE_TEXT = "div.text-wrap>span.text"
@@ -69,6 +73,7 @@ class ReadSelectors:
 
 class LoginSelectors:
     """Selectors for handling login tasks."""
+
     LOGIN_QGLOGIN = "div#qglogin"
     LOGIN_IFRAME = "iframe"
     LOGIN_IMAGE = "div#app img"

@@ -12,6 +12,7 @@ _languages: dict[str, dict[str, str]] = {}
 
 class NoSuchLanguageKeyException(Exception):
     """Exception shows that no language string with given key."""
+
     def __init__(self, key: str) -> None:
         """Initialize a NoSuchLanguageKeyException instance.
 

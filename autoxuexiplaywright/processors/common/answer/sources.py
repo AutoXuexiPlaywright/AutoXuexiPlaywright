@@ -31,6 +31,7 @@ class _AddSupportedAnswerSource(AnswerSource):
 
 class SqliteAnswerSource(_AddSupportedAnswerSource):
     """Get answers from sqlite database."""
+
     @override
     def start(self):
         self._conn = connect(get_data_path(_ANSWER_DB_FILENAME))

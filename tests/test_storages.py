@@ -22,8 +22,7 @@ def cache_path() -> Path:
             return Path.home() / "AppData" / "Local" / APPNAME
         case "Linux":
             xdg_cache_home = environ.get("XDG_CACHE_HOME")
-            xdg_cache_home = Path(xdg_cache_home) if xdg_cache_home \
-                else Path.home() / ".cache"
+            xdg_cache_home = Path(xdg_cache_home) if xdg_cache_home else Path.home() / ".cache"
             return xdg_cache_home / APPNAME
         case "Darwin":
             return Path.home() / "Library" / "Caches" / APPNAME
@@ -39,8 +38,7 @@ def config_path() -> Path:
             return Path.home() / "AppData" / "Local" / APPNAME
         case "Linux":
             xdg_config_home = environ.get("XDG_CONFIG_HOME")
-            xdg_config_home = Path(xdg_config_home) if xdg_config_home \
-                else Path.home() / ".config"
+            xdg_config_home = Path(xdg_config_home) if xdg_config_home else Path.home() / ".config"
             return xdg_config_home / APPNAME
         case "Darwin":
             return Path.home() / "Library" / "Preferences" / APPNAME
@@ -56,8 +54,9 @@ def data_path() -> Path:
             return Path.home() / "AppData" / "Local" / APPNAME
         case "Linux":
             xdg_data_home = environ.get("XDG_DATA_HOME")
-            xdg_data_home = Path(xdg_data_home) if xdg_data_home \
-                else Path.home() / ".local" / "share"
+            xdg_data_home = (
+                Path(xdg_data_home) if xdg_data_home else Path.home() / ".local" / "share"
+            )
             return xdg_data_home / APPNAME
         case "Darwin":
             return Path.home() / "Library" / "Application Support" / APPNAME

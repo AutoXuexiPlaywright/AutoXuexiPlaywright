@@ -154,6 +154,7 @@ class _QSettingsExtended(QSettings):
 
 class QFramelessWidget(_QWidgetExtended):
     """Qt Frameless Widget."""
+
     def __init__(
         self,
         parent: QWidget | None = None,
@@ -254,6 +255,7 @@ class _QLineEditWithLabelMultiple(QFramelessWidget):
 
 class SettingsWindow(QFramelessWidget):
     """Qt window for editing settings."""
+
     def __init__(self, parent: QWidget):
         """Create SettingsWindow instance.
 
@@ -544,6 +546,7 @@ class SettingsWindow(QFramelessWidget):
 
 class MainWindow(QFramelessWidget):
     """Qt window for main ui."""
+
     def __init__(self):
         """Create a MainWindow instance."""
         super().__init__()
