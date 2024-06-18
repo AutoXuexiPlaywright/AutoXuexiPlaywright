@@ -69,9 +69,11 @@ async def _get_status_from_page(page: Page, close: bool) -> bool:
     for i in range(await cards.count()):
         card = cards.nth(i)
         title = (await card.locator(PointsSelectors.CARD_TITLE).first.inner_text()).strip()
-        if title in _config.skipped:
-            if not set_task_status_by_task_title(title, TaskStatus.SKIPPED):
-                warning(get_language_string("core-warning-failed-to-skip-task") % title)
+        if (title in _config.skipped) and not set_task_status_by_task_title(
+            title,
+            TaskStatus.SKIPPED,
+        ):
+            warning(get_language_string("core-warning-failed-to-skip-task") % title)
         elif (not await _is_card_finished(card)) and (title not in tasks_to_be_done):
             tasks_to_be_done.append(title)
     find_event_by_id(EventID.SCORE_UPDATED).invoke(tuple(scores))
