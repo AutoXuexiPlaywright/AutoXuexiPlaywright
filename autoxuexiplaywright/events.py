@@ -9,6 +9,7 @@ from typing_extensions import override
 
 class EventID(Enum):
     """ID of all events."""
+
     NONE = 0
     FINISHED = 1
     STATUS_UPDATED = 2
@@ -25,6 +26,7 @@ class EventID(Enum):
 
 class Event(object):
     """Event will be triggered during execution."""
+
     def __init__(self, _id: EventID = EventID.NONE):
         """Create an Event instance.
 
@@ -57,6 +59,7 @@ class Event(object):
 
 class NoSuchEventException(Exception):
     """Exception shows that no event is found."""
+
     def __init__(self, _id: EventID) -> None:
         """Create a NoSuchEventException instance.
 

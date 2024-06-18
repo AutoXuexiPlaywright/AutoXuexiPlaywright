@@ -14,7 +14,7 @@ def test_language_string():
     set_runtime_config(Config())  # lang="zh-cn"
     with (get_resources_path("lang") / "zh-cn.json").open("r", encoding="utf-8") as reader:
         language_json: dict[str, str] = load(reader)
-    for key in language_json:
-        assert get_language_string(key) == language_json[key]
+    for key, value in language_json.items():
+        assert get_language_string(key) == value
     with pytest.raises(NoSuchLanguageKeyException):
         _ = get_language_string("_test-key-not-exist")

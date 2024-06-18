@@ -18,6 +18,7 @@ from playwright.async_api import TimeoutError
 
 class Task(AbstractBaseTask):
     """Base Task class."""
+
     @property
     def last_page(self) -> Page:
         """The latest page."""

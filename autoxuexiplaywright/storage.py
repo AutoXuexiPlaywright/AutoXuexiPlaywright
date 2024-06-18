@@ -150,8 +150,9 @@ def _get_data_home() -> Path:
             return path
         case "Linux":
             xdg_data_home = environ.get("XDG_DATA_HOME")
-            xdg_data_home = Path(xdg_data_home) if xdg_data_home \
-                else Path.home() / ".local" / "share"
+            xdg_data_home = (
+                Path(xdg_data_home) if xdg_data_home else Path.home() / ".local" / "share"
+            )
             app_data = xdg_data_home / APPNAME
             app_data.mkdir(parents=True, exist_ok=True)
             return app_data
@@ -178,8 +179,7 @@ def _get_config_home() -> Path:
             return path
         case "Linux":
             xdg_config_home = environ.get("XDG_CONFIG_HOME")
-            xdg_config_home = Path(xdg_config_home) if xdg_config_home \
-                else Path.home() / ".config"
+            xdg_config_home = Path(xdg_config_home) if xdg_config_home else Path.home() / ".config"
             app_config = xdg_config_home / APPNAME
             app_config.mkdir(parents=True, exist_ok=True)
             return app_config
@@ -206,8 +206,7 @@ def _get_cache_home() -> Path:
             return path
         case "Linux":
             xdg_cache_home = environ.get("XDG_CACHE_HOME")
-            xdg_cache_home = Path(xdg_cache_home) if xdg_cache_home \
-                else Path.home() / ".cache"
+            xdg_cache_home = Path(xdg_cache_home) if xdg_cache_home else Path.home() / ".cache"
             app_cache = xdg_cache_home / APPNAME
             app_cache.mkdir(parents=True, exist_ok=True)
             return app_cache

@@ -8,6 +8,7 @@ from autoxuexiplaywright.sdk.module import module_entrance
 @module_entrance
 class TestSource(AnswerSource):
     """Sample AnswerSource module."""
+
     @override
     def get_answer(self, title: str) -> list[str]:
         return []

@@ -66,8 +66,9 @@ def _get_status_from_page(page: Page, close: bool) -> bool:
     for i in range(cards.count()):
         card = cards.nth(i)
         title = card.locator(PointsSelectors.CARD_TITLE).first.inner_text().strip()
-        if (title in _config.skipped) and \
-            not set_task_status_by_task_title(title, TaskStatus.SKIPPED):
+        if (title in _config.skipped) and not set_task_status_by_task_title(
+            title, TaskStatus.SKIPPED
+        ):
             warning(get_language_string("core-warning-failed-to-skip-task") % title)
         elif (not _is_card_finished(card)) and (title not in tasks_to_be_done):
             tasks_to_be_done.append(title)

@@ -14,6 +14,7 @@ T = TypeVar("T", bound="Module")
 
 class SemVer(NamedTuple):
     """NamedTuple which can storage version status."""
+
     major: int
     minor: int
     patch: int
@@ -25,6 +26,7 @@ class SemVer(NamedTuple):
 
 class Module(ABC):
     """Base Module class."""
+
     @final
     @classmethod
     @deprecated("Remove in the future, always return False now.")

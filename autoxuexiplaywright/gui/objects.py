@@ -26,6 +26,7 @@ class _QHandler(Handler):
 
 class SubProcess(QObject):
     """QObject which will run in subprocess."""
+
     jobFinishedSignal = Signal(str)
     updateStatusSignal = Signal(str)
     pauseThreadSignal = Signal(tuple)

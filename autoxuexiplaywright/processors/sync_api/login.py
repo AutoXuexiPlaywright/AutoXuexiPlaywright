@@ -22,6 +22,7 @@ from playwright.sync_api import TimeoutError
 
 class LoginTask(Task):
     """Task for handling login."""
+
     @property
     @override
     def requires(self) -> list[str]:
