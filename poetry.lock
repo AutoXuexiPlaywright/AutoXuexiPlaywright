@@ -280,13 +280,13 @@ files = [
 
 [[package]]
 name = "m3u8"
-version = "5.0.0"
+version = "5.1.0"
 description = "Python m3u8 parser"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "m3u8-5.0.0-py3-none-any.whl", hash = "sha256:20805a4b8ec3be573fa6441ba81657ba33c4b17283b7d22313a7b401e7e70eed"},
-    {file = "m3u8-5.0.0.tar.gz", hash = "sha256:33f795fe9e31074537e52b52c75f5b04a1741db686aba2b06b4ff4664c27f0a4"},
+    {file = "m3u8-5.1.0-py3-none-any.whl", hash = "sha256:30e78e0898edf6d69cbcfb7000ad23b97e13bcfa7e82770d2f0a21b46221eed2"},
+    {file = "m3u8-5.1.0.tar.gz", hash = "sha256:31b90c7c9ac15cf209bc901f2476396892085bf0f2b9bf86273db0e132811748"},
 ]
 
 [[package]]
@@ -790,4 +790,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.13"
-content-hash = "40efb2382055326f88b0bc44c0a1bc17fc9c64d73fef8504282893de608fe6b5"
+content-hash = "6e4f12488ce8e3bda27baaedb3c7cb26da8652f2976bd8ae66e6acf1a45e73ca"
