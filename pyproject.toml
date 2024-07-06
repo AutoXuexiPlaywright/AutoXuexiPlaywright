@@ -52,7 +52,7 @@ pytest-playwright = "^0.5.0"
 pytest-cov = "^5.0.0"
 pytest-ruff = "^0.3.2"
 
-[tool.pyright]
+[tool.basedpyright]
 venvPath="."
 venv=".venv"
 reportMissingImports = true
