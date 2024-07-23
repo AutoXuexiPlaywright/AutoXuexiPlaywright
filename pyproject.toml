@@ -153,6 +153,8 @@ ignore = [
 "autoxuexiplaywright/processors/*/test.py" = ["PLC0415"]
 # SQL is too long
 "autoxuexiplaywright/processors/common/answer/sources.py" = ["E501"]
+# playwright likes this
+"autoxuexiplaywright/processors/async_api/task.py" = ["ASYNC109"]
 # empty functions
 "autoxuexiplaywright/sdk/module.py" = ["B027"]
 # Too many nested blocks
@@ -160,7 +162,8 @@ ignore = [
 # tests are usually using assert and private objects
 # pyright is not happy when using i.attr
 # test __eq__ function should not be changed to ==
-"tests/**.py" = ["S101", "PLC2701","B010", "PLC2801"]
+# we prefers @pytest.fixture() instead @pytest.fixture
+"tests/**.py" = ["S101", "PLC2701","B010", "PLC2801", "PT001"]
 
 [tool.ruff.lint.flake8-annotations]
 allow-star-arg-any = true
