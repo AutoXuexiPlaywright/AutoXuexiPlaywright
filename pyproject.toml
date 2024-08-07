@@ -146,7 +146,8 @@ ignore = [
 # Dynamic import objects
 "autoxuexiplaywright/processors/__init__.py" = ["PLC0415"]
 # Size of list, method is function
-"autoxuexiplaywright/processors/**.py" = ["PLR6301", "PLR2004"]
+# Shadows some built-in object
+"autoxuexiplaywright/processors/**.py" = ["PLR6301", "PLR2004", "A004", "A005"]
 # Nested block
 "autoxuexiplaywright/processors/*/read.py" = ["PLR1702"]
 # Dynamic import
