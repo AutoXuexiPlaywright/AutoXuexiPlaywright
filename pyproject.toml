@@ -2,7 +2,7 @@
 name = "autoxuexiplaywright"
 version = "3.0.8"
 description = "A tool to finish something boring."
-authors = ["Noob Zhang <17194552+zhanghua000@users.noreply.github.com>"]
+authors = ["autoxuexiplaywright-dev <180894403+autoxuexiplaywright-dev@users.noreply.github.com>"]
 license = "GPL"
 packages = [{include = "autoxuexiplaywright"}]
 
