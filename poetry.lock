@@ -470,17 +470,6 @@ typing-extensions = "*"
 dev = ["black", "build", "flake8", "flake8-black", "isort", "jupyter-console", "mkdocs", "mkdocs-include-markdown-plugin", "mkdocstrings[python]", "pytest", "pytest-asyncio", "pytest-trio", "sphinx", "toml", "tox", "trio", "trio", "trio-typing", "twine", "twisted", "validate-pyproject[all]"]
 
 [[package]]
-name = "pypng"
-version = "0.20220715.0"
-description = "Pure Python library for saving and loading PNG images"
-optional = false
-python-versions = "*"
-files = [
-    {file = "pypng-0.20220715.0-py3-none-any.whl", hash = "sha256:4a43e969b8f5aaafb2a415536c1a8ec7e341cd6a3f957fd5b5f32a4cfeed902c"},
-    {file = "pypng-0.20220715.0.tar.gz", hash = "sha256:739c433ba96f078315de54c0db975aee537cbc3e1d0ae4ed9aab0ca1e427e2c1"},
-]
-
-[[package]]
 name = "pyside6"
 version = "6.7.2"
 description = "Python bindings for the Qt cross-platform application and UI framework"
@@ -697,27 +686,23 @@ scripts = ["Pillow (>=3.2.0)"]
 
 [[package]]
 name = "qrcode"
-version = "7.4.2"
+version = "8.0"
 description = "QR Code image generator"
 optional = false
-python-versions = ">=3.7"
+python-versions = "<4.0,>=3.9"
 files = [
-    {file = "qrcode-7.4.2-py3-none-any.whl", hash = "sha256:581dca7a029bcb2deef5d01068e39093e80ef00b4a61098a2182eac59d01643a"},
-    {file = "qrcode-7.4.2.tar.gz", hash = "sha256:9dd969454827e127dbd93696b20747239e6d540e082937c90f14ac95b30f5845"},
+    {file = "qrcode-8.0-py3-none-any.whl", hash = "sha256:9fc05f03305ad27a709eb742cf3097fa19e6f6f93bb9e2f039c0979190f6f1b1"},
+    {file = "qrcode-8.0.tar.gz", hash = "sha256:025ce2b150f7fe4296d116ee9bad455a6643ab4f6e7dce541613a4758cbce347"},
 ]
 
 [package.dependencies]
-colorama = {version = "*", markers = "platform_system == \"Windows\""}
-pillow = {version = ">=9.1.0", optional = true, markers = "extra == \"pil\""}
-pypng = "*"
-typing-extensions = "*"
+colorama = {version = "*", markers = "sys_platform == \"win32\""}
+pillow = {version = ">=9.1.0", optional = true, markers = "extra == \"pil\" or extra == \"all\""}
 
 [package.extras]
-all = ["pillow (>=9.1.0)", "pytest", "pytest-cov", "tox", "zest.releaser[recommended]"]
-dev = ["pytest", "pytest-cov", "tox"]
-maintainer = ["zest.releaser[recommended]"]
+all = ["pillow (>=9.1.0)", "pypng"]
 pil = ["pillow (>=9.1.0)"]
-test = ["coverage", "pytest"]
+png = ["pypng"]
 
 [[package]]
 name = "requests"
@@ -822,4 +807,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.13"
-content-hash = "f213b58fa975ab58a78c09184d7e41040567cf485f27ddcffe7e3cd34109a713"
+content-hash = "cf60cbbfd2dbae562d62990cd3fb3c1cb77579a9a349091e0839d8429ce7be7a"
